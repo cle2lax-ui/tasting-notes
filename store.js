@@ -1,0 +1,207 @@
+/* Blind Tasting Notes — on-device notebook (IndexedDB) and the same API the Google edition's server offered. */
+"use strict";
+
+var DB = (function () {
+  var NAME = 'blind-tasting-notes', VER = 1, dbp = null;
+  function open() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (res, rej) {
+      var r = indexedDB.open(NAME, VER);
+      r.onupgradeneeded = function () {
+        var db = r.result;
+        if (!db.objectStoreNames.contains('wines')) db.createObjectStore('wines', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', { keyPath: 'id' });
+      };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+    return dbp;
+  }
+  function tx(store, mode, fn) {
+    return open().then(function (db) {
+      return new Promise(function (res, rej) {
+        var t = db.transaction(store, mode), s = t.objectStore(store), out;
+        var q = fn(s);
+        if (q) q.onsuccess = function () { out = q.result; };
+        t.oncomplete = function () { res(out); };
+        t.onerror = t.onabort = function () { rej(t.error); };
+      });
+    });
+  }
+  return {
+    all: function (store) { return tx(store, 'readonly', function (s) { return s.getAll(); }); },
+    get: function (store, id) { return tx(store, 'readonly', function (s) { return s.get(id); }); },
+    put: function (store, v) { return tx(store, 'readwrite', function (s) { s.put(v); }); },
+    del: function (store, id) { return tx(store, 'readwrite', function (s) { s.delete(id); }); },
+    putMany: function (store, list) { return tx(store, 'readwrite', function (s) { list.forEach(function (v) { s.put(v); }); }); },
+    clear: function (store) { return tx(store, 'readwrite', function (s) { s.clear(); }); },
+    keys: function (store) { return tx(store, 'readonly', function (s) { return s.getAllKeys(); }); }
+  };
+})();
+
+/* ---------------------------------------------------------------- the notebook in memory */
+var ROWS = [];                                   // raw saved notes, one per wine (Entry's own field names)
+function uid() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function ymdToDate(s) { var p = String(s || '').split('-'); return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2], 12) : null; }
+function keyOf(r) { return (r.date || '') + '#' + Number(r.wineNo || 0); }
+function localToday() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function wineLabel(d, n) { var p = String(d).split('-'); return (+p[1]) + '/' + (+p[2]) + '/' + p[0].slice(2) + ', Wine #' + Number(n); }
+
+function loadRows() { return DB.all('wines').then(function (list) { ROWS = list || []; return ROWS; }); }
+
+/** Every wine, normalized exactly like the Google edition's Summary. */
+function appAllSync() {
+  var src = ROWS.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).map(function (r) {
+    var o = {}; for (var k in r) o[k] = r[k]; o.date = ymdToDate(r.date); return o;
+  });
+  return normalize(src).map(function (w) {
+    var o = {}; for (var k in w) o[k] = w[k];
+    o.ymd = w.date instanceof Date && !isNaN(w.date) ? w.date.getFullYear() + '-' + pad2(w.date.getMonth() + 1) + '-' + pad2(w.date.getDate()) : '';
+    delete o.date; return o;
+  });
+}
+
+var API = {
+  appInit: function () {
+    return loadRows().then(function () { return { scales: L, all: appAllSync(), urls: {}, today: localToday() }; });
+  },
+  appPing: function () { return Promise.resolve(true); },
+  appLoad: function (d, n) {
+    var r = ROWS.filter(function (x) { return keyOf(x) === d + '#' + Number(n); }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); })[0];
+    if (!r) return Promise.resolve(null);
+    var o = {}; for (var k in r) o[k] = r[k];
+    return Promise.resolve(o);
+  },
+  appSave: function (rec, orig, force) {
+    if (!rec || !/^\d{4}-\d{2}-\d{2}$/.test(rec.date || '') || !(Number(rec.wineNo) > 0)) return Promise.reject(new Error('Date and Wine # are required.'));
+    var key = keyOf(rec);
+    var mine = rec.id ? ROWS.filter(function (x) { return x.id === rec.id; })[0] : null;
+    if (!mine && orig) mine = ROWS.filter(function (x) { return keyOf(x) === orig.date + '#' + Number(orig.wineNo); })[0] || null;
+    var clash = ROWS.filter(function (x) { return keyOf(x) === key && (!mine || x.id !== mine.id); })[0];
+    if (clash && !force) {
+      return Promise.resolve({ conflict: wineLabel(rec.date, rec.wineNo) + ' is already in your notebook' + (clash.producer ? ' (' + clash.producer + ')' : '') + '.' });
+    }
+    var row = {};
+    for (var k in rec) row[k] = rec[k];
+    row.wineNo = Number(rec.wineNo);
+    if (row.open) { row.gGrape = row.gCountry = row.gRegion = row.gVintage = ''; }
+    row.id = mine ? mine.id : (rec.id || uid());
+    if (mine) { row.sheetKey = mine.sheetKey; row.sheetSer = mine.sheetSer; if (!('photoUrl' in rec)) row.photoUrl = mine.photoUrl; }
+    if (clash && force && !row.sheetKey) { row.sheetKey = clash.sheetKey; row.sheetSer = clash.sheetSer; }
+    row.ts = Date.now();
+    row.dirty = true;
+    var jobs = [];
+    if (clash && force && clash.id !== row.id) jobs.push(DB.del('wines', clash.id));
+    return Promise.all(jobs).then(function () { return DB.put('wines', row); }).then(loadRows).then(function () {
+      if (window.Sync) Sync.soon();
+      return { ok: true, label: wineLabel(rec.date, rec.wineNo), id: row.id, all: appAllSync() };
+    });
+  }
+};
+
+/* ---------------------------------------------------------------- label photos (kept on the device) */
+function shrinkImage(file, maxSide, quality) {
+  return new Promise(function (res, rej) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var s = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (b) { b ? res(b) : rej(new Error('Could not read that photo.')); }, 'image/jpeg', quality);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('Could not read that photo.')); };
+    img.src = url;
+  });
+}
+var Photos = {
+  cache: {},
+  add: function (wineId, file) {
+    return Promise.all([shrinkImage(file, 1600, 0.82), shrinkImage(file, 360, 0.8)]).then(function (b) {
+      var rec = { id: wineId, full: b[0], thumb: b[1], driveId: '', ts: Date.now() };
+      return DB.put('photos', rec).then(function () { Photos.forget(wineId); return rec; });
+    });
+  },
+  get: function (wineId) { return DB.get('photos', wineId); },
+  remove: function (wineId) { Photos.forget(wineId); return DB.del('photos', wineId); },
+  forget: function (wineId) { var c = Photos.cache[wineId]; if (c) { URL.revokeObjectURL(c.thumb); URL.revokeObjectURL(c.full); delete Photos.cache[wineId]; } },
+  urls: function (wineId) {
+    if (Photos.cache[wineId]) return Promise.resolve(Photos.cache[wineId]);
+    return Photos.get(wineId).then(function (p) {
+      if (!p) return null;
+      return (Photos.cache[wineId] = { thumb: URL.createObjectURL(p.thumb), full: URL.createObjectURL(p.full) });
+    });
+  }
+};
+
+/* ---------------------------------------------------------------- backup, restore, spreadsheet export */
+function blobToDataUrl(b) { return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.readAsDataURL(b); }); }
+function dataUrlToBlob(u) { var p = u.split(','), bin = atob(p[1]), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: (p[0].match(/:(.*?);/) || [])[1] || 'image/jpeg' }); }
+
+var Backup = {
+  /** ids: limit to these wines (sharing a flight); withPhotos: include label photos. */
+  make: function (ids, withPhotos, title) {
+    var rows = ROWS.filter(function (r) { return !ids || ids.indexOf(r.id) >= 0; }).map(function (r) {
+      var o = {}; for (var k in r) if (k !== 'dirty' && k !== 'sheetKey') o[k] = r[k]; return o;
+    });
+    var file = { app: 'Blind Tasting Notes', kind: ids ? 'flight' : 'backup', title: title || '', made: new Date().toISOString(), wines: rows, photos: {} };
+    if (!withPhotos) return Promise.resolve(file);
+    return Promise.all(rows.map(function (r) {
+      return Photos.get(r.id).then(function (p) { if (p) return blobToDataUrl(p.full).then(function (u) { file.photos[r.id] = u; }); });
+    })).then(function () { return file; });
+  },
+  /** Adds wines from a backup or a shared flight. Same date + wine # → the newer note wins. */
+  restore: function (file) {
+    if (!file || file.app !== 'Blind Tasting Notes' || !Array.isArray(file.wines)) return Promise.reject(new Error("That file isn't a Blind Tasting Notes backup."));
+    var added = 0, updated = 0, puts = [], photoJobs = [];
+    file.wines.forEach(function (w) {
+      if (!w || !/^\d{4}-\d{2}-\d{2}$/.test(w.date || '')) return;
+      var same = ROWS.filter(function (x) { return keyOf(x) === keyOf(w); })[0];
+      if (same && (same.ts || 0) >= (w.ts || 0)) return;
+      var row = {}; for (var k in w) row[k] = w[k];
+      row.id = same ? same.id : uid(); row.dirty = true; delete row.sheetSer; delete row.sheetKey; if (same) { row.sheetKey = same.sheetKey; row.sheetSer = same.sheetSer; }
+      if (same) updated++; else added++;
+      puts.push(row);
+      if (file.photos && file.photos[w.id]) {
+        var full = dataUrlToBlob(file.photos[w.id]);
+        photoJobs.push(function () { return Photos.add(row.id, full); });
+      }
+    });
+    return DB.putMany('wines', puts)
+      .then(function () { return photoJobs.reduce(function (p, j) { return p.then(j); }, Promise.resolve()); })
+      .then(loadRows).then(function () { if (window.Sync) Sync.soon(); return { added: added, updated: updated }; });
+  },
+  csv: function () {
+    var cols = ['Timestamp'].concat(QS.map(function (q) { return q.title; }));
+    var esc = function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var lines = [cols.map(esc).join(',')];
+    ROWS.slice().sort(function (a, b) { return keyOf(a) < keyOf(b) ? -1 : 1; }).forEach(function (r) {
+      lines.push([new Date(r.ts || Date.now()).toLocaleString('en-US')].concat(QS.map(function (q) { return rowCell(r, q.key); })).map(esc).join(','));
+    });
+    return new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
+  }
+};
+
+/** The value a saved note puts in one Tasting Log column (same layout as the Google edition). */
+function rowCell(r, key) {
+  switch (key) {
+    case 'colorWhite': return r.type === 'White' ? (r.color || '') : '';
+    case 'colorRose': return r.type === 'Rosé' ? (r.color || '') : '';
+    case 'colorRed': return r.type === 'Red' ? (r.color || '') : '';
+    case 'photo': return r.photoUrl || '';
+    default: return r[key] == null ? '' : r[key];
+  }
+}
+
+/** Hand a file to the iPhone / iPad share sheet, or download it elsewhere. */
+function shareFile(blob, name, title) {
+  var file;
+  try { file = new File([blob], name, { type: blob.type }); } catch (e) { file = null; }
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    return navigator.share({ files: [file], title: title || name }).catch(function (e) { if (e && e.name !== 'AbortError') throw e; });
+  }
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  return Promise.resolve();
+}
