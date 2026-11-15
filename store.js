@@ -201,6 +201,8 @@ function shareFile(blob, name, title) {
   if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
     return navigator.share({ files: [file], title: title || name }).catch(function (e) { if (e && e.name !== 'AbortError') throw e; });
   }
+  var standalone = navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (standalone) { var u = URL.createObjectURL(blob); var win = window.open(u, '_blank'); if (!win) location.href = u; setTimeout(function () { URL.revokeObjectURL(u); }, 60000); return Promise.resolve(); }
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();

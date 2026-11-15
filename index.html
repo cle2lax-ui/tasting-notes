@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Blind Tasting Notes</title>
 <meta name="theme-color" content="#5A1229">
+<script>(function(){try{var p=JSON.parse(localStorage.getItem('btn-theme2')||'"auto"');var d=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d)r.setAttribute('data-theme','dim');r.style.colorScheme=d?'dark':'light';}catch(e){}})();</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -486,7 +487,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.5.1 entry polish */
+/* ---- v1.6 entry polish */
 .sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
 .sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
 .sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
@@ -559,7 +560,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
 :root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
 :root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
-/* ---- v1.5.1 beauty pass */
+/* ---- v1.6 beauty pass */
 .sec>header{padding:16px 18px 12px}
 .sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
 .sec>header .t{font:italic 700 20px/1.1 var(--serif)}
@@ -642,6 +643,24 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .opts.pcs .opt.pc,:root[data-theme="dim"] .pc-ck{background:#2A2125}
 :root[data-theme="dim"] .pc-lab b{color:#EDE3E6}
 :root[data-theme="dim"] .opts.pcs .opt.pc.on .pc-lab b{color:#E9C98B}
+
+/* v1.6 summary: Appearance · Nose · Palate · Quality · Guess */
+.c .dl+.nt,.c .dl+.dstrip,.c .sts+.nt,.c .sts+.dstrip{margin-top:14px}
+.c .dstrip+.nt{margin-top:2px}
+@media (min-width:700px){
+  .wg>.c{border:0 !important;grid-column:auto}
+  .wg>.c1,.wg>.c2{border-right:1px solid var(--line) !important}
+  .wg>.c2,.wg>.c4{border-top:1px solid var(--line) !important}
+  .wg>.c5{grid-column:1 / -1;border-top:1px solid var(--line) !important}
+}
+@media (min-width:1080px){
+  .wg{grid-template-columns:1fr 1.3fr 1.35fr 1.2fr 1.2fr}
+  .wg>.c{border:0 !important;border-right:1px solid var(--line) !important;grid-column:auto}
+  .wg>.c5{border-right:0 !important}
+}
+/* settings: light or dark */
+.thrRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14.5px;font-weight:600}
+.thrRow .seg{flex:0 1 300px}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -742,7 +761,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.5.1 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.6 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -768,7 +787,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.5.1</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.6</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -800,9 +819,9 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </section>
   <section>
     <h3 class="eyebrow">Appearance</h3>
-    <label class="tog">Dim-room mode <input type="checkbox" id="dimTog"></label>
+    <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.5.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.6. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -1454,27 +1473,24 @@ function card(w){
     '</div>' + ring(w) +
     (w.ymd ? '<button class="edit" type="button" title="Edit this wine" aria-label="Edit this wine" data-w="' + w.ymd + '|' + w.wineNo + '" data-l="' + esc(w.label) + '">' + PEN + '</button>' : '') +
     '</header><div class="wg">';
-  // appearance & nose
-  var an = [['Clarity','clarity'],['Intensity','appInt'],['Color','color'],['Condition','condition'],['Nose','noseInt'],['Development','development']]
-    .filter(function(p){ return w[p[1]]; });
+  // appearance · nose · palate, each with its own notes
   var dlx = function(list){ return '<dl class="dl">' + list.map(function(p){
       return '<dt>' + p[0] + '</dt><dd>' + (p[1] === 'color' && SW[w.color] ? '<span class="sw" style="background:' + SW[w.color] + '"></span>' : '') + esc(lg(w[p[1]])) + '</dd>'; }).join('') + '</dl>'; };
-  var ap = an.filter(function(p){ return ['clarity','appInt','color'].indexOf(p[1]) >= 0; }), no = an.filter(function(p){ return ['clarity','appInt','color'].indexOf(p[1]) < 0; });
-  h += '<section class="c c1"><h4 class="eyebrow">Appearance</h4>' + (ap.length ? dlx(ap) : '<p class="hint">Not recorded</p>') +
-    '<h4 class="eyebrow h4b">Nose</h4>' + (no.length ? dlx(no) : '<p class="hint">Not recorded</p>') + '</section>';
-  // structure
-  h += '<section class="c c2"><h4 class="eyebrow">Structure</h4><div class="sts">' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],
+  var have = function(list){ return list.filter(function(p){ return w[p[1]]; }); };
+  var notes = function(list){ return have(list).map(function(p){ return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join(''); };
+  var strip = function(t){ var dm = matchesIn(t || '').slice(0, 8);
+    return dm.length ? '<div class="dstrip">' + dm.map(function(x){ return '<img src="' + photoOf(x) + '" alt="' + esc(x) + '" title="' + esc(x) + '" loading="lazy">'; }).join('') + '</div>' : ''; };
+  var none = '<p class="hint">Not recorded</p>';
+  var ap = have([['Clarity','clarity'],['Intensity','appInt'],['Color','color']]), apN = notes([['Notes','appNotes']]);
+  h += '<section class="c c1"><h4 class="eyebrow">Appearance</h4>' + (ap.length ? dlx(ap) : '') + apN + (ap.length || apN ? '' : none) + '</section>';
+  var no = have([['Condition','condition'],['Intensity','noseInt'],['Development','development']]), noN = notes([['Aromas','aromas'],['Comments','noseNotes']]);
+  h += '<section class="c c3"><h4 class="eyebrow">Nose</h4>' + (no.length ? dlx(no) : '') + strip(w.aromas) + noN + (no.length || noN ? '' : none) + '</section>';
+  h += '<section class="c c2"><h4 class="eyebrow">Palate</h4><div class="sts">' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],
       ['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]]
     .map(function(p){ var v = w[p[1]], i = v ? idx(p[2], v) : -1;
       return '<div class="st' + (v ? '' : ' na') + '"><span class="l">' + p[0] + '</span><span class="segs">' +
         p[2].map(function(_, j){ return '<i' + (j <= i ? ' class="f"' : '') + '></i>'; }).join('') + '</span><span class="v">' + (v ? esc(sh(v)) : '—') + '</span></div>';
-    }).join('') + '</div></section>';
-  // aromas & flavors
-  var nts = [['Appearance','appNotes'],['Aromas','aromas'],['Nose Comments','noseNotes'],['Flavors','flavors'],['Tannin','tanNature'],['Palate','palate']].filter(function(p){ return w[p[1]]; });
-  var dm = matchesIn([w.aromas, w.flavors].join(', ')).slice(0, 9);
-  h += '<section class="c c3"><h4 class="eyebrow">Aromas &amp; Flavors</h4>' +
-    (dm.length ? '<div class="dstrip">' + dm.map(function(x){ return '<img src="' + photoOf(x) + '" alt="' + esc(x) + '" title="' + esc(x) + '" loading="lazy">'; }).join('') + '</div>' : '') + (nts.length ? nts.map(function(p){
-      return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join('') : '<p class="hint">Not recorded</p>') + '</section>';
+    }).join('') + '</div>' + strip(w.flavors) + notes([['Flavors','flavors'],['Tannin','tanNature'],['Notes','palate']]) + '</section>';
   // quality & aging
   var bl = (w.blic || '').split(/\s*,\s*/);
   h += '<section class="c c4"><h4 class="eyebrow">Quality &amp; Aging</h4>' +
@@ -1513,24 +1529,20 @@ function pcard(w){
     (w.producer && sub ? '<span class="sb">' + esc(sub) + '</span>' : '') +
     (THUMBS[w.id] ? '<img class="pth" src="' + THUMBS[w.id].thumb + '" alt="">' : '') +
     '</td><td class="sc">' + (w.open ? '<span>Tasted open</span>' : w.score === '' ? '' : '<span>Score ' + w.score + ' / 4</span>') + '</td></tr></table>';
-  h += '<table class="pt"><colgroup><col style="width:15%"><col style="width:16.5%"><col style="width:26%"><col style="width:22%"><col style="width:20.5%"></colgroup><tbody><tr>';
-  // appearance & nose
-  var an = [['Clarity','clarity'],['Intensity','appInt'],['Color','color'],['Condition','condition'],['Nose','noseInt'],['Development','development']]
-    .filter(function(p){ return w[p[1]]; });
-  h += '<td><h4>Appearance · Nose</h4>' + (an.length ? '<table class="kv">' + an.map(function(p){
+  h += '<table class="pt"><colgroup><col style="width:14%"><col style="width:19.5%"><col style="width:24.5%"><col style="width:21%"><col style="width:21%"></colgroup><tbody><tr>';
+  var kvt = function(list){ list = list.filter(function(p){ return w[p[1]]; }); return list.length ? '<table class="kv">' + list.map(function(p){
       return '<tr><td class="l">' + p[0] + '</td><td class="v">' + (p[1] === 'color' && SW[w.color] ? '<span class="dot" style="background:' + SW[w.color] + '"></span>' : '') +
-        esc(lg(w[p[1]])) + '</td></tr>'; }).join('') + '</table>' : '<span class="hint">Not recorded</span>') + '</td>';
-  // structure
-  h += '<td><h4>Structure</h4>' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],
+        esc(lg(w[p[1]])) + '</td></tr>'; }).join('') + '</table>' : ''; };
+  var ntp = function(list){ return list.filter(function(p){ return w[p[1]]; }).map(function(p){ return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join(''); };
+  var or = function(x){ return x || '<span class="hint">Not recorded</span>'; };
+  h += '<td><h4>Appearance</h4>' + or(kvt([['Clarity','clarity'],['Intensity','appInt'],['Color','color']]) + ntp([['Notes','appNotes']])) + '</td>';
+  h += '<td><h4>Nose</h4>' + or(kvt([['Condition','condition'],['Intensity','noseInt'],['Development','development']]) + ntp([['Aromas','aromas'],['Comments','noseNotes']])) + '</td>';
+  h += '<td><h4>Palate</h4>' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],
       ['Alcohol','alcohol',L.alcohol],['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]].map(function(p){
       var v = w[p[1]], i = v ? idx(p[2], v) : -1;
       return '<div class="ps' + (v ? '' : ' na') + '"><table><tr><td class="l">' + p[0] + '</td><td class="v">' + (v ? esc(sh(v)) : '—') + '</td></tr></table>' +
         '<table class="pbar"><tr>' + p[2].map(function(_, j){ return '<td' + (j <= i ? ' class="f"' : '') + '></td>'; }).join('') + '</tr></table></div>';
-    }).join('') + '</td>';
-  // aromas & flavors
-  var nts = [['Appearance','appNotes'],['Aromas','aromas'],['Nose Comments','noseNotes'],['Flavors','flavors'],['Tannin','tanNature'],['Palate','palate']].filter(function(p){ return w[p[1]]; });
-  h += '<td><h4>Aromas &amp; Flavors</h4>' + (nts.length ? nts.map(function(p){
-      return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join('') : '<span class="hint">Not recorded</span>') + '</td>';
+    }).join('') + ntp([['Flavors','flavors'],['Tannin','tanNature'],['Notes','palate']]) + '</td>';
   // quality & aging
   var bl = (w.blic || '').split(/\s*,\s*/);
   h += '<td><h4>Quality &amp; Aging</h4><div class="big">' + (w.quality ? esc(w.quality) : '<span class="hint">Not assessed</span>') + '</div>' +
@@ -1647,35 +1659,169 @@ $('readyGo').onclick = function(){
 };
 
 /* ---- PDF: the print layout, page by page, made on the device (works in the Home Screen app) */
+var LIBS = {};
 function loadLib(src){
-  return new Promise(function(res, rej){
-    if (document.querySelector('script[data-lib="' + src + '"]')) return res();
+  if (LIBS[src]) return LIBS[src];
+  return LIBS[src] = new Promise(function(res, rej){
+
     var s = document.createElement('script'); s.src = src; s.setAttribute('data-lib', src);
-    s.onload = res; s.onerror = function(){ rej(new Error('Could not load the PDF maker. Open the app once while online.')); };
+    s.onload = res; s.onerror = function(){ delete LIBS[src]; s.remove(); rej(new Error('Could not load the PDF maker. Open the app once while online.')); };
     document.head.appendChild(s);
   });
 }
+var PDFF = null;
+function b64(buf){ var u = new Uint8Array(buf), out = ''; for (var i = 0; i < u.length; i += 0x8000) out += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(out); }
+function pdfFonts(){
+  if (PDFF) return PDFF;
+  var list = [['archivo-400','Archivo','normal'],['archivo-600','Archivo','bold'],['playfair-600-italic','Playfair','italic'],['playfair-700-italic','Playfair','bolditalic']];
+  PDFF = Promise.all(list.map(function(f){
+    return fetch('fonts/pdf/' + f[0] + '.ttf').then(function(r){ if (!r.ok) throw new Error('font'); return r.arrayBuffer(); })
+      .then(function(b){ return { file: f[0] + '.ttf', fam: f[1], st: f[2], data: b64(b) }; });
+  }));
+  PDFF.catch(function(){ PDFF = null; });
+  return PDFF;
+}
+var PC = { sig:'#6D1A36', gold:'#9A7438', goldInk:'#7E5C26', ink:'#1F1A1D', ink2:'#4A4146', muted:'#83777C', faint:'#B7ACA3',
+  line:'#E6DED2', seg:'#EFE8DD', goldT:'#F6EFE2', paper:'#FAF7F2', ok:'#E3EFDC', okI:'#2F5A22', no:'#F7DDDD', noI:'#8A2430' };
+function pdfText(t){ return String(t == null ? '' : t).replace(/[→➜]/g, '>').replace(/[✓✔]/g, '').replace(/\s+/g, ' ').trim(); }
+
+/* draws one wine card at (x, y), width W; with draw = false it only measures. Returns the height. */
+function pdfCard(D, w, x, y, W, draw, K, img){
+  var hgt = 0, P = 10 * K;
+  function font(f, st, size, color){ D.setFont(f, st); D.setFontSize(size * K); if (color) D.setTextColor(color); }
+  function txt(t, tx, ty, o){ if (draw) D.text(t, tx, ty, o || {}); }
+  function wrap(t, width){ return D.splitTextToSize(pdfText(t), width); }
+  // header
+  var col = SW[w.color] || PC.line;
+  var hy = y + 13.5 * K;
+  font('Archivo', 'bold', 6.4, PC.gold);
+  txt(((w.dateLabel || '') + (w.dateLabel ? '  ·  ' : '') + 'WINE #' + w.wineNo).toUpperCase(), x + P + 4, hy, { charSpace: 0.9 });
+  var right = x + W - P, sc = w.open ? 'Tasted open' : (w.score === '' ? '' : 'Score  ' + w.score + ' / 4');
+  if (sc) { font('Archivo', 'bold', 7.2); var sw = D.getTextWidth(sc) + 14 * K;
+    if (draw) { D.setFillColor(PC.goldT); D.roundedRect(right - sw, y + 8 * K, sw, 15 * K, 7.5 * K, 7.5 * K, 'F'); }
+    D.setTextColor(PC.goldInk); txt(sc, right - sw / 2, y + 18.2 * K, { align: 'center' }); right -= sw + 8 * K; }
+  if (img) { var s2 = 26 * K; if (draw) { D.addImage(img, 'JPEG', right - s2, y + 6 * K, s2, s2); D.setDrawColor(PC.line); D.setLineWidth(.5); D.rect(right - s2, y + 6 * K, s2, s2); } right -= s2 + 8 * K; }
+  var title = pdfText(w.producer || w.aGrape || 'Not yet revealed');
+  font('Playfair', 'bolditalic', 14, (w.producer || w.aGrape) ? PC.ink : PC.muted);
+  var tx = x + P + 4, ty = y + 28.5 * K;
+  title = wrap(title, right - tx)[0]; txt(title, tx, ty);
+  var tw = D.getTextWidth(title);
+  var sub = w.producer ? [w.aGrape, w.aRegion, w.aCountry, w.aVintage].filter(Boolean).join('  ·  ') : (!w.aGrape && w.gGrape ? 'My guess: ' + w.gGrape : '');
+  if (sub) { font('Archivo', 'normal', 8, PC.muted); var room = right - (tx + tw + 9 * K); if (room > 40) txt(wrap(sub, room)[0], tx + tw + 9 * K, ty); }
+  var top = y + 37 * K;
+  // columns
+  var IW = W - 4, fr = [0.145, 0.215, 0.23, 0.205, 0.205], cx = [], cw = [], acc = x + 4;
+  fr.forEach(function(f){ cx.push(acc); cw.push(IW * f); acc += IW * f; });
+  var bottoms = [];
+  function column(i, fn){ var c = { x: cx[i] + 8 * K, w: cw[i] - 16 * K, y: top + 13 * K };
+    fn(c); bottoms.push(c.y); }
+  function h4(c, t){ font('Archivo', 'bold', 6.2, PC.sig); txt(t.toUpperCase(), c.x, c.y, { charSpace: 1.1 }); c.y += 11.5 * K; }
+  function kv(c, l, v, dot){ font('Playfair', 'italic', 8, PC.ink); txt(l, c.x, c.y);
+    font('Archivo', 'bold', 7.3, PC.goldInk); var vv = wrap(v, c.w * 0.62)[0] || ''; txt(vv, c.x + c.w, c.y, { align: 'right' });
+    if (dot && draw) { D.setFillColor(dot); D.circle(c.x + c.w - D.getTextWidth(vv) - 6 * K, c.y - 2.4 * K, 2.6 * K, 'F'); }
+    c.y += 11.5 * K; }
+  function note(c, l, v){ if (!v) return; c.y += 3 * K;
+    if (l) { font('Archivo', 'bold', 5.8, PC.muted); txt(l.toUpperCase(), c.x, c.y, { charSpace: .9 }); c.y += 9 * K; }
+    font('Archivo', 'normal', 7.6, PC.ink2); wrap(v, c.w).forEach(function(line){ txt(line, c.x, c.y); c.y += 9.8 * K; }); c.y += 2 * K; }
+  function rule(c){ c.y += 2 * K; if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(c.x, c.y, c.x + c.w, c.y); } c.y += 10 * K; }
+  function hint(c, t){ font('Archivo', 'normal', 7.4, PC.faint); txt(t, c.x, c.y); c.y += 10 * K; }
+  // 1 appearance
+  column(0, function(c){ h4(c, 'Appearance'); var any = 0;
+    [['Clarity','clarity'],['Intensity','appInt'],['Color','color']].forEach(function(p){ if (w[p[1]]) { any = 1; kv(c, p[0], lg(w[p[1]]), p[1] === 'color' ? SW[w.color] : null); } });
+    if (w.appNotes) { any = 1; note(c, 'Notes', w.appNotes); } if (!any) hint(c, 'Not recorded'); });
+  // 2 nose
+  column(1, function(c){ h4(c, 'Nose'); var any = 0;
+    [['Condition','condition'],['Intensity','noseInt'],['Development','development']].forEach(function(p){ if (w[p[1]]) { any = 1; kv(c, p[0], lg(w[p[1]])); } });
+    if (w.aromas) { any = 1; note(c, 'Aromas', w.aromas); } if (w.noseNotes) { any = 1; note(c, 'Comments', w.noseNotes); } if (!any) hint(c, 'Not recorded'); });
+  // 3 palate
+  column(2, function(c){ h4(c, 'Palate');
+    [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],
+     ['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]].forEach(function(p){
+      var v = w[p[1]], n = p[2].length, i = v ? idx(p[2], v) : -1;
+      font('Playfair', 'italic', 8, v ? PC.ink : PC.faint); txt(p[0], c.x, c.y);
+      font('Archivo', 'bold', 7, v ? PC.goldInk : PC.faint); txt(v ? sh(v) : '—', c.x + c.w, c.y, { align: 'right' });
+      var bx = c.x + 50 * K, bW = c.w - 50 * K - 40 * K, by = c.y - 4.4 * K, g = 1.5 * K, bw = (bW - g * (n - 1)) / n;
+      if (draw) for (var j = 0; j < n; j++) { D.setFillColor(j <= i ? PC.sig : PC.seg); D.roundedRect(bx + j * (bw + g), by, bw, 3.6 * K, 1.8 * K, 1.8 * K, 'F'); }
+      c.y += 12.2 * K; });
+    if (w.flavors) note(c, 'Flavors', w.flavors); if (w.tanNature) note(c, 'Tannin', w.tanNature); if (w.palate) note(c, 'Notes', w.palate); });
+  // 4 quality & aging
+  column(3, function(c){ h4(c, 'Quality & Aging');
+    if (w.quality) { font('Playfair', 'bolditalic', 12, PC.sig); txt(pdfText(w.quality), c.x, c.y + 2 * K); c.y += 13 * K; } else hint(c, 'Not assessed');
+    var bl = (w.blic || '').split(/\s*,\s*/), px = c.x;
+    font('Archivo', 'bold', 5.6);
+    L.blic.forEach(function(b){ var on = bl.indexOf(b) >= 0, t = b.toUpperCase(), tw2 = D.getTextWidth(t) + 0.7 * t.length + 9 * K;
+      if (px + tw2 > c.x + c.w) { px = c.x; c.y += 13 * K; }
+      if (draw) { if (on) { D.setFillColor(PC.goldT); D.roundedRect(px, c.y - 1, tw2, 11 * K, 5.5 * K, 5.5 * K, 'F'); }
+        else { D.setDrawColor(PC.line); D.setLineWidth(.6); D.roundedRect(px, c.y - 1, tw2, 11 * K, 5.5 * K, 5.5 * K, 'S'); } }
+      D.setTextColor(on ? PC.goldInk : PC.faint); txt(t, px + 4.5 * K, c.y + 6.6 * K, { charSpace: .7 }); px += tw2 + 4 * K; });
+    c.y += 20 * K;
+    if (w.qReason) note(c, 'Reasoning', w.qReason);
+    rule(c); kv(c, 'Bottle Aging', w.aging || '—'); if (w.aReason) note(c, '', w.aReason); });
+  // 5 guess vs actual
+  column(4, function(c){
+    var rows = [['Grape','gGrape','aGrape'],['Country','gCountry','aCountry'],['Region','gRegion','aRegion'],['Vintage','gVintage','aVintage']];
+    h4(c, w.open ? 'The Wine · Tasted Open' : 'Guess  /  Actual');
+    var fw = c.w * (w.open ? 0.3 : 0.27), gw = w.open ? 0 : (c.w - fw) / 2 - 2 * K, aw = c.w - fw - gw - (w.open ? 0 : 4 * K);
+    if (!w.open) { font('Playfair', 'italic', 7.4, PC.muted); txt('My Guess', c.x + fw + 4 * K, c.y); txt('Actual', c.x + fw + gw + 8 * K, c.y); c.y += 6 * K; }
+    rows.forEach(function(r, ri){
+      var hit = w.hits ? w.hits[ri] : null, has = !w.open && w[r[1]], st = !has || hit === null ? '' : hit ? 'ok' : 'no';
+      font('Archivo', 'bold', 7.4); var gl = w.open ? [] : wrap(w[r[1]] || '—', gw - 8 * K - (st ? 8 * K : 0));
+      font('Playfair', 'italic', 8); var al = wrap(w[r[2]] || '—', aw - 8 * K);
+      var rh = Math.max(gl.length, al.length, 1) * 9 * K + 4.5 * K;
+      font('Archivo', 'bold', 5.4, PC.muted); txt(r[0].toUpperCase(), c.x, c.y + 8 * K, { charSpace: .5 });
+      var gx = c.x + fw, ax = gx + (w.open ? 0 : gw + 4 * K);
+      if (!w.open) {
+        if (draw) { D.setFillColor(st === 'ok' ? PC.ok : st === 'no' ? PC.no : PC.paper); D.roundedRect(gx, c.y, gw, rh, 3 * K, 3 * K, 'F'); }
+        font('Archivo', 'bold', 7.4, st === 'ok' ? PC.okI : st === 'no' ? PC.noI : PC.ink);
+        gl.forEach(function(line, li){ txt(line, gx + 4 * K, c.y + 8 * K + li * 9 * K); });
+        if (st && draw) { var mx = gx + gw - 7 * K, my = c.y + 5.5 * K; D.setDrawColor(st === 'ok' ? PC.okI : PC.noI); D.setLineWidth(1 * K);
+          if (st === 'ok') { D.line(mx - 2.6 * K, my, mx - 0.8 * K, my + 2 * K); D.line(mx - 0.8 * K, my + 2 * K, mx + 2.6 * K, my - 2.2 * K); }
+          else { D.line(mx - 2 * K, my - 2 * K, mx + 2 * K, my + 2 * K); D.line(mx + 2 * K, my - 2 * K, mx - 2 * K, my + 2 * K); } }
+      }
+      if (draw) { D.setFillColor(PC.goldT); D.roundedRect(ax, c.y, aw, rh, 3 * K, 3 * K, 'F'); }
+      font('Playfair', 'italic', 8, PC.ink); al.forEach(function(line, li){ txt(line, ax + 4 * K, c.y + 8 * K + li * 9 * K); });
+      c.y += rh + 2.5 * K; });
+  });
+  hgt = Math.max.apply(null, bottoms) - y + 3 * K;
+  if (draw) {
+    D.setDrawColor(PC.line); D.setLineWidth(.6); D.roundedRect(x, y, W, hgt, 6, 6, 'S');
+    D.setFillColor(col); D.roundedRect(x, y, 3.2, hgt, 1.6, 1.6, 'F');
+    D.setLineWidth(.5); D.line(x + 4, top, x + W, top);
+    for (var k = 1; k < 5; k++) D.line(cx[k], top + 8 * K, cx[k], y + hgt - 8 * K);
+  }
+  return hgt;
+}
+function pdfThumb(id){
+  return Photos.get(id).then(function(p){ return p && p.thumb ? blobToDataUrl(p.thumb) : null; }).catch(function(){ return null; });
+}
 function makePdf(list, title){
   if (!list.length) return Promise.reject(new Error('No wines to share.'));
-  return Promise.all([loadLib('lib/jspdf.min.js'), loadLib('lib/html2canvas.min.js')]).then(function(){
-    return Promise.all(list.filter(function(w){ return PHOTO_IDS[w.id] && !THUMBS[w.id]; })
-      .map(function(w){ return Photos.urls(w.id).then(function(x){ if (x) THUMBS[w.id] = x; }); }));
-  }).then(function(){ return document.fonts && document.fonts.ready; }).then(function(){
-    buildPrint(list, title);
-    var stage = $('pdfStage');
-    stage.innerHTML = $('printRoot').innerHTML;
-    var pages = [].slice.call(stage.querySelectorAll('.ppage'));
-    var pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter', compress: true });
-    return pages.reduce(function(p, page, i){
-      return p.then(function(){
-        toast('Making PDF… page ' + (i + 1) + ' of ' + pages.length);
-        return html2canvas(page, { scale: 2, backgroundColor: '#ffffff', logging: false }).then(function(c){
-          if (i) pdf.addPage('letter', 'landscape');
-          var w = 10.3, h = Math.min(7.9, c.height / c.width * w);
-          pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0.35, 0.3, w, h);
-        });
-      });
-    }, Promise.resolve()).then(function(){ stage.innerHTML = ''; return pdf.output('blob'); });
+  var imgs = {};
+  return Promise.all([loadLib('lib/jspdf.min.js'), pdfFonts()]).then(function(r){
+    var fonts = r[1];
+    return Promise.all(list.filter(function(w){ return PHOTO_IDS[w.id]; }).map(function(w){ return pdfThumb(w.id).then(function(u){ if (u) imgs[w.id] = u; }); }))
+      .then(function(){ return fonts; });
+  }).then(function(fonts){
+    toast('Making PDF…');
+    var D = new jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter', compress: true });
+    fonts.forEach(function(f){ D.addFileToVFS(f.file, f.data); D.addFont(f.file, f.fam, f.st); });
+    var PW = 792, PH = 612, M = 26, W = PW - 2 * M, TOP = 54, AV = PH - TOP - 18, GAP = 10;
+    var filtered = SUM.field !== '(no filter)' && SUM.value !== '(all)';
+    var stamp = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+    var meta = (title ? title + '  ·  ' : filtered ? SUM.field + ': ' + SUM.value + '  ·  ' : '') + list.length + ' wine' + (list.length === 1 ? '' : 's') + '  ·  printed ' + stamp;
+    // measure, then pack whole wines onto pages (max 3 a page; shrink a wine only if it is taller than a page)
+    var items = list.map(function(w){ var K = 1, h = pdfCard(D, w, M, 0, W, false, K, imgs[w.id]);
+      while (h > AV && K > 0.62) { K -= 0.06; h = pdfCard(D, w, M, 0, W, false, K, imgs[w.id]); } return { w: w, h: h, K: K }; });
+    var pages = [], cur = null;
+    items.forEach(function(it){ if (!cur || cur.items.length >= 3 || cur.h + it.h > AV) { cur = { items: [], h: 0 }; pages.push(cur); } cur.items.push(it); cur.h += it.h + GAP; });
+    pages.forEach(function(pg, pi){
+      if (pi) D.addPage('letter', 'landscape');
+      D.setFont('Playfair', 'bolditalic'); D.setFontSize(17); D.setTextColor(PC.sig); D.text('Blind Tasting Notes', M, 36);
+      D.setFont('Archivo', 'normal'); D.setFontSize(7.6); D.setTextColor(PC.muted); D.text(pdfText(meta + '  ·  page ' + (pi + 1) + ' of ' + pages.length), PW - M, 36, { align: 'right' });
+      D.setDrawColor(PC.gold); D.setLineWidth(.7); D.line(M, 44, PW - M, 44);
+      var y = TOP; pg.items.forEach(function(it){ pdfCard(D, it.w, M, y, W, true, it.K, imgs[it.w.id]); y += it.h + GAP; });
+    });
+    return D.output('blob');
   });
 }
 function sharePdf(list, title){
@@ -1695,13 +1841,22 @@ function printWines(list, title){
 }
 
 /* ---- settings */
-function openSettings(){ paintGoogle(); $('dimTog').checked = document.documentElement.getAttribute('data-theme') === 'dim'; $('settings').classList.add('show'); }
+function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
 $('gear').onclick = openSettings;
 $('setClose').onclick = function(){ $('settings').classList.remove('show'); };
 $('settings').onclick = function(e){ if (e.target === this) this.classList.remove('show'); };
-$('dimTog').onchange = function(){ setTheme(this.checked ? 'dim' : ''); };
-function setTheme(t){ if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); store('btn-theme', t || ''); }
+var DARKQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+function themePref(){ var t = recall('btn-theme2'); return t === 'light' || t === 'dark' ? t : 'auto'; }
+function applyTheme(){
+  var p = themePref(), dark = p === 'dark' || (p === 'auto' && DARKQ && DARKQ.matches), r = document.documentElement;
+  if (dark) r.setAttribute('data-theme', 'dim'); else r.removeAttribute('data-theme');
+  r.style.colorScheme = dark ? 'dark' : 'light';
+  var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#2A0A16' : '#5A1229');
+}
+function paintThemeSeg(){ var p = themePref(); [].forEach.call(document.querySelectorAll('#themeSeg .opt'), function(b){ b.classList.toggle('on', b.getAttribute('data-t') === p); }); }
+$('themeSeg').onclick = function(e){ var b = e.target.closest('.opt'); if (!b) return; store('btn-theme2', b.getAttribute('data-t')); applyTheme(); paintThemeSeg(); };
+if (DARKQ) { if (DARKQ.addEventListener) DARKQ.addEventListener('change', applyTheme); else if (DARKQ.addListener) DARKQ.addListener(applyTheme); }
 $('bkMake').onclick = function(){
   var withPh = $('bkPhotos').checked, d = new Date(), stamp = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   Backup.make(null, withPh, 'Backup').then(function(file){
@@ -1756,7 +1911,7 @@ $('gsButtons').onclick = function(e){
 
 /* ---- offline app shell */
 if ('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-(function(){ var t = recall('btn-theme'); if (t) document.documentElement.setAttribute('data-theme', t); })();
+applyTheme();
 
 /* ====================================================================== start */
 function start(init){
