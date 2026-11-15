@@ -486,7 +486,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.4 entry polish */
+/* ---- v1.5 entry polish */
 .sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
 .sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
 .sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
@@ -559,7 +559,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
 :root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
 :root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
-/* ---- v1.4 beauty pass */
+/* ---- v1.5 beauty pass */
 .sec>header{padding:16px 18px 12px}
 .sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
 .sec>header .t{font:italic 700 20px/1.1 var(--serif)}
@@ -610,6 +610,38 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .dstrip img{width:30px;height:30px;border-radius:50%;object-fit:cover;margin-left:-6px;border:2px solid var(--card);box-shadow:0 1px 3px rgba(31,26,29,.15)}
 .c h4.h4b{margin-top:16px}
 :root[data-theme="dim"] .mod{background:linear-gradient(180deg,#221A1E,#1E171B)}
+
+/* v1.5 paint chips */
+.opts.pcs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:4px 2px 6px}
+.opts.pcs.n3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:420px}
+.opts.pcs .opt.pc{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;min-width:0;
+  background:#FFFDF9;border-radius:3px;padding:5px 5px 0;
+  box-shadow:0 0 0 1px rgba(31,26,29,.07),0 1px 2px rgba(31,26,29,.06),0 6px 14px -8px rgba(31,26,29,.28);
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;-webkit-tap-highlight-color:transparent}
+.opts.pcs .opt.pc:hover{transform:translateY(-2px)}
+.opts.pcs .opt.pc:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pc-sw{position:relative;display:block;aspect-ratio:4/5;border-radius:1.5px;
+  background:linear-gradient(172deg,rgba(255,255,255,.16),rgba(255,255,255,0) 38%),linear-gradient(180deg,var(--c1),var(--c2));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 -14px 22px -14px rgba(0,0,0,.18)}
+.pc-sw::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.35;mix-blend-mode:soft-light;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 1px,transparent 1px 3px)}
+.pc-ck{position:absolute;right:6px;top:6px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  font:700 11px/1 'Archivo',sans-serif;color:var(--sig);background:#FFFDF9;box-shadow:0 1px 4px rgba(0,0,0,.25);
+  opacity:0;transform:scale(.6);transition:opacity .2s,transform .25s cubic-bezier(.2,.8,.2,1);z-index:1}
+.pc-lab{display:flex;flex-direction:column;gap:2px;padding:8px 3px 9px;min-width:0}
+.pc-no{font:600 8.5px/1 'Archivo',sans-serif;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.pc-lab b{font:600 12.5px/1.15 'Archivo',sans-serif;color:var(--ink);letter-spacing:.01em;overflow-wrap:anywhere}
+.pc-lab i{font:400 10.5px/1.25 'Archivo',sans-serif;font-style:normal;color:#83777C}
+.opts.pcs .opt.pc.on{transform:translateY(-4px);
+  box-shadow:0 0 0 1.5px var(--gold),0 2px 4px rgba(31,26,29,.08),0 14px 24px -10px rgba(31,26,29,.38)}
+.opts.pcs .opt.pc.on .pc-ck{opacity:1;transform:none}
+.opts.pcs .opt.pc.on .pc-lab b{color:var(--sig)}
+.opts.pcs:has(.on) .opt.pc:not(.on) .pc-sw{filter:saturate(.85)}
+@media (max-width:520px){ .opts.pcs{gap:6px} .opts.pcs .opt.pc{padding:3px 3px 0} .pc-lab{padding:6px 1px 7px}
+  .pc-lab b{font-size:10.5px} .pc-lab i{display:none} .pc-no{font-size:7.5px;letter-spacing:.08em} .pc-ck{width:16px;height:16px;font-size:9px;right:4px;top:4px} }
+:root[data-theme="dim"] .opts.pcs .opt.pc,:root[data-theme="dim"] .pc-ck{background:#2A2125}
+:root[data-theme="dim"] .pc-lab b{color:#EDE3E6}
+:root[data-theme="dim"] .opts.pcs .opt.pc.on .pc-lab b{color:#E9C98B}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -710,7 +742,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.4 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.5 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -736,7 +768,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.4</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.5</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -770,7 +802,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <label class="tog">Dim-room mode <input type="checkbox" id="dimTog"></label>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.4. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.5. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -1068,10 +1100,23 @@ function opt(k, v, multi){
   return '<button type="button" class="opt' + (isOn(k, v, multi) ? ' on' : '') + '" data-v="' + esc(v) + '" title="' + esc(v) + '">' + dot + esc(sh(v)) + '</button>';
 }
 function colorList(){ return rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null; }
+var CHIP = {
+  White: { L:'W', 'Lemon-Green':['#EEF0BC','#D3D97A','Very youthful'], 'Lemon':['#F8EDB0','#EBD668','Youthful'],
+    'Gold':['#F2D488','#D9A842','Developed or oaked'], 'Amber':['#E3AE5E','#BA7526','Mature, oxidative'], 'Brown':['#B07836','#7C4819','Fully oxidized'] },
+  'Rosé': { L:'R', 'Pink':['#F9D3DB','#EDA4B5','Youthful'], 'Pink-Orange':['#F8CBB2','#E8977A','Developing'], 'Orange':['#F2B479','#D98038','Mature'] },
+  Red: { L:'N', 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'],
+    'Garnet':['#97363C','#5C1920','Developing'], 'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
+function chipOf(v){ var t = CHIP[rec.type] || CHIP.Red; return t[v] || [SW[v] || '#ccc', SW[v] || '#999', '']; }
+function chip(v, i){
+  var c = chipOf(v), on = rec.color === v, t = CHIP[rec.type] || {};
+  return '<button type="button" class="opt pc' + (on ? ' on' : '') + '" data-v="' + esc(v) + '" title="' + esc(v) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '">' +
+    '<span class="pc-sw"><span class="pc-ck">✓</span></span>' +
+    '<span class="pc-lab"><span class="pc-no">No. ' + (t.L || '') + '-' + pad2(i + 1) + '</span><b>' + esc(v.replace('-', '‑')) + '</b><i>' + esc(c[2]) + '</i></span></button>';
+}
 function colorRow(){
   var list = colorList();
   return '<div class="row mod wide" id="colorRow"><div class="lab">Color</div>' + (list ?
-    '<div class="opts" data-k="color" data-multi="0">' + list.map(function(v){ return opt('color', v, false); }).join('') + '</div>' :
+    '<div class="opts pcs n' + list.length + '" data-k="color" data-multi="0">' + list.map(chip).join('') + '</div>' :
     '<div class="hint">Choose the wine type first</div>') + '</div>';
 }
 var OPEN = 'Tasted Open, Not Blind';

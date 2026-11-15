@@ -1,5 +1,5 @@
 /* Blind Tasting Notes — offline app shell. Bump VERSION with every release so phones pick up the update. */
-const VERSION = 'btn-v1.4';
+const VERSION = 'btn-v1.5';
 const SHELL = ['./', 'index.html', 'logic.js', 'store.js', 'google.js', 'manifest.webmanifest',
   'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png',
   'fonts/archivo-400.woff2', 'fonts/archivo-500.woff2', 'fonts/archivo-600.woff2', 'fonts/archivo-700.woff2',
