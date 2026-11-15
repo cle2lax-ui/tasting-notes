@@ -43,6 +43,8 @@ var Sync = (function () {
         if (r && r.access_token) {
           tok = { t: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3500) * 1000 };
           write(TOK_KEY, tok); conf.consented = true; write(CONF_KEY, conf); p.res(tok.t);
+          if (!conf.hint) g('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)').then(function (a) {
+            if (a && a.user && a.user.emailAddress) { conf.hint = a.user.emailAddress; write(CONF_KEY, conf); } }).catch(function () {});
         } else p.rej(new Error((r && (r.error_description || r.error)) || 'Google sign-in was cancelled.'));
       },
       error_callback: function (e) {
@@ -61,7 +63,8 @@ var Sync = (function () {
     if (makeClient()) {                                  // ready: open Google's window right now, inside the tap
       return new Promise(function (res, rej) {
         pending = { res: res, rej: rej };
-        client.requestAccessToken({ prompt: conf.consented ? '' : 'consent' });
+        var o = { prompt: conf.consented ? '' : 'consent' }; if (conf.hint) o.login_hint = conf.hint;
+        client.requestAccessToken(o);
       });
     }
     return preload().then(function (ok) {
