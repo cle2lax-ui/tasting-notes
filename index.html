@@ -486,7 +486,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.3 entry polish */
+/* ---- v1.4 entry polish */
 .sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
 .sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
 .sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
@@ -559,6 +559,57 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
 :root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
 :root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
+/* ---- v1.4 beauty pass */
+.sec>header{padding:16px 18px 12px}
+.sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
+.sec>header .t{font:italic 700 20px/1.1 var(--serif)}
+.sec .body{padding:0 18px 18px}
+.mods{display:grid;grid-template-columns:1fr;gap:8px;margin:2px 0 6px}
+.mod{display:block !important;padding:12px 14px 13px !important;border:1px solid var(--line) !important;border-radius:16px;
+  background:linear-gradient(180deg,#FFFFFF,#FCFAF6)}
+.mod+.mod{border-top:1px solid var(--line) !important}
+.mod .lab{display:flex;align-items:center;gap:8px;margin:0 0 9px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.mod .lab:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.mod input[type=text]{width:100%}
+.mod .hint{font-size:13px}
+@media (min-width:700px){ .mods{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))} .mod.wide{grid-column:1 / -1} }
+.seg .opt{white-space:nowrap;font-size:12.5px}
+.dl{grid-template-columns:auto minmax(0,1fr)}
+.dl dd{min-width:0;flex-wrap:wrap;text-align:right;overflow-wrap:anywhere}
+@media (min-width:1080px){ .wg{grid-template-columns:1.15fr 1fr 1.4fr 1.25fr 1.25fr} }
+.note{padding:12px 0 4px}
+.note .lab{font:600 10.5px/1 var(--sans) !important;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+@media (min-width:1080px){
+  .note{display:block !important}
+  .note .lab{margin:4px 0 9px !important;flex-direction:row !important}
+  #entryMain.wrap{grid-template-columns:1fr 1fr;grid-template-areas:"app str" "nose str" "qual guess";align-items:start}
+  .sec[data-i="0"]{grid-area:app}.sec[data-i="1"]{grid-area:nose}.sec[data-i="2"]{grid-area:str}.sec[data-i="3"]{grid-area:qual}.sec[data-i="4"]{grid-area:guess}
+}
+@media (min-width:1400px){
+  #entryMain.wrap{grid-template-columns:1fr 1.08fr 1fr;grid-template-areas:"app str qual" "nose str guess"}
+}
+.sec[data-i="4"]{order:4}
+/* descriptor photo chips under Aromas / Flavors */
+.dchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;cursor:pointer}
+.dchips:empty{display:none}
+.dchip{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 3px;border-radius:999px;background:var(--card);
+  border:1px solid color-mix(in srgb,var(--cc) 45%,var(--line-2));font:500 12.5px/1 var(--sans);color:var(--ink);box-shadow:0 1px 2px rgba(31,26,29,.05)}
+.dchip img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+/* lexicon tiles with photographs */
+.ltiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr)) !important;gap:8px !important}
+.ltile{display:flex !important;align-items:center;gap:10px;padding:5px 26px 5px 5px !important;min-height:54px !important;border-radius:14px !important}
+.ltile:before{display:none}
+.ltile img{flex:none;width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--seg);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.ltile span{line-height:1.2}
+.ltile.on{box-shadow:0 0 0 2px var(--cc) inset}
+.ltile.on img{outline:2px solid #fff;outline-offset:-4px}
+.lexsel .tok{padding-left:3px !important}
+.lexsel .tok img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+/* summary card */
+.dstrip{display:flex;margin:-2px 0 12px 4px}
+.dstrip img{width:30px;height:30px;border-radius:50%;object-fit:cover;margin-left:-6px;border:2px solid var(--card);box-shadow:0 1px 3px rgba(31,26,29,.15)}
+.c h4.h4b{margin-top:16px}
+:root[data-theme="dim"] .mod{background:linear-gradient(180deg,#221A1E,#1E171B)}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -659,7 +710,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.3 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.4 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -685,7 +736,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.3</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.4</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -719,7 +770,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <label class="tog">Dim-room mode <input type="checkbox" id="dimTog"></label>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.3. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.4. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -811,10 +862,11 @@ $('tabs').addEventListener('click', function(e){ var b = e.target.closest('butto
 
 /* ====================================================================== ENTRY: definition */
 function F(){ return [
-  { t:'Appearance & Nose', sum:function(){ return [rec.clarity, [rec.appInt, rec.color].filter(Boolean).join(' '), rec.noseInt && ('Nose ' + rec.noseInt), rec.development].filter(Boolean).join(' · '); },
-    items:[ ['sub','Appearance'], ['opts','clarity','Clarity',S.clarity], ['opts','appInt','Intensity',S.appInt,'seg'],
-      ['opts','type','Wine Type',S.type], ['color'], ['note','appNotes','Appearance Notes','Legs, deposit, rim, bubbles…'],
-      ['sub','Nose'], ['opts','condition','Condition',S.condition], ['opts','noseInt','Intensity',S.intensity,'seg'],
+  { t:'Appearance', sum:function(){ return [rec.clarity, [rec.appInt, rec.color].filter(Boolean).join(' ')].filter(Boolean).join(' · '); },
+    items:[ ['opts','clarity','Clarity',S.clarity], ['opts','appInt','Intensity',S.appInt,'seg'],
+      ['opts','type','Wine Type',S.type], ['color'], ['note','appNotes','Appearance Notes','Legs, deposit, rim, bubbles…'] ] },
+  { t:'Nose', sum:function(){ var n = chosen('aromas').length; return [rec.noseInt, rec.development, n ? n + ' descriptors' : ''].filter(Boolean).join(' · '); },
+    items:[ ['opts','condition','Condition',S.condition], ['opts','noseInt','Intensity',S.intensity,'seg'],
       ['opts','development','Development',S.development], ['note','aromas','Aromas','Primary · secondary · tertiary'],
       ['note','noseNotes','Nose Comments','Overall impression, how it evolves in the glass, anything that stands out…'] ] },
   { t:'Structure & Palate', sum:function(){ var a=[]; if(rec.sweetness)a.push(rec.sweetness); if(rec.acidity)a.push('Acid '+sh(rec.acidity));
@@ -835,31 +887,40 @@ function F(){ return [
 function renderEntry(){
   var defs = F();
   var secs = defs.map(function(sec, i){
-    return '<section class="sec' + (i === openSec ? ' open' : '') + '" data-i="' + i + '"><header><span class="n">' + ['01','02','03','04'][i] +
+    var body = '', open = false;
+    sec.items.forEach(function(it){
+      var isMod = it[0] === 'opts' || it[0] === 'multi' || it[0] === 'text' || it[0] === 'color';
+      if (isMod && !open) { body += '<div class="mods">'; open = true; }
+      if (!isMod && open) { body += '</div>'; open = false; }
+      body += item(it);
+    });
+    if (open) body += '</div>';
+    return '<section class="sec' + (i === openSec ? ' open' : '') + '" data-i="' + i + '"><header><span class="n">' + pad2(i + 1) +
       '</span><span class="t">' + sec.t + '</span><span class="s" id="sum' + i + '"></span><span class="prog"><i><b></b></i><em></em></span>' + CHEV + '</header>' +
-      '<div class="body">' + sec.items.map(item).join('') +
-      (i < 3 ? '<div class="next"><button type="button" data-next="' + (i + 1) + '">Next · ' + defs[i + 1].t + '</button></div>' : '') +
+      '<div class="body">' + body +
+      (i < defs.length - 1 ? '<div class="next"><button type="button" data-next="' + (i + 1) + '">Next · ' + defs[i + 1].t + '</button></div>' : '') +
       '</div></section>';
   });
-  $('entryMain').innerHTML = '<div class="col">' + secs[0] + secs[1] + '</div><div class="col">' + secs[2] + secs[3] + '</div>';
+  $('entryMain').innerHTML = secs.join('');
   [].forEach.call(document.querySelectorAll('textarea'), grow);
   refreshSums(); paintScore(); paintProgress(); paintLexCount();
 }
 function item(it){
   var k = it[1];
   if (it[0] === 'sub') return '<div class="sub eyebrow">' + it[1] + '</div>';
-  if (it[0] === 'opts' || it[0] === 'multi') return '<div class="row"><div class="lab">' + it[2] + '</div><div class="' + (it[4] === 'seg' ? 'seg' : 'opts') +
+  if (it[0] === 'opts' || it[0] === 'multi') return '<div class="row mod' + (it[4] !== 'seg' && it[3].length >= 5 ? ' wide' : '') + '"><div class="lab">' + it[2] + '</div><div class="' + (it[4] === 'seg' ? 'seg' : 'opts') +
     '" data-k="' + k + '" data-multi="' + (it[0] === 'multi' ? 1 : 0) + '">' + it[3].map(function(v){ return opt(k, v, it[0] === 'multi'); }).join('') + '</div></div>';
   if (it[0] === 'color') return colorRow();
   if (it[0] === 'note') {
     var lex = (k === 'aromas' || k === 'flavors');
     return '<div class="note"><span class="lab">' + it[2] + '</span><div><textarea data-k="' + k +
       '" rows="1" placeholder="' + esc(it[3]) + '">' + esc(rec[k]) + '</textarea>' +
+      (lex ? '<div class="dchips" id="dchips-' + k + '" data-lexopen="' + k + '"></div>' : '') +
       (lex || it[4] ? '<div class="noteacts">' +
         (lex ? '<button type="button" class="lexopen" data-lexopen="' + k + '"><span class="ic">+</span>Add from Lexicon<span class="ct" id="lexct-' + k + '"></span></button>' : '') +
         (it[4] ? '<button type="button" class="mini" id="sameNose">Same as nose</button>' : '') + '</div>' : '') + '</div></div>';
   }
-  if (it[0] === 'text') return '<div class="row"><div class="lab">' + it[2] + '</div><input type="text" data-k="' + k + '" value="' + esc(rec[k]) +
+  if (it[0] === 'text') return '<div class="row mod"><div class="lab">' + it[2] + '</div><input type="text" data-k="' + k + '" value="' + esc(rec[k]) +
     '" placeholder="' + esc(it[3]) + '"></div>';
   if (it[0] === 'guess') return guessBlock();
   return '';
@@ -903,6 +964,11 @@ var LEXC = { 'Floral': '#D98BB3', 'Green Fruit': '#8DB255', 'Citrus Fruit': '#E3
   'Red Fruit': '#C8384A', 'Black Fruit': '#5A2A55', 'Herbaceous': '#6E9B54', 'Herbal': '#4F8A73', 'Spice': '#A2683A', 'Ripeness': '#B05B6F', 'Other': '#9A9A9A',
   'Yeast': '#D3B07C', 'Malolactic': '#E3CB86', 'Oak': '#8B5A2B', 'Red Wine': '#7A3B2E', 'White Wine': '#C79A3B', 'Oxidative': '#9C7A4F' };
 var LEX = { k: 'aromas', tier: 'Primary', q: '' };
+function slugW(w){ return w.toLowerCase().replace(/\//g, '-').replace(/ /g, '-'); }
+function photoOf(w){ return 'aromas/' + slugW(w) + '.webp'; }
+function catOf(w){ var lw = w.toLowerCase(); for (var i = 0; i < LEXG.length; i++) if (LEXG[i].words.some(function(x){ return x.toLowerCase() === lw; })) return LEXG[i].name; return ''; }
+function matchesIn(text){ LEXALL = LEXALL || lexWords(); var seen = {};
+  return String(text || '').split(/\s*[,;]\s*|\.\s+/).map(norm1).filter(function(t){ if (!LEXALL[t] || seen[t]) return false; seen[t] = 1; return true; }).map(function(t){ return LEXALL[t]; }); }
 function toks(k){ return String(rec[k] || '').split(/\s*,\s*/).map(function(t){ return t.trim(); }).filter(Boolean); }
 function norm1(t){ return t.toLowerCase().replace(/[.;:]+$/, '').trim(); }
 function hasWord(k, w){ var lw = w.toLowerCase(); return toks(k).some(function(t){ return norm1(t) === lw; }); }
@@ -915,7 +981,11 @@ function toggleWord(k, w){
   var t = document.querySelector('textarea[data-k="' + k + '"]'); if (t) { t.value = rec[k]; grow(t); }
   touch(); paintLexCount();
 }
-function paintLexCount(){ ['aromas','flavors'].forEach(function(k){ var e = $('lexct-' + k); if (e) { var n = chosen(k).length; e.textContent = n ? n + ' chosen' : ''; } }); }
+function paintLexCount(){ ['aromas','flavors'].forEach(function(k){
+  var e = $('lexct-' + k), c = $('dchips-' + k), list = chosen(k);
+  if (e) e.textContent = list.length ? list.length + ' chosen' : '';
+  if (c) c.innerHTML = list.map(function(w){ return '<span class="dchip" style="--cc:' + (LEXC[catOf(w)] || '#9A7438') + '"><img src="' + photoOf(w) + '" alt=""><span>' + esc(w) + '</span></span>'; }).join('');
+}); }
 function openLex(k){
   LEX.k = k; LEX.q = ''; $('lexQ').value = '';
   $('lexTitle').textContent = k === 'flavors' ? 'Flavors' : 'Aromas';
@@ -925,7 +995,7 @@ function paintLex(){
   var k = LEX.k, q = LEX.q.trim().toLowerCase();
   [].forEach.call(document.querySelectorAll('#lexTiers button'), function(b){ b.classList.toggle('on', !q && b.getAttribute('data-t') === LEX.tier); });
   var picked = chosen(k);
-  $('lexSel').innerHTML = picked.length ? picked.map(function(w){ return '<button type="button" class="tok" data-w="' + esc(w) + '">' + esc(w) + '<b>×</b></button>'; }).join('')
+  $('lexSel').innerHTML = picked.length ? picked.map(function(w){ return '<button type="button" class="tok" data-w="' + esc(w) + '"><img src="' + photoOf(w) + '" alt="">' + esc(w) + '<b>×</b></button>'; }).join('')
     : '<span class="hint">Tap descriptors to add them to your note — tap again to remove. You can still type freely.</span>';
   var html = '';
   LEXG.forEach(function(g){
@@ -935,7 +1005,7 @@ function paintLex(){
     var n = words.filter(function(w){ return hasWord(k, w); }).length;
     html += '<div class="lcat" style="--cc:' + (LEXC[g.name] || '#9A7438') + '"><h3><i></i>' + esc(g.name) + (q ? ' · ' + g.tier : '') +
       (n ? '<em>' + n + ' chosen</em>' : '') + '</h3><div class="ltiles">' +
-      words.map(function(w){ return '<button type="button" class="ltile' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(w) + '">' + esc(w) + '</button>'; }).join('') + '</div></div>';
+      words.map(function(w){ return '<button type="button" class="ltile' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(w) + '"><img src="' + photoOf(w) + '" alt="" loading="lazy" decoding="async"><span>' + esc(w) + '</span></button>'; }).join('') + '</div></div>';
   });
   $('lexBody').innerHTML = html || '<div class="lexempty">No descriptors match “' + esc(LEX.q) + '”. Type it straight into your note instead.</div>';
 }
@@ -949,14 +1019,14 @@ $('lexDone').onclick = function(){ $('lexSheet').classList.remove('show'); };
 $('lexSheet').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
 
 /* ---- section progress */
-var PROG = [['clarity','appInt','type','color','appNotes','condition','noseInt','development','aromas','noseNotes'],
+var PROG = [['clarity','appInt','type','color','appNotes'],['condition','noseInt','development','aromas','noseNotes'],
   ['sweetness','acidity','tannin','tanNature','alcohol','body','flavInt','finish','flavors','palate'],
   ['quality','blic','qReason','aging','aReason'],
   ['gGrape','gCountry','gRegion','gVintage','producer','aGrape','aCountry','aRegion','aVintage']];
 function paintProgress(){
   PROG.forEach(function(keys, i){
     var el = document.querySelector('.sec[data-i="' + i + '"] .prog'); if (!el) return;
-    var ks = i === 3 && rec.open ? keys.filter(function(k){ return k.charAt(0) !== 'g'; }) : keys;
+    var ks = i === 4 && rec.open ? keys.filter(function(k){ return k.charAt(0) !== 'g'; }) : keys;
     var n = ks.filter(function(k){ return String(rec[k] || '').trim(); }).length;
     el.querySelector('b').style.width = Math.round(100 * n / ks.length) + '%';
     el.querySelector('em').textContent = n === ks.length ? '✓' : n + '/' + ks.length;
@@ -1000,7 +1070,7 @@ function opt(k, v, multi){
 function colorList(){ return rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null; }
 function colorRow(){
   var list = colorList();
-  return '<div class="row" id="colorRow"><div class="lab">Color</div>' + (list ?
+  return '<div class="row mod wide" id="colorRow"><div class="lab">Color</div>' + (list ?
     '<div class="opts" data-k="color" data-multi="0">' + list.map(function(v){ return opt('color', v, false); }).join('') + '</div>' :
     '<div class="hint">Choose the wine type first</div>') + '</div>';
 }
@@ -1149,6 +1219,7 @@ function openOnly(i){
 document.addEventListener('input', function(e){
   var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return;
   rec[k] = e.target.value; if (e.target.tagName === 'TEXTAREA') grow(e.target);
+  if (k === 'aromas' || k === 'flavors') paintLexCount();
   if (/^[ga](Grape|Country|Region|Vintage)$/.test(k)) paintScore();
   touch();
 });
@@ -1341,9 +1412,11 @@ function card(w){
   // appearance & nose
   var an = [['Clarity','clarity'],['Intensity','appInt'],['Color','color'],['Condition','condition'],['Nose','noseInt'],['Development','development']]
     .filter(function(p){ return w[p[1]]; });
-  h += '<section class="c c1"><h4 class="eyebrow">Appearance &amp; Nose</h4>' + (an.length ? '<dl class="dl">' + an.map(function(p){
-      return '<dt>' + p[0] + '</dt><dd>' + (p[1] === 'color' && SW[w.color] ? '<span class="sw" style="background:' + SW[w.color] + '"></span>' : '') + esc(lg(w[p[1]])) + '</dd>';
-    }).join('') + '</dl>' : '<p class="hint">Not recorded</p>') + '</section>';
+  var dlx = function(list){ return '<dl class="dl">' + list.map(function(p){
+      return '<dt>' + p[0] + '</dt><dd>' + (p[1] === 'color' && SW[w.color] ? '<span class="sw" style="background:' + SW[w.color] + '"></span>' : '') + esc(lg(w[p[1]])) + '</dd>'; }).join('') + '</dl>'; };
+  var ap = an.filter(function(p){ return ['clarity','appInt','color'].indexOf(p[1]) >= 0; }), no = an.filter(function(p){ return ['clarity','appInt','color'].indexOf(p[1]) < 0; });
+  h += '<section class="c c1"><h4 class="eyebrow">Appearance</h4>' + (ap.length ? dlx(ap) : '<p class="hint">Not recorded</p>') +
+    '<h4 class="eyebrow h4b">Nose</h4>' + (no.length ? dlx(no) : '<p class="hint">Not recorded</p>') + '</section>';
   // structure
   h += '<section class="c c2"><h4 class="eyebrow">Structure</h4><div class="sts">' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],
       ['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]]
@@ -1353,7 +1426,9 @@ function card(w){
     }).join('') + '</div></section>';
   // aromas & flavors
   var nts = [['Appearance','appNotes'],['Aromas','aromas'],['Nose Comments','noseNotes'],['Flavors','flavors'],['Tannin','tanNature'],['Palate','palate']].filter(function(p){ return w[p[1]]; });
-  h += '<section class="c c3"><h4 class="eyebrow">Aromas &amp; Flavors</h4>' + (nts.length ? nts.map(function(p){
+  var dm = matchesIn([w.aromas, w.flavors].join(', ')).slice(0, 9);
+  h += '<section class="c c3"><h4 class="eyebrow">Aromas &amp; Flavors</h4>' +
+    (dm.length ? '<div class="dstrip">' + dm.map(function(x){ return '<img src="' + photoOf(x) + '" alt="' + esc(x) + '" title="' + esc(x) + '" loading="lazy">'; }).join('') + '</div>' : '') + (nts.length ? nts.map(function(p){
       return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join('') : '<p class="hint">Not recorded</p>') + '</section>';
   // quality & aging
   var bl = (w.blic || '').split(/\s*,\s*/);
@@ -1397,7 +1472,7 @@ function pcard(w){
   // appearance & nose
   var an = [['Clarity','clarity'],['Intensity','appInt'],['Color','color'],['Condition','condition'],['Nose','noseInt'],['Development','development']]
     .filter(function(p){ return w[p[1]]; });
-  h += '<td><h4>Appearance &amp; Nose</h4>' + (an.length ? '<table class="kv">' + an.map(function(p){
+  h += '<td><h4>Appearance · Nose</h4>' + (an.length ? '<table class="kv">' + an.map(function(p){
       return '<tr><td class="l">' + p[0] + '</td><td class="v">' + (p[1] === 'color' && SW[w.color] ? '<span class="dot" style="background:' + SW[w.color] + '"></span>' : '') +
         esc(lg(w[p[1]])) + '</td></tr>'; }).join('') + '</table>' : '<span class="hint">Not recorded</span>') + '</td>';
   // structure
