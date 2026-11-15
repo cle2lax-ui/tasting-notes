@@ -30,21 +30,43 @@ var Sync = (function () {
   }
 
   /* ---------------- sign-in (must start from a tap) */
+  /* Google's sign-in window must open straight from a tap (Safari blocks it otherwise), so the sign-in
+     library is loaded ahead of time and the window is opened without waiting on anything. */
+  var client = null, pending = null;
+  function gisReady() { return !!(window.google && google.accounts && google.accounts.oauth2); }
+  function makeClient() {
+    if (client || !gisReady()) return client;
+    client = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE.CLIENT_ID, scope: GOOGLE.SCOPE,
+      callback: function (r) {
+        var p = pending; pending = null; if (!p) return;
+        if (r && r.access_token) {
+          tok = { t: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3500) * 1000 };
+          write(TOK_KEY, tok); conf.consented = true; write(CONF_KEY, conf); p.res(tok.t);
+        } else p.rej(new Error((r && (r.error_description || r.error)) || 'Google sign-in was cancelled.'));
+      },
+      error_callback: function (e) {
+        var p = pending; pending = null; if (!p) return;
+        p.rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' :
+          'Google sign-in did not open. Check that pop-ups are allowed, then try again.'));
+      }
+    });
+    return client;
+  }
+  function preload() {
+    if (!navigator.onLine) return Promise.resolve(false);
+    return loadScript('https://accounts.google.com/gsi/client').then(function () { makeClient(); return true; }, function () { return false; });
+  }
   function signIn() {
-    return loadScript('https://accounts.google.com/gsi/client').then(function () {
+    if (makeClient()) {                                  // ready: open Google's window right now, inside the tap
       return new Promise(function (res, rej) {
-        var client = google.accounts.oauth2.initTokenClient({
-          client_id: GOOGLE.CLIENT_ID, scope: GOOGLE.SCOPE, prompt: conf.consented ? '' : 'consent',
-          callback: function (r) {
-            if (r && r.access_token) {
-              tok = { t: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3500) * 1000 };
-              write(TOK_KEY, tok); conf.consented = true; write(CONF_KEY, conf); res(tok.t);
-            } else rej(new Error((r && (r.error_description || r.error)) || 'Google sign-in was cancelled.'));
-          },
-          error_callback: function (e) { rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in did not open. Allow pop-ups for this page and try again.')); }
-        });
-        client.requestAccessToken();
+        pending = { res: res, rej: rej };
+        client.requestAccessToken({ prompt: conf.consented ? '' : 'consent' });
       });
+    }
+    return preload().then(function (ok) {
+      if (!ok) throw new Error('Could not reach Google. Check your connection and try again.');
+      throw new Error('Google is ready now — tap the button once more to sign in.');
     });
   }
   function token(interactive) {
@@ -286,6 +308,6 @@ var Sync = (function () {
     config: function () { return conf; },
     connected: function () { return !!conf.sheetId; },
     signedIn: tokenOk,
-    createSheet: createSheet, pickSheet: pickSheet, disconnect: disconnect, sync: sync, soon: soon, signIn: signIn
+    createSheet: createSheet, pickSheet: pickSheet, disconnect: disconnect, sync: sync, soon: soon, signIn: signIn, preload: preload
   };
 })();
