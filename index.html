@@ -486,6 +486,79 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
+/* ---- v1.3 entry polish */
+.sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
+.sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
+.sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
+.sec>header .prog em{font:600 11px/1 var(--sans);font-style:normal;color:var(--muted);min-width:30px;text-align:right}
+.sec>header .prog.done em{color:var(--gold)}
+.sec>header .s{flex:1 1 auto;margin-left:6px}
+@media (min-width:1080px){ .sec>header .prog{display:flex !important} }
+.noteacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lexopen{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 10px;border-radius:999px;border:1px solid rgba(154,116,56,.45);
+  background:linear-gradient(180deg,#FFFDF8,var(--gold-tint));color:var(--gold-ink);font:600 13px/1 var(--sans);box-shadow:0 1px 2px rgba(154,116,56,.12)}
+.lexopen .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff;font-size:15px;line-height:1}
+.lexopen .ct{font:600 11px/1 var(--sans);color:var(--muted)}
+.mini{height:36px;display:inline-flex;align-items:center;padding:0 14px}
+.note .lab .mini{display:none}
+.opts[data-k="color"] .opt .dot{width:16px;height:16px}
+/* lexicon sheet */
+.lexsheet{position:fixed;inset:0;z-index:58;display:none;background:rgba(31,26,29,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  align-items:flex-end;justify-content:center}
+.lexsheet.show{display:flex}
+.lexsheet .lp{background:var(--paper);width:100%;max-width:860px;height:90vh;height:90dvh;display:flex;flex-direction:column;border-radius:26px 26px 0 0;
+  box-shadow:0 -24px 70px rgba(0,0,0,.3);overflow:hidden;animation:sheetup .32s var(--ease)}
+@keyframes sheetup{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+@media (min-width:700px){ .lexsheet{align-items:center;padding:24px} .lexsheet .lp{border-radius:26px;height:min(86vh,860px)} }
+.lph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:18px 20px 12px;
+  background:radial-gradient(120% 140% at 0% 0%,#8A2C4C 0%,rgba(138,44,76,0) 55%),linear-gradient(160deg,#741D3B,#4A0E22);color:#fff}
+.lph:before{content:"";display:block;position:absolute}
+.lph .eyebrow{color:var(--gold-hi)}
+.lph h2{margin:6px 0 0;font:italic 700 24px/1.05 var(--serif)}
+.lph .lexdone{height:40px;border-radius:999px;padding:0 20px;background:#fff;color:var(--sig);border:0;font:600 14px/1 var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.lexsel{display:flex;gap:6px;overflow-x:auto;padding:12px 20px;border-bottom:1px solid var(--line);min-height:56px;align-items:center;scrollbar-width:none;background:var(--card)}
+.lexsel::-webkit-scrollbar{display:none}
+.lexsel .hint{white-space:nowrap}
+.lexsel .tok{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 6px 0 12px;border-radius:999px;background:var(--sig);color:#fff;font:600 12.5px/1 var(--sans)}
+.lexsel .tok b{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:12px}
+.lexctl{display:flex;gap:10px;align-items:center;padding:12px 20px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.lexsearch{position:relative;flex:1 1 200px}
+.lexsearch input{width:100%;height:38px;padding:0 12px 0 34px;border:1px solid var(--line-2);border-radius:999px;background:var(--card);font-size:14px;color:var(--ink);
+  -webkit-appearance:none;appearance:none;outline:none}
+.lexsearch svg{position:absolute;left:12px;top:50%;width:14px;height:14px;transform:translateY(-50%);color:var(--muted)}
+.lextiers{flex:none}
+.lextiers button{height:32px;padding:0 14px;font-size:12.5px}
+.lexbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 20px calc(24px + env(safe-area-inset-bottom))}
+.lcat{margin:16px 0 4px}
+.lcat h3{display:flex;align-items:center;gap:8px;margin:0 0 9px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.lcat h3 i{width:10px;height:10px;border-radius:50%;background:var(--cc)}
+.lcat h3 em{font-style:normal;color:var(--gold);letter-spacing:.04em;text-transform:none;font-size:11.5px}
+.ltiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px}
+.ltile{position:relative;text-align:left;min-height:44px;padding:8px 26px 8px 13px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);
+  color:var(--ink);font:500 13.5px/1.2 var(--sans);overflow:hidden;transition:background .15s,border-color .15s,transform .1s}
+.ltile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
+.ltile:active{transform:scale(.97)}
+.ltile.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 16%,var(--card));font-weight:600}
+.ltile.on:after{content:"✓";position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ink-2)}
+.lexempty{padding:40px 0;text-align:center;color:var(--muted)}
+/* open-a-saved-wine sheet */
+.openbtn{height:44px;width:100%;display:flex;align-items:center;gap:10px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC;
+  color:var(--ink-2);font:500 15px/1 var(--sans);text-align:left}
+.openbtn svg{width:17px;height:17px;color:var(--gold);flex:none}
+.openbtn span{flex:1}
+#load{display:none}
+.olist{flex:1;overflow-y:auto;padding:4px 20px calc(24px + env(safe-area-inset-bottom))}
+.olist .od{margin:16px 0 6px;font:italic 700 16px/1.2 var(--serif);color:var(--sig)}
+.olist .od span{font:500 12px/1 var(--sans);color:var(--muted);margin-left:8px;font-style:normal}
+.olist button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;margin:0 0 6px;border-radius:14px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink)}
+.olist button i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--wc,var(--line-2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.olist button b{font:600 14.5px/1.2 var(--sans)}
+.olist button small{display:block;margin-top:3px;color:var(--muted);font-size:12.5px}
+.olist button .n{margin-left:auto;font:600 11px/1 var(--sans);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+:root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
+:root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
+:root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -581,12 +654,12 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <div class="fld"><label class="eyebrow" for="date">Date</label><input type="date" id="date"></div>
     <div class="fld"><label class="eyebrow">Wine #</label><div class="stepper"><button type="button" id="noDn" aria-label="Previous number">−</button><span id="no">1</span><button type="button" id="noUp" aria-label="Next number">+</button></div></div>
     <div class="fld ev"><label class="eyebrow" for="event">Tasting / Event</label><input type="text" id="event" list="dl-event" placeholder="e.g. Diploma class" autocomplete="off" autocapitalize="words"></div>
-    <div class="fld ld"><label class="eyebrow" for="load">Open a saved wine</label><select id="load"><option value="">Choose…</option></select></div>
+    <div class="fld ld"><label class="eyebrow">Saved wines</label><button type="button" class="openbtn" id="openSaved"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5V15a1.5 1.5 0 001.5 1.5h12a1.5 1.5 0 001.5-1.5V8a1.5 1.5 0 00-1.5-1.5H9.5L7.8 4.5H4A1.5 1.5 0 002.5 6v.5"/></svg><span>Open a Saved Wine</span><span id="savedCount" class="eyebrow" style="flex:none;color:var(--muted)"></span></button><select id="load"><option value="">Choose…</option></select></div>
     <div class="idwho"><b id="who2">Wine #1</b><span class="pill" id="state2">New</span></div>
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.2 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.3 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -612,7 +685,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.2</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.3</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -646,7 +719,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <label class="tog">Dim-room mode <input type="checkbox" id="dimTog"></label>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.3. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -673,6 +746,20 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 <div class="modal" id="ready"><div class="box">
   <p id="readyMsg"></p>
   <div class="acts"><button class="btn" id="readyClose" type="button">Close</button><button class="btn pri" id="readyGo" type="button">Share</button></div>
+</div></div>
+<div class="lexsheet" id="lexSheet" role="dialog" aria-labelledby="lexTitle"><div class="lp">
+  <div class="lph"><div><div class="eyebrow">WSET Wine-Lexicon</div><h2 id="lexTitle">Aromas</h2></div><button class="lexdone" type="button" id="lexDone">Done</button></div>
+  <div class="lexsel" id="lexSel"></div>
+  <div class="lexctl">
+    <div class="lexsearch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="lexQ" placeholder="Find a descriptor" autocomplete="off"></div>
+    <div class="dens lextiers" id="lexTiers"><button type="button" data-t="Primary" class="on">Primary</button><button type="button" data-t="Secondary">Secondary</button><button type="button" data-t="Tertiary">Tertiary</button></div>
+  </div>
+  <div class="lexbody" id="lexBody"></div>
+</div></div>
+<div class="lexsheet" id="openSheet" role="dialog" aria-labelledby="openTitle"><div class="lp">
+  <div class="lph"><div><div class="eyebrow">Your notebook</div><h2 id="openTitle">Open a Saved Wine</h2></div><button class="lexdone" type="button" id="openClose">Close</button></div>
+  <div class="lexctl"><div class="lexsearch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="openQ" placeholder="Search producer, grape, region, event" autocomplete="off"></div></div>
+  <div class="olist" id="openList"></div>
 </div></div>
 <div class="lightbox" id="lightbox"><img id="lbImg" alt="Label photo"></div>
 <div class="toast" id="toast"></div>
@@ -749,14 +836,14 @@ function renderEntry(){
   var defs = F();
   var secs = defs.map(function(sec, i){
     return '<section class="sec' + (i === openSec ? ' open' : '') + '" data-i="' + i + '"><header><span class="n">' + ['01','02','03','04'][i] +
-      '</span><span class="t">' + sec.t + '</span><span class="s" id="sum' + i + '"></span>' + CHEV + '</header>' +
+      '</span><span class="t">' + sec.t + '</span><span class="s" id="sum' + i + '"></span><span class="prog"><i><b></b></i><em></em></span>' + CHEV + '</header>' +
       '<div class="body">' + sec.items.map(item).join('') +
       (i < 3 ? '<div class="next"><button type="button" data-next="' + (i + 1) + '">Next · ' + defs[i + 1].t + '</button></div>' : '') +
       '</div></section>';
   });
   $('entryMain').innerHTML = '<div class="col">' + secs[0] + secs[1] + '</div><div class="col">' + secs[2] + secs[3] + '</div>';
   [].forEach.call(document.querySelectorAll('textarea'), grow);
-  refreshSums(); paintScore();
+  refreshSums(); paintScore(); paintProgress(); paintLexCount();
 }
 function item(it){
   var k = it[1];
@@ -766,10 +853,11 @@ function item(it){
   if (it[0] === 'color') return colorRow();
   if (it[0] === 'note') {
     var lex = (k === 'aromas' || k === 'flavors');
-    return '<div class="note"><span class="lab">' + it[2] +
-      (it[4] ? '<button type="button" class="mini" id="sameNose">Same as nose</button>' : '') +
-      (lex ? '<button type="button" class="lexbtn" data-lex="' + k + '">Lexicon</button>' : '') + '</span><div><textarea data-k="' + k +
-      '" rows="1" placeholder="' + esc(it[3]) + '">' + esc(rec[k]) + '</textarea>' + (lex ? lexPanel(k) : '') + '</div></div>';
+    return '<div class="note"><span class="lab">' + it[2] + '</span><div><textarea data-k="' + k +
+      '" rows="1" placeholder="' + esc(it[3]) + '">' + esc(rec[k]) + '</textarea>' +
+      (lex || it[4] ? '<div class="noteacts">' +
+        (lex ? '<button type="button" class="lexopen" data-lexopen="' + k + '"><span class="ic">+</span>Add from Lexicon<span class="ct" id="lexct-' + k + '"></span></button>' : '') +
+        (it[4] ? '<button type="button" class="mini" id="sameNose">Same as nose</button>' : '') + '</div>' : '') + '</div></div>';
   }
   if (it[0] === 'text') return '<div class="row"><div class="lab">' + it[2] + '</div><input type="text" data-k="' + k + '" value="' + esc(rec[k]) +
     '" placeholder="' + esc(it[3]) + '"></div>';
@@ -811,6 +899,99 @@ function addWord(k, word){
   rec[k] = !v ? word : /[,.;:]$/.test(v) ? v + ' ' + word : v + ', ' + word;
   t.value = rec[k]; grow(t); touch();
 }
+var LEXC = { 'Floral': '#D98BB3', 'Green Fruit': '#8DB255', 'Citrus Fruit': '#E3C33F', 'Stone Fruit': '#E8995B', 'Tropical Fruit': '#F0B13A',
+  'Red Fruit': '#C8384A', 'Black Fruit': '#5A2A55', 'Herbaceous': '#6E9B54', 'Herbal': '#4F8A73', 'Spice': '#A2683A', 'Ripeness': '#B05B6F', 'Other': '#9A9A9A',
+  'Yeast': '#D3B07C', 'Malolactic': '#E3CB86', 'Oak': '#8B5A2B', 'Red Wine': '#7A3B2E', 'White Wine': '#C79A3B', 'Oxidative': '#9C7A4F' };
+var LEX = { k: 'aromas', tier: 'Primary', q: '' };
+function toks(k){ return String(rec[k] || '').split(/\s*,\s*/).map(function(t){ return t.trim(); }).filter(Boolean); }
+function norm1(t){ return t.toLowerCase().replace(/[.;:]+$/, '').trim(); }
+function hasWord(k, w){ var lw = w.toLowerCase(); return toks(k).some(function(t){ return norm1(t) === lw; }); }
+function lexWords(){ var all = {}; LEXG.forEach(function(g){ g.words.forEach(function(w){ all[w.toLowerCase()] = w; }); }); return all; }
+var LEXALL = null;
+function chosen(k){ LEXALL = LEXALL || lexWords(); return toks(k).map(norm1).filter(function(t){ return LEXALL[t]; }).map(function(t){ return LEXALL[t]; }); }
+function toggleWord(k, w){
+  if (hasWord(k, w)) { var lw = w.toLowerCase(); rec[k] = toks(k).filter(function(t){ return norm1(t) !== lw; }).join(', '); }
+  else { var v = String(rec[k] || '').replace(/\s+$/, ''), word = w.toLowerCase(); rec[k] = !v ? word : /[,.;:]$/.test(v) ? v + ' ' + word : v + ', ' + word; }
+  var t = document.querySelector('textarea[data-k="' + k + '"]'); if (t) { t.value = rec[k]; grow(t); }
+  touch(); paintLexCount();
+}
+function paintLexCount(){ ['aromas','flavors'].forEach(function(k){ var e = $('lexct-' + k); if (e) { var n = chosen(k).length; e.textContent = n ? n + ' chosen' : ''; } }); }
+function openLex(k){
+  LEX.k = k; LEX.q = ''; $('lexQ').value = '';
+  $('lexTitle').textContent = k === 'flavors' ? 'Flavors' : 'Aromas';
+  paintLex(); $('lexSheet').classList.add('show'); $('lexBody').scrollTop = 0;
+}
+function paintLex(){
+  var k = LEX.k, q = LEX.q.trim().toLowerCase();
+  [].forEach.call(document.querySelectorAll('#lexTiers button'), function(b){ b.classList.toggle('on', !q && b.getAttribute('data-t') === LEX.tier); });
+  var picked = chosen(k);
+  $('lexSel').innerHTML = picked.length ? picked.map(function(w){ return '<button type="button" class="tok" data-w="' + esc(w) + '">' + esc(w) + '<b>×</b></button>'; }).join('')
+    : '<span class="hint">Tap descriptors to add them to your note — tap again to remove. You can still type freely.</span>';
+  var html = '';
+  LEXG.forEach(function(g){
+    if (!q && g.tier !== LEX.tier) return;
+    var words = q ? g.words.filter(function(w){ return w.toLowerCase().indexOf(q) >= 0; }) : g.words;
+    if (!words.length) return;
+    var n = words.filter(function(w){ return hasWord(k, w); }).length;
+    html += '<div class="lcat" style="--cc:' + (LEXC[g.name] || '#9A7438') + '"><h3><i></i>' + esc(g.name) + (q ? ' · ' + g.tier : '') +
+      (n ? '<em>' + n + ' chosen</em>' : '') + '</h3><div class="ltiles">' +
+      words.map(function(w){ return '<button type="button" class="ltile' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(w) + '">' + esc(w) + '</button>'; }).join('') + '</div></div>';
+  });
+  $('lexBody').innerHTML = html || '<div class="lexempty">No descriptors match “' + esc(LEX.q) + '”. Type it straight into your note instead.</div>';
+}
+$('lexBody').addEventListener('click', function(e){ var t = e.target.closest('.ltile'); if (!t) return; toggleWord(LEX.k, t.getAttribute('data-w'));
+  var on = hasWord(LEX.k, t.getAttribute('data-w')); t.classList.toggle('on', on);
+  var st = $('lexBody').scrollTop; paintLex(); $('lexBody').scrollTop = st; });
+$('lexSel').addEventListener('click', function(e){ var t = e.target.closest('.tok'); if (!t) return; toggleWord(LEX.k, t.getAttribute('data-w')); var st = $('lexBody').scrollTop; paintLex(); $('lexBody').scrollTop = st; });
+$('lexTiers').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; LEX.tier = b.getAttribute('data-t'); LEX.q = ''; $('lexQ').value = ''; paintLex(); $('lexBody').scrollTop = 0; });
+$('lexQ').addEventListener('input', function(){ LEX.q = this.value; paintLex(); });
+$('lexDone').onclick = function(){ $('lexSheet').classList.remove('show'); };
+$('lexSheet').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
+
+/* ---- section progress */
+var PROG = [['clarity','appInt','type','color','appNotes','condition','noseInt','development','aromas','noseNotes'],
+  ['sweetness','acidity','tannin','tanNature','alcohol','body','flavInt','finish','flavors','palate'],
+  ['quality','blic','qReason','aging','aReason'],
+  ['gGrape','gCountry','gRegion','gVintage','producer','aGrape','aCountry','aRegion','aVintage']];
+function paintProgress(){
+  PROG.forEach(function(keys, i){
+    var el = document.querySelector('.sec[data-i="' + i + '"] .prog'); if (!el) return;
+    var ks = i === 3 && rec.open ? keys.filter(function(k){ return k.charAt(0) !== 'g'; }) : keys;
+    var n = ks.filter(function(k){ return String(rec[k] || '').trim(); }).length;
+    el.querySelector('b').style.width = Math.round(100 * n / ks.length) + '%';
+    el.querySelector('em').textContent = n === ks.length ? '✓' : n + '/' + ks.length;
+    el.classList.toggle('done', n === ks.length);
+  });
+}
+
+/* ---- open a saved wine */
+function paintOpen(){
+  var q = $('openQ').value.trim().toLowerCase(), last = '', h = '';
+  ALL.slice().sort(function(a, b){ return a.ymd < b.ymd ? 1 : a.ymd > b.ymd ? -1 : b.wineNo - a.wineNo; }).forEach(function(w){
+    var text = [w.producer, w.aGrape, w.gGrape, w.aRegion, w.aCountry, w.event, w.dateLabel].join(' ').toLowerCase();
+    if (q && text.indexOf(q) < 0) return;
+    if (w.ymd !== last) {
+      var n = ALL.filter(function(x){ return x.ymd === w.ymd; }).length;
+      h += '<div class="od">' + (w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date') +
+        '<span>' + esc(w.event || '') + (w.event ? ' · ' : '') + n + ' wine' + (n === 1 ? '' : 's') + '</span></div>';
+      last = w.ymd;
+    }
+    var sub = [w.aGrape || (w.gGrape ? 'Guess: ' + w.gGrape : ''), w.aRegion, w.aVintage].filter(Boolean).join(' · ');
+    h += '<button type="button" data-d="' + w.ymd + '" data-n="' + w.wineNo + '" style="--wc:' + (SW[w.color] || 'var(--line-2)') + '"><i></i><span><b>' +
+      esc(w.producer || (w.aGrape ? w.aGrape : 'Not yet revealed')) + '</b><small>' + esc(sub || (w.color ? w.color : '')) + '</small></span><span class="n">#' + esc(w.wineNo) + '</span></button>';
+  });
+  $('openList').innerHTML = h || '<div class="lexempty">' + (ALL.length ? 'No saved wines match.' : 'No saved wines yet.') + '</div>';
+}
+$('openSaved').onclick = function(){ $('openQ').value = ''; paintOpen(); $('openSheet').classList.add('show'); $('openList').scrollTop = 0; };
+$('openClose').onclick = function(){ $('openSheet').classList.remove('show'); };
+$('openSheet').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
+$('openQ').addEventListener('input', paintOpen);
+$('openList').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-d]'); if (!b) return;
+  var d = b.getAttribute('data-d'), n = +b.getAttribute('data-n');
+  $('openSheet').classList.remove('show');
+  guard('Open this wine?').then(function(go){ if (go) openWine(d, n); });
+});
 function isOn(k, v, multi){ return multi ? (rec[k] || '').split(/\s*,\s*/).indexOf(v) >= 0 : rec[k] === v; }
 function opt(k, v, multi){
   var dot = SW[v] ? '<span class="dot" style="background:' + SW[v] + '"></span>' : '';
@@ -897,7 +1078,7 @@ function setState(kind){
     p.textContent = kind === 'dirty' ? 'Unsaved changes' : kind === 'saved' ? 'Saved' : orig ? 'Saved' : 'New'; });
 }
 function setWho(){ $('who').textContent = label(); $('who2').textContent = label(); }
-function touch(){ dirty = true; setState('dirty'); setWho(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
+function touch(){ dirty = true; setState('dirty'); setWho(); paintProgress(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
 function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
 function today(){ return BOOT.today || new Date().toISOString().slice(0, 10); }
 function nextNo(date){ var m = 0; WINES.forEach(function(w){ if (w.d === date) m = Math.max(m, w.n); }); return m + 1; }
@@ -906,8 +1087,8 @@ function show(r, o, isDirty){ rec = r; orig = o; dirty = !!isDirty; openSec = 0;
 
 /* ====================================================================== ENTRY: events */
 document.addEventListener('click', function(e){
-  var lb = e.target.closest('[data-lex]');
-  if (lb) { var pnl = lb.closest('.note').querySelector('.lex'); pnl.classList.toggle('show'); lb.classList.toggle('on'); return; }
+  var lo = e.target.closest('[data-lexopen]');
+  if (lo) { openLex(lo.getAttribute('data-lexopen')); return; }
   var lg = e.target.closest('.lexg button');
   if (lg) {
     var box = lg.closest('.lex'), on = lg.classList.contains('on');
@@ -1054,6 +1235,7 @@ function setData(all){
     ALL.forEach(function(w){ keys.forEach(function(k){ var v = String(w[k] || '').trim(); if (v && !seen[v.toLowerCase()]) seen[v.toLowerCase()] = v; }); });
     return Object.keys(seen).map(function(k){ return seen[k]; }).sort(function(a, b){ return a.localeCompare(b); }); };
   LISTS = { grape: pick(['gGrape','aGrape']), country: pick(['gCountry','aCountry']), region: pick(['gRegion','aRegion']), event: pick(['event']) };
+  $('savedCount').textContent = WINES.length ? WINES.length : '';
   $('load').innerHTML = '<option value="">Choose…</option>' + WINES.map(function(w){
     return '<option value="' + w.d + '|' + w.n + '">' + esc(w.label + (w.producer ? ' — ' + w.producer : '')) + '</option>'; }).join('');
   ['grape','country','region','event'].forEach(function(k){
