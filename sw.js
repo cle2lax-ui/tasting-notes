@@ -1,10 +1,10 @@
 /* Blind Tasting Notes — offline app shell. Bump VERSION with every release so phones pick up the update. */
-const VERSION = 'btn-v1.1';
+const VERSION = 'btn-v1.2';
 const SHELL = ['./', 'index.html', 'logic.js', 'store.js', 'google.js', 'manifest.webmanifest',
   'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png',
   'fonts/archivo-400.woff2', 'fonts/archivo-500.woff2', 'fonts/archivo-600.woff2', 'fonts/archivo-700.woff2',
   'fonts/playfair-500-italic.woff2', 'fonts/playfair-600-italic.woff2', 'fonts/playfair-700-italic.woff2',
-  'fonts/playfair-600.woff2', 'fonts/playfair-700.woff2'];
+  'fonts/playfair-600.woff2', 'fonts/playfair-700.woff2', 'lib/jspdf.min.js', 'lib/html2canvas.min.js', 'privacy.html'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));

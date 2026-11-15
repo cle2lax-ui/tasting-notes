@@ -79,6 +79,7 @@ button{cursor:pointer}
 .ghost{border:1px solid var(--line-2);background:#fff;border-radius:999px;font:600 12.5px/1 var(--sans);color:var(--ink-2);
   height:36px;padding:0 14px;display:inline-flex;align-items:center;gap:6px}
 .ghost svg{width:15px;height:15px}
+.ghost{white-space:nowrap}
 select,input[type=date],input[type=text],textarea{border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC;outline:none;
   transition:border-color .2s,box-shadow .2s}
 select:focus,input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(154,116,56,.14)}
@@ -493,6 +494,8 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 /* ======================================================================  PRINT  (dedicated, pre-paginated document) */
 #printRoot{display:none}
 #printMeasure{position:absolute;left:-20000px;top:0;visibility:hidden;pointer-events:none}
+#pdfStage{position:fixed;left:-20000px;top:0;pointer-events:none}
+#pdfStage .ppage{background:#fff;padding:0 0 4px}
 .pr{width:988px;font-family:var(--sans);color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pr *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pr table{border-collapse:collapse;width:100%}
@@ -583,7 +586,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.1 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.2 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -603,18 +606,18 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
       <div class="dens" role="group" aria-label="Density"><button type="button" data-d="full" class="on">Detail</button><button type="button" data-d="list">List</button></div>
       <span class="sp"></span>
       <button class="ghost" id="selBtn" type="button">Select</button>
-      <button class="ghost" id="printBtn" type="button" title="Print or save as PDF"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 6V2h8v4M4 12H2.5V6.5h11V12H12M4 9.5h8V14H4z"/></svg>Print</button>
+      <button class="ghost" id="printBtn" type="button" title="Print or save as PDF"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button>
     </div>
   </div></div>
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.1</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.2</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
     <button class="btn" id="selAll" type="button">Select All Shown</button>
-    <button class="btn" id="selPdf" type="button">Print / PDF</button>
+    <button class="btn" id="selPdf" type="button">Share PDF</button>
     <button class="btn pri" id="selSend" type="button">Send to a Friend</button>
     <button class="btn" id="selDone" type="button">Done</button>
   </div></div>
@@ -643,7 +646,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <label class="tog">Dim-room mode <input type="checkbox" id="dimTog"></label>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -667,10 +670,15 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <div class="fine">You can connect any time in Settings. The app only sees the Sheet it creates or the one you choose.</div>
   </div>
 </div></div>
+<div class="modal" id="ready"><div class="box">
+  <p id="readyMsg"></p>
+  <div class="acts"><button class="btn" id="readyClose" type="button">Close</button><button class="btn pri" id="readyGo" type="button">Share</button></div>
+</div></div>
 <div class="lightbox" id="lightbox"><img id="lbImg" alt="Label photo"></div>
 <div class="toast" id="toast"></div>
 <div id="printMeasure" class="pr" aria-hidden="true"></div>
 <div id="printRoot" class="pr" aria-hidden="true"></div>
+<div id="pdfStage" class="pr" aria-hidden="true"></div>
 <div class="modal" id="modal"><div class="box"><p id="mMsg"></p><div class="acts">
   <button class="btn" id="mNo" type="button">Cancel</button><button class="btn pri" id="mYes" type="button">OK</button></div></div></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
@@ -1075,7 +1083,7 @@ $('fValue').onchange = function(){ SUM.value = this.value; store(SUM_KEY, SUM); 
 $('sField').onchange = function(){ SUM.sort = this.value; store(SUM_KEY, SUM); renderSummary(); };
 $('ord').onclick = function(){ SUM.desc = !SUM.desc; syncControls(); store(SUM_KEY, SUM); renderSummary(); };
 document.querySelector('.dens').onclick = function(e){ var b = e.target.closest('button'); if (!b) return; SUM.dens = b.getAttribute('data-d'); syncControls(); store(SUM_KEY, SUM); renderSummary(); };
-$('printBtn').onclick = function(){ printWines(shownWines(), ''); };
+$('printBtn').onclick = function(){ sharePdf(shownWines(), SUM.field !== '(no filter)' && SUM.value !== '(all)' ? SUM.value : ''); };
 window.addEventListener('beforeprint', function(){ if (!buildPrint.fresh) buildPrint(); });
 window.addEventListener('afterprint', function(){ buildPrint.fresh = false; });
 $('wines').addEventListener('click', function(e){
@@ -1311,15 +1319,70 @@ function flightTitle(list){
   var ds = list.map(function(w){ return w.dateLabel; }).filter(Boolean).filter(function(v, i, a){ return a.indexOf(v) === i; });
   return (ev.length === 1 ? ev[0] : 'Tasting notes') + (ds.length === 1 ? ' – ' + ds[0] : '');
 }
-$('selPdf').onclick = function(){ printWines(selectedWines(), flightTitle(selectedWines())); };
+$('selPdf').onclick = function(){ var l = selectedWines(); sharePdf(l, flightTitle(l)); };
 $('selSend').onclick = function(){
   var list = selectedWines(), title = flightTitle(list);
+  toast('Preparing the file…');
   Backup.make(list.map(function(w){ return w.id; }), true, title).then(function(file){
     var blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
-    return shareFile(blob, title.replace(/[\\/:*?"<>|]+/g, '-') + '.tasting.json', title);
-  }).then(function(){ toast('Ready to send — your friend opens it with Settings › Restore or Import'); })
-    .catch(function(err){ toast(err.message || 'Could not share'); });
+    readyToShare(blob, fileSafe(title) + '.tasting.json', title,
+      'Your file of ' + list.length + ' wine' + (list.length === 1 ? '' : 's') + ' is ready. Your friend opens it in the app with Settings › Restore or Import.');
+  }).catch(function(err){ toast(err.message || 'Could not share'); });
 };
+function fileSafe(t){ return String(t || 'Tasting notes').replace(/[\\/:*?"<>|]+/g, '-').trim(); }
+
+/* ---- share sheet: Safari only opens it straight from a tap, so files are prepared first, then offered */
+var READY = null;
+function readyToShare(blob, name, title, msg){
+  READY = { blob: blob, name: name, title: title };
+  $('readyMsg').textContent = msg; $('ready').classList.add('show');
+}
+$('readyClose').onclick = function(){ $('ready').classList.remove('show'); READY = null; };
+$('readyGo').onclick = function(){
+  var r = READY; if (!r) return;
+  $('ready').classList.remove('show');
+  shareFile(r.blob, r.name, r.title).catch(function(err){ toast(err.message || 'Could not open the share sheet'); });
+};
+
+/* ---- PDF: the print layout, page by page, made on the device (works in the Home Screen app) */
+function loadLib(src){
+  return new Promise(function(res, rej){
+    if (document.querySelector('script[data-lib="' + src + '"]')) return res();
+    var s = document.createElement('script'); s.src = src; s.setAttribute('data-lib', src);
+    s.onload = res; s.onerror = function(){ rej(new Error('Could not load the PDF maker. Open the app once while online.')); };
+    document.head.appendChild(s);
+  });
+}
+function makePdf(list, title){
+  if (!list.length) return Promise.reject(new Error('No wines to share.'));
+  return Promise.all([loadLib('lib/jspdf.min.js'), loadLib('lib/html2canvas.min.js')]).then(function(){
+    return Promise.all(list.filter(function(w){ return PHOTO_IDS[w.id] && !THUMBS[w.id]; })
+      .map(function(w){ return Photos.urls(w.id).then(function(x){ if (x) THUMBS[w.id] = x; }); }));
+  }).then(function(){ return document.fonts && document.fonts.ready; }).then(function(){
+    buildPrint(list, title);
+    var stage = $('pdfStage');
+    stage.innerHTML = $('printRoot').innerHTML;
+    var pages = [].slice.call(stage.querySelectorAll('.ppage'));
+    var pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter', compress: true });
+    return pages.reduce(function(p, page, i){
+      return p.then(function(){
+        toast('Making PDF… page ' + (i + 1) + ' of ' + pages.length);
+        return html2canvas(page, { scale: 2, backgroundColor: '#ffffff', logging: false }).then(function(c){
+          if (i) pdf.addPage('letter', 'landscape');
+          var w = 10.3, h = Math.min(7.9, c.height / c.width * w);
+          pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0.35, 0.3, w, h);
+        });
+      });
+    }, Promise.resolve()).then(function(){ stage.innerHTML = ''; return pdf.output('blob'); });
+  });
+}
+function sharePdf(list, title){
+  makePdf(list, title).then(function(blob){
+    var name = fileSafe(title || 'Blind Tasting Notes') + '.pdf';
+    readyToShare(blob, name, title || 'Blind Tasting Notes',
+      'Your PDF of ' + list.length + ' wine' + (list.length === 1 ? '' : 's') + ' is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
+  }).catch(function(err){ toast(err.message || 'Could not make the PDF'); });
+}
 $('q').addEventListener('input', function(){ QTEXT = this.value; renderSummary(); });
 
 /* ---- printing (all shown wines, or a selection) */
