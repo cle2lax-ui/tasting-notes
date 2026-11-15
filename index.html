@@ -18,9 +18,6 @@
 @font-face{font-family:'Archivo';font-weight:500;font-display:swap;src:url(fonts/archivo-500.woff2) format('woff2')}
 @font-face{font-family:'Archivo';font-weight:600;font-display:swap;src:url(fonts/archivo-600.woff2) format('woff2')}
 @font-face{font-family:'Archivo';font-weight:700;font-display:swap;src:url(fonts/archivo-700.woff2) format('woff2')}
-@font-face{font-family:'Playfair Display';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/playfair-500-italic.woff2) format('woff2')}
-@font-face{font-family:'Playfair Display';font-style:italic;font-weight:600;font-display:swap;src:url(fonts/playfair-600-italic.woff2) format('woff2')}
-@font-face{font-family:'Playfair Display';font-style:italic;font-weight:700;font-display:swap;src:url(fonts/playfair-700-italic.woff2) format('woff2')}
 @font-face{font-family:'Playfair Display';font-weight:600;font-display:swap;src:url(fonts/playfair-600.woff2) format('woff2')}
 @font-face{font-family:'Playfair Display';font-weight:700;font-display:swap;src:url(fonts/playfair-700.woff2) format('woff2')}
 </style>
@@ -487,7 +484,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.6 entry polish */
+/* ---- v1.7 entry polish */
 .sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
 .sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
 .sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
@@ -560,7 +557,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
 :root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
 :root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
-/* ---- v1.6 beauty pass */
+/* ---- v1.7 beauty pass */
 .sec>header{padding:16px 18px 12px}
 .sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
 .sec>header .t{font:italic 700 20px/1.1 var(--serif)}
@@ -644,7 +641,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .pc-lab b{color:#EDE3E6}
 :root[data-theme="dim"] .opts.pcs .opt.pc.on .pc-lab b{color:#E9C98B}
 
-/* v1.6 summary: Appearance · Nose · Palate · Quality · Guess */
+/* v1.7 summary: Appearance · Nose · Palate · Quality · Guess */
 .c .dl+.nt,.c .dl+.dstrip,.c .sts+.nt,.c .sts+.dstrip{margin-top:14px}
 .c .dstrip+.nt{margin-top:2px}
 @media (min-width:700px){
@@ -661,6 +658,40 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 /* settings: light or dark */
 .thrRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14.5px;font-weight:600}
 .thrRow .seg{flex:0 1 300px}
+
+/* v1.7 type: no italics anywhere. Serif (upright) only for titles and headings; everything else sans,
+   with hierarchy carried by size, weight and color. */
+*,*::before,*::after{font-style:normal !important}
+.scoreline span,.showing,.ring .num,.dl dt,.st .l,.nt .l,.q .big,.gx .gh,.gx .gf,.gx .ga,
+.pr .kv td.l,.pr .ps td.l,.pr .nt .l,.pr .big,.pr .gt th,.pr .gt td.f,.pr .gt td.ac,.pr .hint{font-family:var(--sans) !important}
+/* headings: upright serif */
+.mast h1,.strip b,.idwho b,.sec>header .t,.wh h3,.empty h3,.dhead b,.olist .od,.sheet h2,.welcome h2,.lph h2,.pr .phd .ttl,.pr .pch .tt{font-family:var(--serif) !important;font-weight:700 !important;letter-spacing:-.005em}
+.sec>header .n{font-family:var(--serif) !important;font-weight:600 !important}
+.mast h1,.strip b,.idwho b,.sec>header .t,.sec>header .n,.wh h3,.empty h3,.dhead b,.olist .od,.sheet h2,.welcome h2,.lph h2,.pr .phd .ttl,.pr .pch .tt{font-variant-numeric:lining-nums}
+.idwho b,.strip b{font-size:18px !important;letter-spacing:-.01em}
+/* labels: quiet, medium weight */
+.dl dt{font-size:13px !important;font-weight:500 !important;color:var(--ink-2) !important;line-height:1.35 !important}
+.dl dd{font-weight:600}
+.st .l{font-size:12.5px !important;font-weight:500 !important;color:var(--ink-2) !important}
+.st.na .l{color:var(--faint) !important}
+/* note labels: small caps eyebrow over regular text */
+.nt .l{font-size:10px !important;font-weight:600 !important;letter-spacing:.14em;text-transform:uppercase;color:var(--muted) !important;margin-bottom:4px !important}
+.nt p{color:var(--ink) !important;font-weight:400}
+.q .big{font-size:20px !important;font-weight:700 !important;letter-spacing:-.01em;color:var(--sig) !important}
+.gx .gh{font-size:9.5px !important;font-weight:600 !important;letter-spacing:.14em;text-transform:uppercase}
+.gx .gf{font-size:12.5px !important;font-weight:500 !important;color:var(--ink-2) !important}
+.gx .ga{font-size:13px !important;font-weight:700 !important}
+.ring .num{font-weight:700 !important}
+.scoreline span{font-weight:700 !important}
+.showing{font-size:13.5px !important;font-weight:400 !important}
+.wh .sub2 i{font-weight:600}
+.pr .kv td.l,.pr .ps td.l{font-weight:500 !important;color:var(--ink-2) !important}
+.pr .nt .l{font-size:7px !important;font-weight:600 !important;letter-spacing:.12em;text-transform:uppercase;color:var(--muted) !important}
+.pr .nt p{color:var(--ink) !important}
+.pr .big{font-weight:700 !important}
+.pr .gt th{font-weight:600 !important;text-transform:uppercase;letter-spacing:.1em;font-size:7px !important}
+.pr .gt td.ac{font-weight:700 !important}
+:root[data-theme="dim"] .nt p{color:var(--ink-2) !important}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -761,7 +792,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.6 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.7 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -787,7 +818,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.6</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.7</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -821,7 +852,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.6. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.7. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -1673,7 +1704,7 @@ var PDFF = null;
 function b64(buf){ var u = new Uint8Array(buf), out = ''; for (var i = 0; i < u.length; i += 0x8000) out += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(out); }
 function pdfFonts(){
   if (PDFF) return PDFF;
-  var list = [['archivo-400','Archivo','normal'],['archivo-600','Archivo','bold'],['playfair-600-italic','Playfair','italic'],['playfair-700-italic','Playfair','bolditalic']];
+  var list = [['archivo-400','Archivo','normal'],['archivo-600','Archivo','bold'],['playfair-700','Playfair','bold']];
   PDFF = Promise.all(list.map(function(f){
     return fetch('fonts/pdf/' + f[0] + '.ttf').then(function(r){ if (!r.ok) throw new Error('font'); return r.arrayBuffer(); })
       .then(function(b){ return { file: f[0] + '.ttf', fam: f[1], st: f[2], data: b64(b) }; });
@@ -1702,7 +1733,7 @@ function pdfCard(D, w, x, y, W, draw, K, img){
     D.setTextColor(PC.goldInk); txt(sc, right - sw / 2, y + 18.2 * K, { align: 'center' }); right -= sw + 8 * K; }
   if (img) { var s2 = 26 * K; if (draw) { D.addImage(img, 'JPEG', right - s2, y + 6 * K, s2, s2); D.setDrawColor(PC.line); D.setLineWidth(.5); D.rect(right - s2, y + 6 * K, s2, s2); } right -= s2 + 8 * K; }
   var title = pdfText(w.producer || w.aGrape || 'Not yet revealed');
-  font('Playfair', 'bolditalic', 14, (w.producer || w.aGrape) ? PC.ink : PC.muted);
+  font('Playfair', 'bold', 14, (w.producer || w.aGrape) ? PC.ink : PC.muted);
   var tx = x + P + 4, ty = y + 28.5 * K;
   title = wrap(title, right - tx)[0]; txt(title, tx, ty);
   var tw = D.getTextWidth(title);
@@ -1716,13 +1747,13 @@ function pdfCard(D, w, x, y, W, draw, K, img){
   function column(i, fn){ var c = { x: cx[i] + 8 * K, w: cw[i] - 16 * K, y: top + 13 * K };
     fn(c); bottoms.push(c.y); }
   function h4(c, t){ font('Archivo', 'bold', 6.2, PC.sig); txt(t.toUpperCase(), c.x, c.y, { charSpace: 1.1 }); c.y += 11.5 * K; }
-  function kv(c, l, v, dot){ font('Playfair', 'italic', 8, PC.ink); txt(l, c.x, c.y);
+  function kv(c, l, v, dot){ font('Archivo', 'normal', 7.6, PC.ink2); txt(l, c.x, c.y);
     font('Archivo', 'bold', 7.3, PC.goldInk); var vv = wrap(v, c.w * 0.62)[0] || ''; txt(vv, c.x + c.w, c.y, { align: 'right' });
     if (dot && draw) { D.setFillColor(dot); D.circle(c.x + c.w - D.getTextWidth(vv) - 6 * K, c.y - 2.4 * K, 2.6 * K, 'F'); }
     c.y += 11.5 * K; }
   function note(c, l, v){ if (!v) return; c.y += 3 * K;
     if (l) { font('Archivo', 'bold', 5.8, PC.muted); txt(l.toUpperCase(), c.x, c.y, { charSpace: .9 }); c.y += 9 * K; }
-    font('Archivo', 'normal', 7.6, PC.ink2); wrap(v, c.w).forEach(function(line){ txt(line, c.x, c.y); c.y += 9.8 * K; }); c.y += 2 * K; }
+    font('Archivo', 'normal', 7.6, PC.ink); wrap(v, c.w).forEach(function(line){ txt(line, c.x, c.y); c.y += 9.8 * K; }); c.y += 2 * K; }
   function rule(c){ c.y += 2 * K; if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(c.x, c.y, c.x + c.w, c.y); } c.y += 10 * K; }
   function hint(c, t){ font('Archivo', 'normal', 7.4, PC.faint); txt(t, c.x, c.y); c.y += 10 * K; }
   // 1 appearance
@@ -1738,7 +1769,7 @@ function pdfCard(D, w, x, y, W, draw, K, img){
     [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],
      ['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]].forEach(function(p){
       var v = w[p[1]], n = p[2].length, i = v ? idx(p[2], v) : -1;
-      font('Playfair', 'italic', 8, v ? PC.ink : PC.faint); txt(p[0], c.x, c.y);
+      font('Archivo', 'normal', 7.6, v ? PC.ink2 : PC.faint); txt(p[0], c.x, c.y);
       font('Archivo', 'bold', 7, v ? PC.goldInk : PC.faint); txt(v ? sh(v) : '—', c.x + c.w, c.y, { align: 'right' });
       var bx = c.x + 50 * K, bW = c.w - 50 * K - 40 * K, by = c.y - 4.4 * K, g = 1.5 * K, bw = (bW - g * (n - 1)) / n;
       if (draw) for (var j = 0; j < n; j++) { D.setFillColor(j <= i ? PC.sig : PC.seg); D.roundedRect(bx + j * (bw + g), by, bw, 3.6 * K, 1.8 * K, 1.8 * K, 'F'); }
@@ -1746,7 +1777,7 @@ function pdfCard(D, w, x, y, W, draw, K, img){
     if (w.flavors) note(c, 'Flavors', w.flavors); if (w.tanNature) note(c, 'Tannin', w.tanNature); if (w.palate) note(c, 'Notes', w.palate); });
   // 4 quality & aging
   column(3, function(c){ h4(c, 'Quality & Aging');
-    if (w.quality) { font('Playfair', 'bolditalic', 12, PC.sig); txt(pdfText(w.quality), c.x, c.y + 2 * K); c.y += 13 * K; } else hint(c, 'Not assessed');
+    if (w.quality) { font('Archivo', 'bold', 11, PC.sig); txt(pdfText(w.quality), c.x, c.y + 2 * K); c.y += 13 * K; } else hint(c, 'Not assessed');
     var bl = (w.blic || '').split(/\s*,\s*/), px = c.x;
     font('Archivo', 'bold', 5.6);
     L.blic.forEach(function(b){ var on = bl.indexOf(b) >= 0, t = b.toUpperCase(), tw2 = D.getTextWidth(t) + 0.7 * t.length + 9 * K;
@@ -1761,12 +1792,12 @@ function pdfCard(D, w, x, y, W, draw, K, img){
   column(4, function(c){
     var rows = [['Grape','gGrape','aGrape'],['Country','gCountry','aCountry'],['Region','gRegion','aRegion'],['Vintage','gVintage','aVintage']];
     h4(c, w.open ? 'The Wine · Tasted Open' : 'Guess  /  Actual');
-    var fw = c.w * (w.open ? 0.3 : 0.27), gw = w.open ? 0 : (c.w - fw) / 2 - 2 * K, aw = c.w - fw - gw - (w.open ? 0 : 4 * K);
-    if (!w.open) { font('Playfair', 'italic', 7.4, PC.muted); txt('My Guess', c.x + fw + 4 * K, c.y); txt('Actual', c.x + fw + gw + 8 * K, c.y); c.y += 6 * K; }
+    var fw = c.w * (w.open ? 0.3 : 0.23), gw = w.open ? 0 : (c.w - fw) / 2 - 2 * K, aw = c.w - fw - gw - (w.open ? 0 : 4 * K);
+    if (!w.open) { font('Archivo', 'bold', 5.4, PC.muted); txt('MY GUESS', c.x + fw + 4 * K, c.y, { charSpace: .6 }); txt('ACTUAL', c.x + fw + gw + 8 * K, c.y, { charSpace: .6 }); c.y += 6 * K; }
     rows.forEach(function(r, ri){
       var hit = w.hits ? w.hits[ri] : null, has = !w.open && w[r[1]], st = !has || hit === null ? '' : hit ? 'ok' : 'no';
       font('Archivo', 'bold', 7.4); var gl = w.open ? [] : wrap(w[r[1]] || '—', gw - 8 * K - (st ? 8 * K : 0));
-      font('Playfair', 'italic', 8); var al = wrap(w[r[2]] || '—', aw - 8 * K);
+      font('Archivo', 'bold', 7.4); var al = wrap(w[r[2]] || '—', aw - 8 * K);
       var rh = Math.max(gl.length, al.length, 1) * 9 * K + 4.5 * K;
       font('Archivo', 'bold', 5.4, PC.muted); txt(r[0].toUpperCase(), c.x, c.y + 8 * K, { charSpace: .5 });
       var gx = c.x + fw, ax = gx + (w.open ? 0 : gw + 4 * K);
@@ -1779,7 +1810,7 @@ function pdfCard(D, w, x, y, W, draw, K, img){
           else { D.line(mx - 2 * K, my - 2 * K, mx + 2 * K, my + 2 * K); D.line(mx + 2 * K, my - 2 * K, mx - 2 * K, my + 2 * K); } }
       }
       if (draw) { D.setFillColor(PC.goldT); D.roundedRect(ax, c.y, aw, rh, 3 * K, 3 * K, 'F'); }
-      font('Playfair', 'italic', 8, PC.ink); al.forEach(function(line, li){ txt(line, ax + 4 * K, c.y + 8 * K + li * 9 * K); });
+      font('Archivo', 'bold', 7.4, PC.ink); al.forEach(function(line, li){ txt(line, ax + 4 * K, c.y + 8 * K + li * 9 * K); });
       c.y += rh + 2.5 * K; });
   });
   hgt = Math.max.apply(null, bottoms) - y + 3 * K;
@@ -1816,7 +1847,7 @@ function makePdf(list, title){
     items.forEach(function(it){ if (!cur || cur.items.length >= 3 || cur.h + it.h > AV) { cur = { items: [], h: 0 }; pages.push(cur); } cur.items.push(it); cur.h += it.h + GAP; });
     pages.forEach(function(pg, pi){
       if (pi) D.addPage('letter', 'landscape');
-      D.setFont('Playfair', 'bolditalic'); D.setFontSize(17); D.setTextColor(PC.sig); D.text('Blind Tasting Notes', M, 36);
+      D.setFont('Playfair', 'bold'); D.setFontSize(17); D.setTextColor(PC.sig); D.text('Blind Tasting Notes', M, 36);
       D.setFont('Archivo', 'normal'); D.setFontSize(7.6); D.setTextColor(PC.muted); D.text(pdfText(meta + '  ·  page ' + (pi + 1) + ' of ' + pages.length), PW - M, 36, { align: 'right' });
       D.setDrawColor(PC.gold); D.setLineWidth(.7); D.line(M, 44, PW - M, 44);
       var y = TOP; pg.items.forEach(function(it){ pdfCard(D, it.w, M, y, W, true, it.K, imgs[it.w.id]); y += it.h + GAP; });
