@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Blind Tasting Notes</title>
+<title>Tasting Notes</title>
 <meta name="theme-color" content="#5A1229">
 <script>(function(){try{var p=JSON.parse(localStorage.getItem('btn-theme2')||'"auto"');var d=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d)r.setAttribute('data-theme','dim');r.style.colorScheme=d?'dark':'light';}catch(e){}})();</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,878 +14,556 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <style>
+/* Tasting Notes 2.0 — one quiet system: hairlines, space, serif titles, burgundy only where something is chosen. */
 @font-face{font-family:'Archivo';font-weight:400;font-display:swap;src:url(fonts/archivo-400.woff2) format('woff2')}
 @font-face{font-family:'Archivo';font-weight:500;font-display:swap;src:url(fonts/archivo-500.woff2) format('woff2')}
 @font-face{font-family:'Archivo';font-weight:600;font-display:swap;src:url(fonts/archivo-600.woff2) format('woff2')}
 @font-face{font-family:'Archivo';font-weight:700;font-display:swap;src:url(fonts/archivo-700.woff2) format('woff2')}
 @font-face{font-family:'Playfair Display';font-weight:600;font-display:swap;src:url(fonts/playfair-600.woff2) format('woff2')}
 @font-face{font-family:'Playfair Display';font-weight:700;font-display:swap;src:url(fonts/playfair-700.woff2) format('woff2')}
-</style>
-<style>
-/* ======================================================================  tokens */
 :root{
-  --sig:#6D1A36; --sig-hi:#86274A; --sig-lo:#4D0F25; --sig-tint:#F6ECEF;
-  --gold:#9A7438; --gold-ink:#7E5C26; --gold-hi:#C9A35E; --gold-tint:#F6EFE2;
-  --ink:#1F1A1D; --ink-2:#4A4146; --muted:#83777C; --faint:#B7ACA3;
-  --paper:#F8F5EF; --card:#FFFFFF; --line:#ECE5DA; --line-2:#DED4C5; --seg:#F1EBE2;
-  --ok:#E3EFDC; --ok-ink:#2F5A22; --ok-line:#C2DBB5; --no:#F7DDDD; --no-ink:#8A2430; --no-line:#EBBDBD;
-  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
-  --sans:'Archivo',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
-  --r:18px; --r-sm:12px;
-  --sh-1:0 1px 2px rgba(31,26,29,.04),0 2px 6px rgba(31,26,29,.04);
-  --sh-2:0 1px 2px rgba(31,26,29,.05),0 10px 28px -8px rgba(31,26,29,.12);
-  --ease:cubic-bezier(.2,.7,.2,1);
+  --sig:#6D1A36;--sig-hi:#86274A;--sig-lo:#4D0F25;--sig-tint:#F5EAED;--on-sig:#fff;--bar:#5A1229;
+  --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F4ECDD;
+  --ink:#1F1A1D;--ink-2:#4A4146;--muted:#857A7F;--faint:#C2B8AF;
+  --paper:#F8F5EF;--card:#FFFFFF;--line:#ECE5DA;--line-2:#DDD3C5;--seg:#EFE8DE;
+  --ok:#E3EFDC;--ok-ink:#2F5A22;--ok-line:#C2DBB5;--no:#F7DDDD;--no-ink:#8A2430;--no-line:#EBBDBD;
+  --f-fruit:#C23B57;--f-floral:#B85CA0;--f-green:#5F9445;--f-spice:#C47324;--f-oak:#8A5530;--f-yeast:#C9A24F;--f-nut:#A9823A;--f-earth:#5E4334;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;--sans:'Archivo',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --sh-1:0 1px 2px rgba(31,26,29,.05),0 8px 24px -14px rgba(31,26,29,.25);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root[data-theme="dim"]{
+  --sig:#E3A0B7;--sig-hi:#EDB4C8;--sig-lo:#C9839C;--sig-tint:#3A1F2A;--on-sig:#2A0A16;--bar:#22070F;
+  --gold:#C9A35E;--gold-ink:#D8B676;--gold-tint:#33281B;
+  --ink:#F1E8E2;--ink-2:#D3C7C1;--muted:#A3959A;--faint:#5E5257;
+  --paper:#141013;--card:#1E171B;--line:#30262B;--line-2:#45393E;--seg:#2A2125;
+  --ok:#23331E;--ok-ink:#A9D79A;--ok-line:#35502C;--no:#3A1D21;--no-ink:#F0A9AF;--no-line:#5A2A30;
+  --f-fruit:#E06A82;--f-floral:#D58BC2;--f-green:#8FC071;--f-spice:#E59A50;--f-oak:#C08A5E;--f-yeast:#E2C27A;--f-nut:#D2AE66;--f-earth:#B0907D;
+  --sh-1:0 1px 2px rgba(0,0,0,.3),0 10px 30px -16px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;font-style:normal}
 html{-webkit-text-size-adjust:100%}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.4;
-  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"lnum" 1}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
-.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
-.hidden{display:none !important}
-.eyebrow{font:600 10px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font:inherit;color:var(--ink)}
+.in{max-width:1180px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.lnk{border:0;background:none;padding:0;color:var(--sig);font-weight:600;text-decoration:none}
+.lnk input[type=file]{display:none}
+.hint{color:var(--muted);font-size:13.5px}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+.btn{display:inline-grid;place-items:center;min-height:46px;padding:0 18px;border-radius:13px;border:1px solid var(--line-2);background:var(--card);font-weight:600;font-size:15px;color:var(--ink)}
+.btn.pri{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+.btn:disabled{opacity:.45}
+.btn:active{transform:scale(.985)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-/* ======================================================================  masthead */
-.mast{position:relative;color:#fff;overflow:hidden;
-  background:radial-gradient(120% 140% at 0% 0%,#8A2C4C 0%,rgba(138,44,76,0) 55%),
-             linear-gradient(160deg,#741D3B 0%,#5A1229 70%,#4A0E22 100%);
-  padding:calc(14px + env(safe-area-inset-top)) 0 0}
-.mast:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,163,94,.65),transparent)}
-.mast .wrap{display:flex;align-items:flex-end;gap:16px;padding-bottom:14px}
-.mast .brand .eyebrow{color:var(--gold-hi)}
-.mast .sm{display:none}
-.mast h1{margin:6px 0 0;font:italic 700 24px/1.05 var(--serif);letter-spacing:.005em}
-.mast .sp{flex:1}
-.tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;
-  background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);min-width:200px}
-.tabs .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:999px;background:#fff;
-  box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .32s var(--ease)}
-.tabs[data-on="summary"] .thumb{transform:translateX(100%)}
-.tabs button{position:relative;z-index:1;border:0;background:none;color:rgba(255,255,255,.86);font:600 13px/1 var(--sans);
-  padding:10px 16px;letter-spacing:.02em;transition:color .25s}
-.tabs button[aria-selected="true"]{color:var(--sig)}
+/* ---------------- header */
+.mast{position:sticky;top:0;z-index:30;background:var(--bar);color:#fff;padding-top:var(--sat)}
+.mast .in{display:flex;align-items:center;gap:14px;height:56px}
+.mast h1{margin:0;font:700 21px/1 var(--serif);letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:lining-nums}
+.tabs{display:flex;background:rgba(255,255,255,.13);border-radius:20px;padding:3px;margin-left:auto}
+.tabs button{border:0;background:none;color:rgba(255,255,255,.82);font-weight:600;font-size:13.5px;padding:7px 14px;border-radius:17px}
+.tabs button[aria-selected="true"]{background:#fff;color:#5A1229}
+.mtools{display:none;gap:8px}
+.hbtn{border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-weight:600;font-size:13px;padding:7px 12px;border-radius:17px}
+.gear{position:relative;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.13);display:grid;place-items:center;color:#fff;flex:none}
+.gear svg{width:19px;height:19px}
+.gear i{position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bar);background:transparent}
+.gear[data-s="synced"] i,.gear[data-s="idle"] i{background:#7BC46A}
+.gear[data-s="syncing"] i{background:#E9C46A}
+.gear[data-s="signin"] i,.gear[data-s="error"] i{background:#F08C5A}
+.gear[data-s="offline"] i{background:#9A9A9A}
+@media (max-width:420px){ .mast h1{font-size:19px} .tabs button{padding:7px 11px} }
+#tasteView,#nbView{display:none}
+body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:block}
+@media (min-width:900px){ body[data-view="notebook"] .mtools{display:flex} .tabs{margin-left:auto} }
 
-/* ======================================================================  shared bits */
-.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-1);border:1px solid var(--line)}
-.btn{height:50px;border-radius:14px;border:1px solid var(--line-2);background:#fff;font:600 15px/1 var(--sans);color:var(--ink);
-  padding:0 18px;transition:transform .12s,box-shadow .2s,background .2s}
-.btn:active{transform:scale(.98)}
-.btn.pri{border:0;color:#fff;background:linear-gradient(180deg,var(--sig-hi),var(--sig) 55%,var(--sig-lo));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 20px -8px rgba(109,26,54,.6)}
-.btn:disabled{opacity:.55}
-.ghost{border:1px solid var(--line-2);background:#fff;border-radius:999px;font:600 12.5px/1 var(--sans);color:var(--ink-2);
-  height:36px;padding:0 14px;display:inline-flex;align-items:center;gap:6px}
-.ghost svg{width:15px;height:15px}
-.ghost{white-space:nowrap}
-select,input[type=date],input[type=text],textarea{border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC;outline:none;
-  transition:border-color .2s,box-shadow .2s}
-select:focus,input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(154,116,56,.14)}
-select{appearance:none;-webkit-appearance:none;height:40px;padding:0 34px 0 12px;font-size:14px;
-  background:#FFFEFC url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239A7438' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 13px center}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,16px);opacity:0;z-index:40;
-  background:rgba(31,26,29,.92);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;transition:.3s var(--ease);
-  pointer-events:none;max-width:92vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.2);backdrop-filter:blur(8px)}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.modal{position:fixed;inset:0;background:rgba(31,26,29,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;
-  z-index:50;padding:22px}
-.modal.show{display:flex}
-.modal .box{background:#fff;border-radius:22px;max-width:420px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.25)}
-.modal p{margin:0 0 18px;line-height:1.5;font-size:15px}
-.modal .acts{display:flex;gap:10px}.modal .acts .btn{flex:1}
-.loading{padding:56px 0;text-align:center;color:var(--muted);font:italic 500 16px/1.4 var(--serif)}
-.foot{text-align:center;font-size:11px;color:var(--faint);padding:22px 0 8px;letter-spacing:.04em}
+/* ---------------- Taste: identity line and stage index */
+.idline{background:var(--paper);border-bottom:1px solid var(--line)}
+.idline .in{display:flex;align-items:center;gap:10px;min-height:52px}
+.idline b{font:700 19px/1 var(--serif);font-variant-numeric:lining-nums;white-space:nowrap}
+.idline #idSub{color:var(--muted);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.state{margin-left:auto;font:600 11px/1 var(--sans);letter-spacing:.06em;color:var(--muted);padding:5px 8px;border-radius:8px;background:var(--seg);white-space:nowrap}
+.state.dirty{color:var(--gold-ink);background:var(--gold-tint)}
+.idline .lnk{font-size:14px;white-space:nowrap}
+.stages{position:sticky;top:calc(56px + var(--sat));z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.stages .in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.stages .in::-webkit-scrollbar{display:none}
+.stages button{border:0;background:none;display:flex;align-items:center;gap:6px;padding:13px 8px 12px;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap;box-shadow:inset 0 -2px 0 transparent}
+.stages button i{width:7px;height:7px;border-radius:50%;border:1.3px solid var(--faint)}
+.stages button.done i{background:var(--gold);border-color:var(--gold)}
+.stages button.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--sig)}
+.stages button.on i{background:var(--sig);border-color:var(--sig)}
+#taste{padding-bottom:30px}
+.stage{padding:30px 0 6px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.sh h2{margin:0;font:700 25px/1.1 var(--serif);letter-spacing:-.01em}
+.sh small{color:var(--muted);font-size:13px;text-align:right}
+.f{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px 14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.f>label{font-weight:500;color:var(--ink-2);font-size:14.5px;line-height:1.25}
+.f>label small{display:block;margin-top:3px;font-size:12.5px;font-weight:700;color:var(--sig)}
+.f.full{grid-template-columns:1fr;gap:8px}
+.f.cm{padding:10px 0}
+.f input[type=text],.f textarea{width:100%;border:1px solid var(--line-2);border-radius:12px;background:var(--card);padding:11px 13px;font-size:15px;resize:none;line-height:1.45}
+.f textarea{min-height:44px}
+.addc{border:0;background:none;padding:4px 0;color:var(--sig);font-weight:600;font-size:14px;text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line-2);background:var(--card);border-radius:20px;padding:8px 14px;font-size:14px;font-weight:500;line-height:1.1}
+.chip.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig);font-weight:600}
+.chip.sm{padding:6px 11px;font-size:13px}
+/* the one scale control */
+.rail{--n:5;--p:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));position:relative;padding-top:2px}
+.rail:before,.rail:after{content:"";position:absolute;top:13px;height:3px;border-radius:2px;left:calc(50% / var(--n))}
+.rail:before{right:calc(50% / var(--n));background:var(--line-2)}
+.rail:after{width:calc((100% - 100% / var(--n)) * var(--p));background:var(--sig)}
+.rail.unset:after{display:none}
+.rail button{border:0;background:none;padding:0 0 2px;display:grid;justify-items:center;gap:6px;position:relative;z-index:1;min-height:44px}
+.rail button:before{content:"";width:13px;height:13px;margin-top:6px;border-radius:50%;background:var(--paper);border:2px solid var(--faint);transition:transform .15s}
+.rail button.f1:before{width:9px;height:9px;margin-top:8px;background:var(--sig);border-color:var(--sig)}
+.rail button.on:before{width:22px;height:22px;margin-top:1px;background:var(--sig);border-color:var(--sig);box-shadow:0 0 0 4px var(--sig-tint)}
+.rail button em{font-size:11.5px;font-weight:500;color:var(--muted);white-space:nowrap;line-height:1}
+.rail button.on em{color:var(--sig);font-weight:700}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw button{border:0;background:none;padding:0;display:grid;justify-items:center;gap:5px;font-size:11.5px;font-weight:500;color:var(--muted);width:50px}
+.sw button i{width:44px;height:52px;border-radius:5px;background:linear-gradient(180deg,var(--c1),var(--c2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw button.on{color:var(--sig);font-weight:700}
+.sw button.on i{outline:2px solid var(--sig);outline-offset:2px}
+/* descriptors */
+.desc{border:1px solid var(--line-2);border-radius:14px;background:var(--card);padding:10px}
+.tks{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tok{display:inline-flex;align-items:center;gap:6px;padding:5px 4px 5px 10px;border-radius:9px;background:var(--seg);font-size:13.5px;font-weight:500}
+.tok:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fc,var(--faint))}
+.tok.own:before{background:none;border:1.3px solid var(--faint)}
+.tok button{border:0;background:none;width:22px;height:22px;border-radius:50%;color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center}
+.din{flex:1;min-width:120px;border:0 !important;background:none !important;padding:7px 4px !important;outline:none}
+.sug{display:flex;flex-wrap:wrap;gap:6px}
+.sug:not(:empty){padding:8px 0 2px}
+.dft{display:flex;align-items:center;gap:16px;margin-top:8px;padding-top:9px;border-top:1px solid var(--line);font-size:14px}
+.dft small{margin-left:auto;color:var(--muted);font-size:12.5px}
+/* identity */
+.switch{width:52px;height:31px;border-radius:16px;border:0;background:var(--line-2);position:relative;justify-self:end}
+.switch i{position:absolute;left:3px;top:3px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s}
+.switch.on{background:var(--sig)}.switch.on i{left:24px}
+.gtab{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1fr);gap:8px 10px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.gtab.open{grid-template-columns:72px minmax(0,1fr)}
+.gtab .h{font:600 10.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gtab .l{font-weight:500;color:var(--ink-2);font-size:14px}
+.gtab input{width:100%;min-width:0;border:1px solid var(--line-2);border-radius:11px;background:var(--card);padding:10px 11px;font-size:15px}
+.gtab input.hit{border-color:var(--ok-line);background:var(--ok);color:var(--ok-ink);font-weight:600}
+.gtab input.miss{border-color:var(--no-line);background:var(--no);color:var(--no-ink)}
+.phbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.phbox img{width:54px;height:70px;object-fit:cover;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:zoom-in}
+.scoreline{display:flex;align-items:baseline;justify-content:space-between;padding:16px 0 4px;border-top:1px solid var(--line)}
+.scoreline span{font-weight:500;color:var(--ink-2)}
+.scoreline b{font:700 30px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.scoreline b small{font:500 14px var(--sans);color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:10px 0 120px}
 .foot a{color:var(--muted)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 0 calc(10px + var(--sab))}
+.bar .in{display:flex;gap:10px;justify-content:flex-end}
+.bar .btn{flex:1;max-width:220px}.bar .btn.pri{flex:2;max-width:320px}
+@media (min-width:760px){ .f{grid-template-columns:150px minmax(0,1fr)} #taste{max-width:796px} }
+.f>label small.mu{color:var(--muted);font-weight:500}
+@media (min-width:760px){ .idline .in,.stages .in,.bar .in{max-width:796px} }
+@media (max-width:559px){
+  .f.rw{grid-template-columns:1fr;gap:10px}
+  .f.rw>label{display:flex;align-items:baseline;gap:10px}
+  .f.rw>label small{margin:0}
+  .f.rw .rail{margin:0 -4px}
+  .sw{gap:8px}.sw button{width:auto;flex:1;min-width:0}.sw button i{width:100%;max-width:56px}
+}
 
-/* ======================================================================  ENTRY */
-.idbar{padding:16px 0 6px}
-.idbar .grid{display:grid;grid-template-columns:minmax(150px,190px) auto 1fr;gap:12px;align-items:end}
-.fld label{display:block;margin:0 0 7px 2px;color:var(--sig)}
-input[type=date]{height:44px;padding:0 12px;width:100%;font-size:15px}
-.stepper{display:flex;align-items:center;height:44px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC}
-.stepper button{width:42px;height:42px;border:0;background:none;color:var(--sig);font-size:20px;line-height:1}
-.stepper span{min-width:28px;text-align:center;font:700 16px/1 var(--sans)}
-#load{height:44px;width:100%;color:var(--ink-2)}
-.strip{position:sticky;top:0;z-index:20;background:rgba(248,245,239,.86);backdrop-filter:saturate(1.6) blur(14px);
-  -webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid rgba(222,212,197,.7)}
-.strip .wrap{display:flex;align-items:center;gap:12px;height:52px}
-.strip b{font:italic 700 20px/1 var(--serif);color:var(--sig);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pill{font:600 11px/1 var(--sans);padding:6px 10px;border-radius:999px;background:var(--seg);color:var(--muted);white-space:nowrap}
-.pill.dirty{background:#F7EAD0;color:#7A5717}.pill.saved{background:var(--ok);color:var(--ok-ink)}
-#entryMain{padding-top:6px}
-.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);margin:14px 0;overflow:hidden;
-  transition:box-shadow .3s}
-.sec.open{box-shadow:var(--sh-2)}
-.sec>header{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none}
-.sec>header .n{font:600 11px/1 var(--sans);letter-spacing:.12em;color:var(--gold);width:22px;flex:none}
-.sec>header .t{font:italic 700 19px/1.1 var(--serif);color:var(--sig);flex:none}
-.sec>header .s{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
-.sec>header .chev{flex:none;width:20px;height:20px;color:var(--faint);transition:transform .3s var(--ease)}
-.sec.open>header .chev{transform:rotate(90deg);color:var(--sig)}
-.sec .body{display:none;padding:2px 18px 18px}
-.sec.open .body{display:block;animation:rise .35s var(--ease)}
-@keyframes rise{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.sub{display:flex;align-items:center;gap:12px;margin:14px 0 2px;color:var(--gold)}
-.sub:after{content:"";flex:1;height:1px;background:var(--line)}
-.row{display:grid;grid-template-columns:132px 1fr;gap:10px;align-items:center;padding:9px 0}
-.row+.row{border-top:1px solid #F3EEE6}
-.lab{font:600 13.5px/1.25 var(--sans);color:var(--ink);letter-spacing:.005em}
-/* pills */
-.opts{display:flex;flex-wrap:wrap;gap:7px}
-.opt{border:1px solid var(--line-2);background:#fff;border-radius:999px;padding:0 14px;min-height:38px;font:500 13.5px/1 var(--sans);
-  color:var(--ink-2);display:inline-flex;align-items:center;gap:7px;transition:background .18s,color .18s,border-color .18s,box-shadow .18s}
-.opt:hover{border-color:var(--faint)}
-.opt.on{color:#fff;border-color:transparent;font-weight:600;
-  background:linear-gradient(180deg,var(--sig-hi),var(--sig) 60%,var(--sig-lo));box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 4px 12px -4px rgba(109,26,54,.55)}
-.opt .dot{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
-.opt.on .dot{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-/* segmented scales */
-.seg{display:flex;background:var(--seg);border-radius:12px;padding:3px;gap:2px}
-.seg .opt{flex:1 1 0;justify-content:center;border:0;border-radius:9px;min-height:36px;padding:0 4px;background:transparent;font-size:13px;min-width:0}
-.seg .opt:hover{background:rgba(255,255,255,.6)}
-.seg .opt.on{color:#fff;background:linear-gradient(180deg,var(--sig-hi),var(--sig) 60%,var(--sig-lo))}
-.hint{font:500 12.5px/1.3 var(--sans);color:var(--muted)}
-.note{display:block;padding:10px 0 4px}
-.note .lab{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-textarea,.note input[type=text],.row input[type=text]{width:100%;padding:11px 13px;font-size:15px;line-height:1.45;color:var(--ink)}
-textarea{min-height:48px;resize:none;overflow:hidden;display:block}
-.mini{border:1px solid rgba(154,116,56,.5);color:var(--gold-ink);background:var(--gold-tint);border-radius:999px;font:600 11.5px/1 var(--sans);
-  padding:8px 12px}
-.next{display:flex;justify-content:flex-end;margin-top:14px}
-.next button{border:0;background:var(--sig-tint);color:var(--sig);font:600 13px/1 var(--sans);padding:11px 16px;border-radius:999px}
-.gr{display:grid;grid-template-columns:78px 1fr 1fr;gap:8px 10px;align-items:center;margin-top:10px}
-.gr .h{text-align:center;color:var(--muted)}.gr .h.a{color:var(--sig)}
-.gr input{width:100%;padding:10px 12px;font-size:15px}
-.gr input.hit{background:var(--ok);border-color:var(--ok-line)}
-.gr input.miss{background:var(--no);border-color:var(--no-line)}
-.openrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 10px}
-.opt.tog .box{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--faint);display:inline-grid;place-items:center;font-size:11px;line-height:1}
-.opt.tog.on .box{border-color:rgba(255,255,255,.85);color:#fff}
-.gr.open{grid-template-columns:78px 1fr}
-.pw{padding-top:16px}
-.scoreline .ns{font:500 13px/1 var(--sans);color:var(--muted)}
-.openbadge{flex:none;height:30px;padding:0 12px;border-radius:999px;display:grid;place-items:center;background:var(--gold-tint);
-  color:var(--gold-ink);font:600 10px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase}
-.gx.one{grid-template-columns:64px 1fr}
-.gx.one .ga{border-radius:9px;border-left:0}
-.idwho{display:none}
-.scoreline{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.scoreline b{font:600 15px/1 var(--sans);color:var(--sig)}
-.scoreline span{font:600 22px/1 var(--serif);color:var(--gold)}
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(248,245,239,.86);backdrop-filter:saturate(1.6) blur(16px);
-  -webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid rgba(222,212,197,.8);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
-.bar .wrap{display:flex;gap:10px}
-.bar .btn{flex:1}.bar .btn.pri{flex:2}
-#entryView{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
-#entryMain{display:flex;flex-direction:column}
-.col{display:contents}
-.sec[data-i="0"]{order:0}.sec[data-i="1"]{order:1}.sec[data-i="2"]{order:2}.sec[data-i="3"]{order:3}
-
-/* ======================================================================  SUMMARY */
-.tools{position:sticky;top:0;z-index:20;background:rgba(248,245,239,.88);backdrop-filter:saturate(1.6) blur(14px);
-  -webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid rgba(222,212,197,.7)}
-.tools .wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;padding-top:12px;padding-bottom:12px}
-.tools .f label{display:block;margin:0 0 6px 2px;color:var(--sig)}
-.tools select{width:100%}
-.tools .acts{grid-column:1 / -1;display:flex;gap:8px;align-items:center}
-.tools .acts .sp{flex:1}
-.ord svg{transition:transform .25s var(--ease)}.ord[data-desc="1"] svg{transform:rotate(180deg)}
-.dens{display:inline-flex;background:var(--seg);border-radius:999px;padding:3px}
-.dens button{border:0;background:none;height:30px;padding:0 12px;border-radius:999px;font:600 12px/1 var(--sans);color:var(--muted)}
-.dens button.on{background:#fff;color:var(--sig);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-.showing{font:italic 500 14px/1.3 var(--serif);color:var(--muted);margin:18px 2px 2px}
-.showing b{font-style:normal;font-family:var(--sans);font-weight:600;color:var(--ink-2)}
-.wines{display:flex;flex-direction:column;gap:14px;margin:12px 0 0}
-.wine{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-2);overflow:hidden}
-.wine:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--wc,var(--line-2))}
-.wh{display:flex;align-items:center;gap:14px;padding:16px 16px 14px 20px;cursor:pointer}
-.wh .meta{flex:1;min-width:0}
-.wh .k{color:var(--gold);font-size:10px}
-.wh h3{margin:6px 0 0;font:italic 700 20px/1.15 var(--serif);color:var(--sig);overflow-wrap:anywhere}
-.wh h3.un{color:var(--faint);font-weight:600}
-.wh .sub2{margin-top:5px;font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
-.wh .sub2 i{font-family:var(--serif);color:var(--muted)}
-.ring{flex:none;width:52px;height:52px;position:relative}
-.ring svg{width:52px;height:52px;transform:rotate(-90deg)}
-.ring .num{position:absolute;inset:0;display:grid;place-items:center;font:600 15px/1 var(--serif);color:var(--ink)}
-.ring .num small{font:500 10px/1 var(--sans);color:var(--muted)}
-.edit{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line-2);background:#fff;display:grid;place-items:center;color:var(--sig)}
-.edit svg{width:16px;height:16px}
-.wg{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line)}
-.c{padding:16px 18px 18px 20px;min-width:0}
-.c+.c{border-top:1px solid var(--line)}
-.c h4{margin:0 0 12px;color:var(--sig);display:flex;align-items:center;gap:10px}
-.c h4:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
-.dl{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0}
-.dl dt{font:italic 600 13.5px/1.35 var(--serif);color:var(--ink)}
-.dl dd{margin:0;font:600 13px/1.35 var(--sans);color:var(--gold-ink);text-align:right;display:flex;justify-content:flex-end;align-items:center;gap:6px}
-.dl .sw{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
-.st{display:grid;grid-template-columns:96px 1fr 62px;gap:10px;align-items:center;padding:3px 0}
-.st .l{font:italic 600 13px/1.2 var(--serif)}
-.st .v{font:600 12px/1 var(--sans);color:var(--gold-ink);text-align:right;white-space:nowrap}
-.segs{display:flex;gap:3px}
-.segs i{flex:1;height:7px;border-radius:4px;background:#EFE8DD}
-.segs i.f{background:linear-gradient(180deg,var(--sig-hi),var(--sig))}
-.st.na .l,.st.na .v{color:var(--faint)}
-.nt{margin:0 0 11px}
-.nt:last-child{margin-bottom:0}
-.nt .l{display:block;font:italic 600 13.5px/1.2 var(--serif);color:var(--ink);margin-bottom:3px}
-.nt p{margin:0;font-size:13.5px;line-height:1.5;color:var(--gold-ink)}
-.q{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.q .big{font:italic 700 21px/1.1 var(--serif);color:var(--sig)}
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 12px}
-.tag{font:600 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-radius:6px;
-  border:1px solid var(--line-2);color:var(--faint)}
-.tag.on{border-color:transparent;background:var(--gold-tint);color:var(--gold-ink)}
-.hr{height:1px;background:var(--line);margin:14px 0}
-.ag{display:flex;align-items:baseline;justify-content:space-between}
-.ag .lab{font-size:13.5px}
-.ag .val{font:600 13px/1 var(--sans);color:var(--gold-ink)}
-.gx{display:grid;grid-template-columns:64px 1fr 1fr;gap:6px 0;align-items:stretch}
-.gx .gh{font:italic 600 11.5px/1 var(--serif);color:var(--muted);padding:0 9px 2px}
-.gx .gh.a{color:var(--sig)}
-.gx .gf{font:italic 600 13px/1.25 var(--serif);align-self:center}
-.gx .gg,.gx .ga{font-size:13px;line-height:1.3;padding:8px 9px;background:#FAF7F2;overflow-wrap:break-word;min-width:0}
-.gx .gg{border-radius:9px 0 0 9px;font-weight:600;color:var(--ink-2);position:relative;padding-right:22px}
-.gx .gg.ok{background:var(--ok);color:var(--ok-ink)}
-.gx .gg.no{background:var(--no);color:var(--no-ink)}
-.gx .mk{position:absolute;right:8px;top:8px;font-size:12px}
-.gx .ga{border-radius:0 9px 9px 0;font:italic 600 13px/1.3 var(--serif);color:var(--sig);border-left:1px solid rgba(255,255,255,.9)}
-.empty{padding:60px 20px;text-align:center}
-.empty h3{font:italic 700 22px/1.2 var(--serif);color:var(--sig);margin:0 0 6px}
+/* ---------------- Notebook */
+.nb-tools{position:sticky;top:calc(56px + var(--sat));z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+.nb-tools .in{display:flex;gap:10px;padding-top:10px;padding-bottom:10px}
+.search{flex:1;display:flex;align-items:center;gap:8px;height:42px;border-radius:21px;border:1px solid var(--line-2);background:var(--card);padding:0 14px;color:var(--muted)}
+.search svg{width:16px;height:16px;flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:15px}
+.fbtn{height:42px;padding:0 16px;border-radius:21px;border:1px solid var(--line-2);background:var(--card);color:var(--sig);font-weight:600}
+.fbtn.on{background:var(--sig-tint);border-color:var(--sig)}
+.showing{font-size:12.5px;color:var(--muted);padding:12px 18px 0}
+.showing b{color:var(--ink-2)}
+.grp{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:20px 18px 8px}
+.grp b{font:700 17px/1.2 var(--serif);font-variant-numeric:lining-nums}
+.grp span{font-size:12.5px;color:var(--muted);text-align:right}
+.row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:12px 18px}
+.row:not(:has(.pick)){grid-template-columns:auto minmax(0,1fr) auto}
+.row.cur{background:var(--sig-tint)}
+.row.sel{background:var(--sig-tint)}
+.pick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:grid;place-items:center;font-size:12px;color:var(--on-sig)}
+.row.sel .pick{background:var(--sig);border-color:var(--sig)}
+.lab{width:40px;height:52px;border-radius:5px;object-fit:cover;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);flex:none}
+.lab.none{display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--line-2)}
+.lab.none:after{content:"";width:12px;height:12px;border-radius:50%;background:var(--wc)}
+.row .w{min-width:0}
+.row .w b{display:block;font:700 16.5px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .w b.un{color:var(--muted)}
+.row .w span{display:block;font-weight:600;font-size:12.5px;color:var(--sig);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .w small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.sc{display:grid;justify-items:end;gap:5px}
+.sc b{font:700 17px/1 var(--sans);color:var(--gold);font-variant-numeric:tabular-nums}
+.sc b small{font-size:11px;color:var(--muted);font-weight:500}
+.sc em{font-size:12px;color:var(--muted);font-weight:600}
+.dots{display:flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.dots i.y{background:#4E8F43}.dots i.n{background:#B8475A}
+.empty{padding:50px 18px;text-align:center}
+.empty h3{font:700 20px var(--serif);margin:0 0 6px}
 .empty p{color:var(--muted);margin:0}
-.list .wg{display:none}
-.list .wh{padding-top:13px;padding-bottom:12px}
-
-/* ======================================================================  responsive */
-@media (max-width:520px){
-  .mast .wrap{flex-direction:column;align-items:stretch;gap:12px}
-  .mast h1{font-size:22px}
-  .tabs{min-width:0}
-  .idbar .grid{grid-template-columns:1fr auto}
-  .idbar .grid .ld{grid-column:1 / -1}
-  .row{grid-template-columns:1fr;gap:7px;padding:10px 0}
-          .mast .lg{display:none}.mast .sm{display:inline}
-  .mast .wrap{display:grid !important;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;row-gap:12px}
-  .mast .brand{min-width:0}
-  .mast .sp{display:none}
-  .mast .tabs{grid-column:1 / -1;grid-row:2}
-  .mast .tools2{grid-column:2;grid-row:1;gap:6px}
-  .gpill{padding:0 10px}
-  .gpill[data-s="off"] #gtext,.gpill[data-s="idle"] #gtext,.gpill[data-s="synced"] #gtext,.gpill[data-s="syncing"] #gtext{display:none}
-  .gpill[data-s="off"],.gpill[data-s="idle"],.gpill[data-s="synced"],.gpill[data-s="syncing"]{width:30px;padding:0;justify-content:center}
-  .mast{padding-top:calc(10px + env(safe-area-inset-top))}
-  .mast .wrap{padding-bottom:12px;gap:10px}
-  .tabs button{padding:9px 14px}
-  .tools{position:static}
-  .tools .wrap{gap:8px}
-  .tools .f:nth-child(3){grid-column:1 / -1}
-  .tools .f label{margin-bottom:4px}
-  .idbar{padding-top:12px}
-  .wh h3{font-size:18px}
-  .ring,.ring svg{width:46px;height:46px}
-}
-@media (min-width:700px){
-  .tools .wrap{grid-template-columns:1.2fr 1fr 1.2fr auto;align-items:end}
-  .search{grid-column:1 / -1}
-  .tools .acts{grid-column:auto}
-  .wg{grid-template-columns:1fr 1fr}
-  .c+.c{border-top:0}
-  .c1,.c3{border-right:1px solid var(--line)}
-  .c3{grid-column:1 / -1;border-right:0;border-top:1px solid var(--line) !important}
-  .c4,.c5{border-top:1px solid var(--line) !important}
-  .c4{border-right:1px solid var(--line)}
-}
-@media (min-width:1080px){
-  .wrap{padding:0 28px}
-  /* entry: compact header — date, number, open, label and status on one sticky row */
-  .idbar{position:sticky;top:0;z-index:20;padding:10px 0;background:rgba(248,245,239,.9);backdrop-filter:saturate(1.6) blur(14px);
-    -webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid rgba(222,212,197,.7)}
-  .idbar .grid{grid-template-columns:170px auto minmax(240px,360px) 1fr;gap:12px}
-  .idbar .fld label{margin-bottom:5px}
-  input[type=date],.stepper,#load{height:40px}
-  .stepper button{height:38px}
-  .idwho{display:flex;align-items:center;justify-content:flex-end;gap:10px;align-self:center;padding-top:14px;min-width:0}
-  .idwho b{font:italic 700 20px/1 var(--serif);color:var(--sig);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .strip{display:none}
-  /* entry: tighter rows, inline notes, less wrapping */
-  .sec>header{padding:12px 18px 6px}
-  .sec .body{padding:0 18px 14px}
-  .row{grid-template-columns:118px 1fr;padding:5px 0}
-  .opts{gap:5px}
-  .opt{min-height:32px;padding:0 11px;font-size:13px}
-  .seg{padding:2px}.seg .opt{min-height:30px;font-size:12.5px}
-  .sub{margin:8px 0 0}
-  .note{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:start;padding:5px 0}
-  .note .lab{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:9px 0 0}
-  .note.pw{padding-top:8px}
-  textarea{min-height:40px;padding:8px 11px;font-size:14px}
-  .note input[type=text],.row input[type=text]{padding:8px 11px;font-size:14px}
-  .gr{grid-template-columns:118px 1fr 1fr;gap:6px 10px}
-  .gr.open{grid-template-columns:118px 1fr}
-  .gr input{padding:8px 11px;font-size:14px}
-  .scoreline{margin-top:10px;padding-top:10px}
-  .openrow{margin:6px 0 6px}
-  /* entry: whole wine on one screen */
-  #entryMain.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;padding-top:14px}
-  .col{display:flex;flex-direction:column;gap:16px}
-  .sec{margin:0}
-  .sec .body{display:block !important;animation:none !important}
-  .sec>header{cursor:default}
-  .sec>header .chev,.sec .next,.sec>header .s{display:none}
-  .bar .wrap{justify-content:flex-end}
-  .bar .btn{flex:0 0 190px}.bar .btn.pri{flex:0 0 270px}
-  /* summary: one row per wine, five columns */
-  .wg{grid-template-columns:.95fr 1fr 1.45fr 1.3fr 1.3fr}
-  .c h4{letter-spacing:.14em}
-  .sts{display:block}.sts .st{grid-template-columns:1fr auto;gap:4px 8px;padding:3px 0 5px}
-  .sts .st .segs{grid-column:1 / -1;grid-row:2}.sts .st .v{grid-column:2;grid-row:1}
-  .gx{grid-template-columns:1fr 1fr;gap:0}
-  .gx>span:first-child{display:none}
-  .gx .gh{padding-bottom:6px}
-  .gx .gf{grid-column:1 / -1;font-size:12px;color:var(--muted);margin:8px 0 3px}
-  .gx.one{grid-template-columns:1fr}.gx.one>span:first-child{display:block}.gx.one .gf:first-child{margin-top:0}
-  .c{border-top:0 !important;border-right:1px solid var(--line)}
-  .c3{grid-column:auto;border-right:1px solid var(--line)}
-  .c5{border-right:0}
-  .wh{cursor:default}
+.nb-card{display:none}
+#nbView{padding-bottom:110px}
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:26;background:var(--card);border-top:1px solid var(--line);padding:10px 0 calc(10px + var(--sab));transform:translateY(110%);transition:transform .25s}
+.selbar.show{transform:none}
+.selbar .in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.selbar .n{font-weight:600;margin-right:auto}
+.selbar .btn{min-height:40px;padding:0 12px;font-size:14px}
+@media (min-width:900px){
+  #nbView{padding-bottom:0}
+  .nb-split{display:grid;grid-template-columns:400px minmax(0,1fr);max-width:1400px;margin:0 auto;height:calc(100vh - 56px - 63px - var(--sat))}
+  .nb-list{overflow:auto;border-right:1px solid var(--line)}
+  .nb-card{display:block;overflow:auto;background:var(--card);padding:34px 44px 60px}
+  .nb-tools .in{max-width:1400px}
 }
 
-/* ======================================================================  print: US Letter landscape, 3 wines a page */
+/* ---------------- tasting card */
+.card .tc-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center}
+.lab.big{width:68px;height:88px;border-radius:7px;cursor:zoom-in}
+.lab.big.none{cursor:default}
+.tc-head .k{font:600 11px/1.3 var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+.tc-head h2{margin:5px 0 4px;font:700 27px/1.08 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.tc-head h2.un{color:var(--muted)}
+.tc-head .id{font-weight:700;color:var(--sig);font-size:14.5px}
+.score{display:grid;justify-items:center;gap:4px}
+.score b{font:700 34px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.score b small{font:500 14px var(--sans);color:var(--muted)}
+.score span{font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.score .op{font-size:11px;letter-spacing:.08em}
+.tc-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:36px;margin-top:26px}
+.prose p{margin:0 0 16px;font-size:15.5px;line-height:1.6}
+.prose p b{display:block;font:700 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--sig);margin-bottom:6px}
+.prose .c{color:var(--muted)}
+.side{display:grid;gap:24px;align-content:start}
+.side h6{margin:0 0 10px;font:700 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.prof{display:grid;gap:7px}
+.prof>div{display:grid;grid-template-columns:82px minmax(0,1fr) 54px;align-items:center;gap:8px}
+.prof>div span:first-child{font-size:13px;color:var(--ink-2)}
+.prof>div.na span:first-child,.prof>div.na em{color:var(--faint)}
+.prof em{font-size:12.5px;font-weight:700;text-align:right}
+.prof .line{position:relative;height:12px;display:flex;justify-content:space-between;align-items:center}
+.prof .line:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line-2)}
+.prof .line i{position:relative;width:5px;height:5px;border-radius:50%;background:var(--faint)}
+.prof .line i.on{width:12px;height:12px;background:var(--sig)}
+.gx{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:7px 12px;align-items:baseline}
+.gx.open{grid-template-columns:auto minmax(0,1fr)}
+.gx .h{font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gx .l{font-size:13px;color:var(--muted)}
+.gx .g{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.gx .g.y:after{content:" ✓";color:#4E8F43}
+.gx .g.n{color:var(--muted);text-decoration:line-through;text-decoration-color:#B8475A}
+.gx .a{font-weight:700;font-size:14px;color:var(--sig);overflow-wrap:anywhere}
+.tc-foot{display:flex;gap:10px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.tc-foot .btn{min-height:40px;font-size:14px}
+@media (max-width:899px){ .tc-body{grid-template-columns:1fr;gap:26px} .tc-head{gap:14px} .tc-head h2{font-size:23px} .lab.big{width:56px;height:72px} }
 
-/* ======================================================================  HOME-SCREEN APP ADDITIONS */
-.mast .tools2{display:flex;align-items:center;gap:8px}
-.gpill{border:0;border-radius:999px;height:30px;padding:0 11px;font:600 11px/1 var(--sans);letter-spacing:.02em;display:inline-flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);white-space:nowrap}
-.gpill .d{width:7px;height:7px;border-radius:50%;background:#C9A35E}
-.gpill[data-s="synced"] .d{background:#9BD28A}.gpill[data-s="signin"] .d,.gpill[data-s="error"] .d{background:#F2A2A2}
-.gpill[data-s="syncing"] .d{animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.25}}
-.gear{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
-.gear svg{width:18px;height:18px}
-#event{height:44px;padding:0 12px;width:100%;font-size:15px}
-/* lexicon chips */
-.lexbtn{border:1px solid var(--line-2);color:var(--ink-2);background:var(--card);border-radius:999px;font:600 11.5px/1 var(--sans);padding:8px 12px}
-.lexbtn.on{background:var(--seg)}
-.lex{display:none;margin:8px 0 2px;padding:10px;border-radius:12px;background:var(--seg)}
-.lex.show{display:block}
-.lex .tier{display:block;margin:8px 0 5px;color:var(--gold)}
-.lex .tier:first-child{margin-top:0}
-.lexg{display:flex;flex-wrap:wrap;gap:5px}
-.lexg button,.lexd button{border:1px solid var(--line-2);background:var(--card);color:var(--ink-2);border-radius:999px;padding:6px 10px;font:500 12.5px/1 var(--sans)}
-.lexg button.on{background:var(--sig);color:#fff;border-color:transparent}
-.lexd{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
-.lexd:empty{display:none}
-.lexd button{background:var(--gold-tint);border-color:transparent;color:var(--gold-ink)}
-.lexd button.used{opacity:.45}
-/* label photo */
-.phrow{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.phrow .lab{flex:none}
-.phbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.phbox img{width:64px;height:64px;object-fit:cover;border-radius:10px;box-shadow:var(--sh-1);cursor:zoom-in}
-.phbox label.ghost{cursor:pointer}
-.phbox input{display:none}
-/* summary: search, groups, thumbnails, selection */
-.search{grid-column:1 / -1;position:relative}
-.search input{width:100%;height:40px;padding:0 12px 0 36px;font-size:14px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC;outline:none;-webkit-appearance:none;appearance:none;color:var(--ink)}
-.search input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(154,116,56,.14)}
-.search svg{position:absolute;left:12px;top:50%;width:15px;height:15px;transform:translateY(-50%);color:var(--muted)}
-.dhead{display:flex;align-items:baseline;gap:10px;margin:18px 4px 2px}
-.dhead b{font:italic 700 17px/1.2 var(--serif);color:var(--sig)}
-.dhead span{font-size:12.5px;color:var(--muted)}
-.dhead:first-child{margin-top:4px}
-.wthumb{flex:none;width:52px;height:52px;border-radius:12px;object-fit:cover;box-shadow:var(--sh-1);cursor:zoom-in}
-.pick{flex:none;width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line-2);background:var(--card);display:none;place-items:center;color:#fff;font-size:15px}
-.selecting .pick{display:grid}
-.wine.sel .pick{background:var(--sig);border-color:var(--sig)}
-.wine.sel{box-shadow:0 0 0 2px var(--sig),var(--sh-2)}
-.selbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:none;background:rgba(248,245,239,.94);backdrop-filter:saturate(1.6) blur(16px);
-  -webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid rgba(222,212,197,.8);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
-.selbar.show{display:block}
-.selbar .wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.selbar .n{font:600 13px/1 var(--sans);color:var(--ink);margin-right:auto}
-.selbar .btn{height:42px;font-size:14px;padding:0 14px}
-#summaryView.selecting{padding-bottom:140px}
-.selecting .edit{display:none}
-@media (max-width:699px){
-  .tools .acts{flex-wrap:wrap}
-  .tools .acts .sp{display:none}
-  .selbar .wrap{display:grid;grid-template-columns:1fr auto auto;gap:8px}
-  .selbar .n{margin:0}
-  #selPdf{grid-column:1 / 3}#selSend{grid-column:3 / 4}
-  #selAll{grid-column:2}#selDone{grid-column:3;grid-row:1}
-  .wthumb{width:44px;height:44px}
-}
-/* lightbox */
-.lightbox{position:fixed;inset:0;z-index:70;background:rgba(10,6,8,.9);display:none;align-items:center;justify-content:center;padding:20px}
-.lightbox.show{display:flex}
-.lightbox img{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-/* settings sheet */
-.sheet{position:fixed;inset:0;z-index:55;display:none;background:rgba(31,26,29,.42);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center}
+/* ---------------- sheets */
+.sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(20,10,14,.45);align-items:flex-end;justify-content:center}
 .sheet.show{display:flex}
-.sheet .panel{background:var(--paper);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;
-  padding:22px 20px calc(26px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,.25)}
-@media (min-width:700px){ .sheet{align-items:center} .sheet .panel{border-radius:24px;padding-bottom:26px} }
-.sheet h2{margin:0;font:italic 700 24px/1.1 var(--serif);color:var(--sig)}
-.sheet .x{float:right;border:0;background:var(--seg);border-radius:999px;height:34px;padding:0 14px;font:600 13px/1 var(--sans);color:var(--ink-2)}
-.sheet section{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
-.sheet section h3{margin:0 0 6px;color:var(--sig)}
-.sheet section p{margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--ink-2)}
-.sheet .row2{display:flex;gap:8px;flex-wrap:wrap}
-.sheet .row2 .btn{flex:1 1 200px;height:46px;font-size:14.5px}
-.sheet .gs{font-size:14px;color:var(--ink-2);margin-bottom:12px;line-height:1.45}
-.sheet .gs a{color:var(--sig);font-weight:600}
-.sheet .tog{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14.5px;font-weight:600}
-.sheet .tog input{width:22px;height:22px;accent-color:var(--sig)}
-.sheet .chk{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin:0 0 10px}
-.sheet .chk input{accent-color:var(--sig)}
-.sheet .about{font-size:12.5px;color:var(--muted);line-height:1.5}
-.bar .btn.savenext{flex:1.6}
-@media (max-width:520px){ .bar .btn{font-size:14px;padding:0 10px} .bar .btn.savenext{flex:1.5} }
-@media (min-width:1080px){
-  .idbar .grid{grid-template-columns:160px auto minmax(200px,280px) minmax(220px,320px) 1fr}
-  .bar .btn.savenext{flex:0 0 230px}
-}
-@media (max-width:520px){ .idbar .grid .ev{grid-column:1 / -1} }
-/* dim-room theme */
-:root[data-theme="dim"]{--paper:#141013;--card:#1E171B;--ink:#F1E8E2;--ink-2:#D9CDC7;--muted:#A3959A;--faint:#6F6267;
-  --line:#30262B;--line-2:#45393E;--seg:#281F24;--gold:#C9A35E;--gold-ink:#D8B676;--gold-tint:#33281B;--sig-tint:#2E1A22;
-  --ok:#23331E;--ok-ink:#A9D79A;--ok-line:#35502C;--no:#3A1D21;--no-ink:#F0A9AF;--no-line:#5A2A30;--sig:#E3A0B7}
-:root[data-theme="dim"] body{background:var(--paper)}
-:root[data-theme="dim"] .btn.pri,:root[data-theme="dim"] .opt.on,:root[data-theme="dim"] .seg .opt.on,:root[data-theme="dim"] .lexg button.on,
-:root[data-theme="dim"] .wine.sel .pick{background:linear-gradient(180deg,#86274A,#6D1A36 60%,#4D0F25);color:#fff;border-color:transparent}
-:root[data-theme="dim"] .opt,:root[data-theme="dim"] .btn,:root[data-theme="dim"] .ghost,:root[data-theme="dim"] .edit,
-:root[data-theme="dim"] select,:root[data-theme="dim"] input[type=date],:root[data-theme="dim"] input[type=text],:root[data-theme="dim"] input[type=search],
-:root[data-theme="dim"] textarea,:root[data-theme="dim"] .stepper{background:#1A1418;color:var(--ink);border-color:var(--line-2)}
-:root[data-theme="dim"] .seg .opt{background:transparent}
-:root[data-theme="dim"] .strip,:root[data-theme="dim"] .tools,:root[data-theme="dim"] .bar,:root[data-theme="dim"] .selbar,:root[data-theme="dim"] .idbar{background:rgba(20,16,19,.9)}
-:root[data-theme="dim"] .gx .gg,:root[data-theme="dim"] .gx .ga{background:#251D21}
-:root[data-theme="dim"] .segs i{background:#33292E}
-:root[data-theme="dim"] .segs i.f{background:linear-gradient(180deg,#B04A70,#86274A)}
-:root[data-theme="dim"] .dens button.on{background:#2E2429;color:var(--ink)}
-:root[data-theme="dim"] .modal .box{background:var(--card)}
-:root[data-theme="dim"] .row+.row{border-top-color:var(--line)}
-.gx .gg{padding-right:9px}
-.gx .mk{position:static;margin-left:5px;font-size:11px}
-:root[data-theme="dim"] .tabs button[aria-selected="true"]{color:#6D1A36}
-.welcome{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;padding:22px;overflow:auto;
-  background:radial-gradient(120% 90% at 50% 0%,#8A2C4C 0%,#5A1229 55%,#3E0B1D 100%)}
-.welcome.show{display:flex}
-.welcome .wc{background:var(--paper);border-radius:26px;max-width:460px;width:100%;padding:30px 26px 24px;text-align:center;box-shadow:0 40px 90px rgba(0,0,0,.35)}
-.welcome .eyebrow{color:var(--gold)}
-.welcome h2{margin:10px 0 4px;font:italic 700 28px/1.1 var(--serif);color:var(--sig)}
-.welcome .rule{width:60px;height:1px;background:var(--gold);margin:14px auto 16px}
-.welcome p{margin:0 0 14px;font-size:15px;line-height:1.5;color:var(--ink-2)}
-.welcome .btn{width:100%;margin-top:8px}
-.welcome .steps{text-align:left;margin:4px 0 14px;padding:0;list-style:none;counter-reset:s}
-.welcome .steps li{counter-increment:s;display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:15px;color:var(--ink)}
-.welcome .steps li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--sig);color:#fff;display:grid;place-items:center;font:600 12px/1 var(--sans)}
-.welcome .steps svg{width:18px;height:18px;vertical-align:-3px;color:#0A7AFF}
-.welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
-.welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
-.welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.10.1 entry polish */
-.sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
-.sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
-.sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
-.sec>header .prog em{font:600 11px/1 var(--sans);font-style:normal;color:var(--muted);min-width:30px;text-align:right}
-.sec>header .prog.done em{color:var(--gold)}
-.sec>header .s{flex:1 1 auto;margin-left:6px}
-@media (min-width:1080px){ .sec>header .prog{display:flex !important} }
-.noteacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.lexopen{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 10px;border-radius:999px;border:1px solid rgba(154,116,56,.45);
-  background:linear-gradient(180deg,#FFFDF8,var(--gold-tint));color:var(--gold-ink);font:600 13px/1 var(--sans);box-shadow:0 1px 2px rgba(154,116,56,.12)}
-.lexopen .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff;font-size:15px;line-height:1}
-.lexopen .ct{font:600 11px/1 var(--sans);color:var(--muted)}
-.mini{height:36px;display:inline-flex;align-items:center;padding:0 14px}
-.note .lab .mini{display:none}
-.opts[data-k="color"] .opt .dot{width:16px;height:16px}
-/* lexicon sheet */
-.lexsheet{position:fixed;inset:0;z-index:58;display:none;background:rgba(31,26,29,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-  align-items:flex-end;justify-content:center}
-.lexsheet.show{display:flex}
-.lexsheet .lp{background:var(--paper);width:100%;max-width:860px;height:90vh;height:90dvh;display:flex;flex-direction:column;border-radius:26px 26px 0 0;
-  box-shadow:0 -24px 70px rgba(0,0,0,.3);overflow:hidden;animation:sheetup .32s var(--ease)}
-@keyframes sheetup{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
-@media (min-width:700px){ .lexsheet{align-items:center;padding:24px} .lexsheet .lp{border-radius:26px;height:min(86vh,860px)} }
-.lph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:18px 20px 12px;
-  background:radial-gradient(120% 140% at 0% 0%,#8A2C4C 0%,rgba(138,44,76,0) 55%),linear-gradient(160deg,#741D3B,#4A0E22);color:#fff}
-.lph:before{content:"";display:block;position:absolute}
-.lph .eyebrow{color:var(--gold-hi)}
-.lph h2{margin:6px 0 0;font:italic 700 24px/1.05 var(--serif)}
-.lph .lexdone{height:40px;border-radius:999px;padding:0 20px;background:#fff;color:var(--sig);border:0;font:600 14px/1 var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.2)}
-.lexsel{display:flex;gap:6px;overflow-x:auto;padding:12px 20px;border-bottom:1px solid var(--line);min-height:56px;align-items:center;scrollbar-width:none;background:var(--card)}
-.lexsel::-webkit-scrollbar{display:none}
-.lexsel .hint{white-space:nowrap}
-.lexsel .tok{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 6px 0 12px;border-radius:999px;background:var(--sig);color:#fff;font:600 12.5px/1 var(--sans)}
-.lexsel .tok b{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:12px}
-.lexctl{display:flex;gap:10px;align-items:center;padding:12px 20px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-.lexsearch{position:relative;flex:1 1 200px}
-.lexsearch input{width:100%;height:38px;padding:0 12px 0 34px;border:1px solid var(--line-2);border-radius:999px;background:var(--card);font-size:14px;color:var(--ink);
-  -webkit-appearance:none;appearance:none;outline:none}
-.lexsearch svg{position:absolute;left:12px;top:50%;width:14px;height:14px;transform:translateY(-50%);color:var(--muted)}
-.lextiers{flex:none}
-.lextiers button{height:32px;padding:0 14px;font-size:12.5px}
-.lexbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 20px calc(24px + env(safe-area-inset-bottom))}
-.lcat{margin:16px 0 4px}
-.lcat h3{display:flex;align-items:center;gap:8px;margin:0 0 9px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
-.lcat h3 i{width:10px;height:10px;border-radius:50%;background:var(--cc)}
-.lcat h3 em{font-style:normal;color:var(--gold);letter-spacing:.04em;text-transform:none;font-size:11.5px}
-.ltiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px}
-.ltile{position:relative;text-align:left;min-height:44px;padding:8px 26px 8px 13px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);
-  color:var(--ink);font:500 13.5px/1.2 var(--sans);overflow:hidden;transition:background .15s,border-color .15s,transform .1s}
-.ltile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
-.ltile:active{transform:scale(.97)}
-.ltile.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 16%,var(--card));font-weight:600}
-.ltile.on:after{content:"✓";position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ink-2)}
-.lexempty{padding:40px 0;text-align:center;color:var(--muted)}
-/* open-a-saved-wine sheet */
-.openbtn{height:44px;width:100%;display:flex;align-items:center;gap:10px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#FFFEFC;
-  color:var(--ink-2);font:500 15px/1 var(--sans);text-align:left}
-.openbtn svg{width:17px;height:17px;color:var(--gold);flex:none}
-.openbtn span{flex:1}
-#load{display:none}
-.olist{flex:1;overflow-y:auto;padding:4px 20px calc(24px + env(safe-area-inset-bottom))}
-.olist .od{margin:16px 0 6px;font:italic 700 16px/1.2 var(--serif);color:var(--sig)}
-.olist .od span{font:500 12px/1 var(--sans);color:var(--muted);margin-left:8px;font-style:normal}
-.olist button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;margin:0 0 6px;border-radius:14px;border:1px solid var(--line);
-  background:var(--card);color:var(--ink)}
-.olist button i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--wc,var(--line-2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
-.olist button b{font:600 14.5px/1.2 var(--sans)}
-.olist button small{display:block;margin-top:3px;color:var(--muted);font-size:12.5px}
-.olist button .n{margin-left:auto;font:600 11px/1 var(--sans);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
-:root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
-:root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
-:root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
-/* ---- v1.10.1 beauty pass */
-.sec>header{padding:16px 18px 12px}
-.sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
-.sec>header .t{font:italic 700 20px/1.1 var(--serif)}
-.sec .body{padding:0 18px 18px}
-.mods{display:grid;grid-template-columns:1fr;gap:8px;margin:2px 0 6px}
-.mod{display:block !important;padding:12px 14px 13px !important;border:1px solid var(--line) !important;border-radius:16px;
-  background:linear-gradient(180deg,#FFFFFF,#FCFAF6)}
-.mod+.mod{border-top:1px solid var(--line) !important}
-.mod .lab{display:flex;align-items:center;gap:8px;margin:0 0 9px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
-.mod .lab:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
-.mod input[type=text]{width:100%}
-.mod .hint{font-size:13px}
-@media (min-width:700px){ .mods{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))} .mod.wide{grid-column:1 / -1} }
-.seg .opt{white-space:nowrap;font-size:12.5px}
-.dl{grid-template-columns:auto minmax(0,1fr)}
-.dl dd{min-width:0;flex-wrap:wrap;text-align:right;overflow-wrap:anywhere}
-@media (min-width:1080px){ .wg{grid-template-columns:1.15fr 1fr 1.4fr 1.25fr 1.25fr} }
-.note{padding:12px 0 4px}
-.note .lab{font:600 10.5px/1 var(--sans) !important;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
-@media (min-width:1080px){
-  .note{display:block !important}
-  .note .lab{margin:4px 0 9px !important;flex-direction:row !important}
-  #entryMain.wrap{grid-template-columns:1fr 1fr;grid-template-areas:"app str" "nose str" "qual guess";align-items:start}
-  .sec[data-i="0"]{grid-area:app}.sec[data-i="1"]{grid-area:nose}.sec[data-i="2"]{grid-area:str}.sec[data-i="3"]{grid-area:qual}.sec[data-i="4"]{grid-area:guess}
-}
-@media (min-width:1400px){
-  #entryMain.wrap{grid-template-columns:1fr 1.08fr 1fr;grid-template-areas:"app str qual" "nose str guess"}
-}
-.sec[data-i="4"]{order:4}
-/* descriptor photo chips under Aromas / Flavors */
-.dchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;cursor:pointer}
-.dchips:empty{display:none}
-.dchip{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 3px;border-radius:999px;background:var(--card);
-  border:1px solid color-mix(in srgb,var(--cc) 45%,var(--line-2));font:500 12.5px/1 var(--sans);color:var(--ink);box-shadow:0 1px 2px rgba(31,26,29,.05)}
-.dchip img{width:28px;height:28px;border-radius:50%;object-fit:cover}
-/* lexicon tiles with photographs */
-.ltiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr)) !important;gap:8px !important}
-.ltile{display:flex !important;align-items:center;gap:10px;padding:5px 26px 5px 5px !important;min-height:54px !important;border-radius:14px !important}
-.ltile:before{display:none}
-.ltile img{flex:none;width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--seg);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.ltile span{line-height:1.2}
-.ltile.on{box-shadow:0 0 0 2px var(--cc) inset}
-.ltile.on img{outline:2px solid #fff;outline-offset:-4px}
-.lexsel .tok{padding-left:3px !important}
-.lexsel .tok img{width:26px;height:26px;border-radius:50%;object-fit:cover}
-/* summary card */
-.dstrip{display:flex;margin:-2px 0 12px 4px}
-.dstrip img{width:30px;height:30px;border-radius:50%;object-fit:cover;margin-left:-6px;border:2px solid var(--card);box-shadow:0 1px 3px rgba(31,26,29,.15)}
-.c h4.h4b{margin-top:16px}
-:root[data-theme="dim"] .mod{background:linear-gradient(180deg,#221A1E,#1E171B)}
-
-/* v1.5 paint chips */
-.opts.pcs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:4px 2px 6px}
-.opts.pcs.n3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:420px}
-.opts.pcs .opt.pc{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;min-width:0;
-  background:#FFFDF9;border-radius:3px;padding:5px 5px 0;
-  box-shadow:0 0 0 1px rgba(31,26,29,.07),0 1px 2px rgba(31,26,29,.06),0 6px 14px -8px rgba(31,26,29,.28);
-  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;-webkit-tap-highlight-color:transparent}
-.opts.pcs .opt.pc:hover{transform:translateY(-2px)}
-.opts.pcs .opt.pc:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.pc-sw{position:relative;display:block;aspect-ratio:4/5;border-radius:1.5px;
-  background:linear-gradient(172deg,rgba(255,255,255,.16),rgba(255,255,255,0) 38%),linear-gradient(180deg,var(--c1),var(--c2));
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 -14px 22px -14px rgba(0,0,0,.18)}
-.pc-sw::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.35;mix-blend-mode:soft-light;
-  background:repeating-linear-gradient(115deg,rgba(255,255,255,.18) 0 1px,transparent 1px 3px)}
-.pc-ck{position:absolute;right:6px;top:6px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
-  font:700 11px/1 'Archivo',sans-serif;color:var(--sig);background:#FFFDF9;box-shadow:0 1px 4px rgba(0,0,0,.25);
-  opacity:0;transform:scale(.6);transition:opacity .2s,transform .25s cubic-bezier(.2,.8,.2,1);z-index:1}
-.pc-lab{display:flex;flex-direction:column;gap:3px;padding:9px 3px 10px;min-width:0}
-.pc-no{font:600 8.5px/1 'Archivo',sans-serif;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
-.pc-lab b{font:600 12.5px/1.15 'Archivo',sans-serif;color:var(--ink);letter-spacing:.01em;overflow-wrap:anywhere}
-.pc-lab i{font:400 10.5px/1.25 'Archivo',sans-serif;font-style:normal;color:#83777C}
-.opts.pcs .opt.pc.on{transform:translateY(-4px);
-  box-shadow:0 0 0 1.5px var(--gold),0 2px 4px rgba(31,26,29,.08),0 14px 24px -10px rgba(31,26,29,.38)}
-.opts.pcs .opt.pc.on .pc-ck{opacity:1;transform:none}
-.opts.pcs .opt.pc.on .pc-lab b{color:var(--sig)}
-.opts.pcs:has(.on) .opt.pc:not(.on) .pc-sw{filter:saturate(.85)}
-@media (max-width:520px){ .opts.pcs{gap:6px} .opts.pcs .opt.pc{padding:3px 3px 0} .pc-lab{padding:6px 1px 7px}
-  .pc-lab b{font-size:10.5px} .pc-lab i{font-size:9.5px;line-height:1.2} .pc-ck{width:16px;height:16px;font-size:9px;right:4px;top:4px} }
-:root[data-theme="dim"] .opts.pcs .opt.pc,:root[data-theme="dim"] .pc-ck{background:#2A2125}
-:root[data-theme="dim"] .pc-lab b{color:#EDE3E6}
-:root[data-theme="dim"] .opts.pcs .opt.pc.on .pc-lab b{color:#E9C98B}
-
-/* v1.10.1 summary: Appearance · Nose · Palate · Quality · Guess */
-.c .dl+.nt,.c .dl+.dstrip,.c .sts+.nt,.c .sts+.dstrip{margin-top:14px}
-.c .dstrip+.nt{margin-top:2px}
-@media (min-width:700px){
-  .wg>.c{border:0 !important;grid-column:auto}
-  .wg>.c1,.wg>.c2{border-right:1px solid var(--line) !important}
-  .wg>.c2,.wg>.c4{border-top:1px solid var(--line) !important}
-  .wg>.c5{grid-column:1 / -1;border-top:1px solid var(--line) !important}
-}
-@media (min-width:1080px){
-  .wg{grid-template-columns:1fr 1.3fr 1.35fr 1.2fr 1.2fr}
-  .wg>.c{border:0 !important;border-right:1px solid var(--line) !important;grid-column:auto}
-  .wg>.c5{border-right:0 !important}
-}
-/* settings: light or dark */
-.thrRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14.5px;font-weight:600}
+.sheet .panel{width:100%;max-width:640px;max-height:calc(100% - 40px - var(--sat));overflow:auto;background:var(--paper);border-radius:22px 22px 0 0;padding:16px max(20px,env(safe-area-inset-left,0px)) calc(28px + var(--sab));box-shadow:0 -20px 50px rgba(0,0,0,.25)}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ph h2,.sheet .panel>h2{margin:0;font:700 26px/1.1 var(--serif)}
+.x{border:0;background:none;color:var(--sig);font-weight:700;font-size:16px;padding:8px 0}
+.frm{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px 14px;align-items:center;margin:10px 0 18px}
+.frm label{color:var(--ink-2);font-weight:500}
+.frm input,.frm select{width:100%;height:44px;border:1px solid var(--line-2);border-radius:12px;background:var(--card);padding:0 12px;font-size:15px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);font-size:20px}
+.stepper span{min-width:44px;text-align:center;font:700 20px var(--serif);font-variant-numeric:lining-nums}
+.sheet h3.eyebrow{margin:24px 0 10px}
+.olist .od{font:700 15px/1.2 var(--serif);margin:16px 0 6px;font-variant-numeric:lining-nums}
+.orow{display:flex;gap:12px;align-items:baseline;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:11px 2px;text-align:left}
+.orow b{font-weight:700;white-space:nowrap}.orow span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:flex;background:var(--seg);border-radius:12px;padding:3px;gap:2px}
+.seg .opt{flex:1;border:0;background:none;border-radius:9px;min-height:36px;padding:0 10px;font-weight:600;font-size:13.5px;color:var(--ink-2);white-space:nowrap}
+.seg .opt.on{background:var(--card);color:var(--sig);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.row2{display:grid;gap:10px}
+.card-sheet .panel{max-width:820px;max-height:calc(100% - 20px - var(--sat))}
+.sheet section{margin-top:22px}
+.sheet section h3{margin:0 0 8px}
+.sheet section p{color:var(--ink-2);margin:0 0 10px;font-size:14.5px}
+.gs{color:var(--ink-2);font-size:14.5px;margin-bottom:12px}
+.gs a{color:var(--sig);font-weight:600}
+.chk{display:flex;align-items:center;gap:10px;margin:8px 0 12px;font-size:14.5px}
+.chk input{width:20px;height:20px;accent-color:var(--sig)}
+.thrRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-weight:600}
 .thrRow .seg{flex:0 1 300px}
+.about{font-size:12.5px;color:var(--muted);line-height:1.5}
+.about a{color:var(--sig)}
+@media (min-width:700px){ .sheet{align-items:center} .sheet .panel{border-radius:22px;padding-bottom:28px} }
 
-/* v1.7 type: no italics anywhere. Serif (upright) only for titles and headings; everything else sans,
-   with hierarchy carried by size, weight and color. */
-*,*::before,*::after{font-style:normal !important}
-.scoreline span,.showing,.ring .num,.dl dt,.st .l,.nt .l,.q .big,.gx .gh,.gx .gf,.gx .ga,
-.pr .kv td.l,.pr .ps td.l,.pr .nt .l,.pr .big,.pr .gt th,.pr .gt td.f,.pr .gt td.ac,.pr .hint{font-family:var(--sans) !important}
-/* headings: upright serif */
-.mast h1,.strip b,.idwho b,.sec>header .t,.wh h3,.empty h3,.dhead b,.olist .od,.sheet h2,.welcome h2,.lph h2,.pr .phd .ttl,.pr .pch .tt{font-family:var(--serif) !important;font-weight:700 !important;letter-spacing:-.005em}
-.sec>header .n{font-family:var(--serif) !important;font-weight:600 !important}
-.mast h1,.strip b,.idwho b,.sec>header .t,.sec>header .n,.wh h3,.empty h3,.dhead b,.olist .od,.sheet h2,.welcome h2,.lph h2,.pr .phd .ttl,.pr .pch .tt{font-variant-numeric:lining-nums}
-.idwho b,.strip b{font-size:18px !important;letter-spacing:-.01em}
-/* labels: quiet, medium weight */
-.dl dt{font-size:13px !important;font-weight:500 !important;color:var(--ink-2) !important;line-height:1.35 !important}
-.dl dd{font-weight:600}
-.st .l{font-size:12.5px !important;font-weight:500 !important;color:var(--ink-2) !important}
-.st.na .l{color:var(--faint) !important}
-/* note labels: small caps eyebrow over regular text */
-.nt .l{font-size:10px !important;font-weight:600 !important;letter-spacing:.14em;text-transform:uppercase;color:var(--muted) !important;margin-bottom:4px !important}
-.nt p{color:var(--ink) !important;font-weight:400}
-.q .big{font-size:20px !important;font-weight:700 !important;letter-spacing:-.01em;color:var(--sig) !important}
-.gx .gh{font-size:9.5px !important;font-weight:600 !important;letter-spacing:.14em;text-transform:uppercase}
-.gx .gf{font-size:12.5px !important;font-weight:500 !important;color:var(--ink-2) !important}
-.gx .ga{font-size:13px !important;font-weight:700 !important}
-.ring .num{font-weight:700 !important}
-.scoreline span{font-weight:700 !important}
-.showing{font-size:13.5px !important;font-weight:400 !important}
-.wh .sub2 i{font-weight:600}
-.pr .kv td.l,.pr .ps td.l{font-weight:500 !important;color:var(--ink-2) !important}
-.pr .nt .l{font-size:7px !important;font-weight:600 !important;letter-spacing:.12em;text-transform:uppercase;color:var(--muted) !important}
-.pr .nt p{color:var(--ink) !important}
-.pr .big{font-weight:700 !important}
-.pr .gt th{font-weight:600 !important;text-transform:uppercase;letter-spacing:.1em;font-size:7px !important}
-.pr .gt td.ac{font-weight:700 !important}
-:root[data-theme="dim"] .nt p{color:var(--ink-2) !important}
-
-/* v1.10.1 summary: values sit right beside their labels instead of at the far edge */
-.dl{grid-template-columns:max-content minmax(0,1fr) !important;column-gap:18px !important;justify-content:start}
-.dl dd{justify-content:flex-start !important;text-align:left !important}
-
-/* v1.10.1 card header: grape · region · country · vintage in bold, same color as the producer */
-.wh .sub2{font-weight:700 !important;color:var(--sig) !important;font-size:13.5px;letter-spacing:.005em}
-.wh .sub2 i{font-family:var(--sans) !important;font-weight:500 !important;color:var(--muted) !important}
-.pr .pch .sb{font-weight:700 !important;color:var(--ink) !important}
-
-/* v1.10.1 label photo: a little larger, in the label's own upright shape */
-.wthumb{width:66px !important;height:84px !important;border-radius:9px !important}
-@media (max-width:699px){ .wthumb{width:54px !important;height:70px !important} }
-
-/* v1.10.1 welcome: two steps */
-.welcome [hidden]{display:none !important}
-.welcome .wc{max-width:520px;text-align:left;padding:30px 26px 24px}
-.welcome .wc>.eyebrow,.welcome .wc>h2{text-align:center}
-.welcome .rule{margin:14px auto 12px}
-.welcome .wlead{text-align:center;margin:0 0 18px;color:var(--muted);font-size:14.5px}
-.wstep{border-top:1px solid var(--line);padding:18px 0 6px}
-.wsh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.wsh h3{margin:0;font:700 19px/1.2 var(--serif);color:var(--ink);font-variant-numeric:lining-nums}
-.wn{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--sig);color:#fff;font:700 13px/1 var(--sans);transition:background .2s}
-.wstep.done .wn{background:var(--ok-ink);font-size:0}
-.wstep.done .wn:after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
-.wopts{display:grid;gap:9px}
-.wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 14px 14px 16px;border-radius:14px;border:1px solid var(--line-2);background:var(--card);color:var(--ink);cursor:pointer;
-  font:inherit;box-shadow:0 1px 2px rgba(31,26,29,.04);transition:border-color .15s,box-shadow .2s,transform .1s;-webkit-tap-highlight-color:transparent}
-.wopt:hover{border-color:var(--gold);box-shadow:0 6px 16px -10px rgba(31,26,29,.35)}
-.wopt:active{transform:scale(.99)}
-.wopt:disabled{opacity:.55;cursor:default}
-.wopt .wt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.wopt b{font:600 15.5px/1.25 var(--sans);color:var(--ink)}
-.wopt .wt>span{font-size:13px;line-height:1.4;color:var(--muted)}
-.wopt .chev{flex:none;width:16px;height:16px;color:var(--gold)}
-#wCreate{border-color:var(--gold);background:linear-gradient(180deg,var(--card),var(--gold-tint))}
-#wCreate b{color:var(--sig)}
-.wok{display:flex;flex-direction:column;gap:3px;padding:13px 16px;border-radius:14px;background:var(--ok);border:1px solid var(--ok-line)}
-.wok b{font:600 15px/1.3 var(--sans);color:var(--ok-ink)}
-.wok span{font-size:13px;line-height:1.45;color:var(--ink-2)}
-.wchange{border:0;background:none;padding:0;margin-left:4px;font:600 13px/1 var(--sans);color:var(--sig);text-decoration:underline;cursor:pointer}
-.welcome .wsub{font-size:14px;margin:0 0 4px;color:var(--ink-2)}
-.welcome .steps{margin:0 0 8px}
-.welcome .steps li{font-size:14.5px;line-height:1.4}
-.welcome .steps li:before{width:22px !important;height:22px !important;background:transparent !important;border:1.5px solid var(--gold);color:var(--gold-ink) !important;font-size:11px !important}
-.welcome .fine{text-align:left;margin-top:6px}
-#wFinish{margin-top:18px;min-height:50px;font-size:16px}
-#wFinish:disabled{opacity:.45;filter:saturate(.4)}
-@media (max-width:420px){ .welcome{padding:12px} .welcome .wc{padding:24px 18px 18px;border-radius:22px} .welcome h2{font-size:24px !important} }
-
-/* v1.10.1 welcome: whole card reachable on small phones */
-.welcome{align-items:flex-start !important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.welcome .wc{margin:auto}
-/* the printed page is always light */
-.pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
-  --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
-.pr .pth{width:46px;height:46px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-left:8px}
-
-/* ======================================================================  PRINT  (dedicated, pre-paginated document) */
-#printRoot{display:none}
-#printMeasure{position:absolute;left:-20000px;top:0;visibility:hidden;pointer-events:none}
-#pdfStage{position:fixed;left:-20000px;top:0;pointer-events:none}
-#pdfStage .ppage{background:#fff;padding:0 0 4px}
-.pr{width:988px;font-family:var(--sans);color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pr *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pr table{border-collapse:collapse;width:100%}
-.pr .phd{border-bottom:1.5px solid var(--sig);margin:0 0 8px}
-.pr .phd td{padding:0 0 5px;vertical-align:bottom}
-.pr .phd .ttl{font:italic 700 18px/1 var(--serif);color:var(--sig)}
-.pr .phd .mt{font:500 9px/1.2 var(--sans);color:var(--muted);text-align:right;letter-spacing:.02em}
-.pr .pc{border:1px solid #E3DACB;border-left:4px solid var(--wc,#DED4C5);border-radius:7px;margin:0 0 8px;overflow:hidden;
-  break-inside:avoid;page-break-inside:avoid;background:#fff}
-.pr .pch td{padding:6px 10px 5px 11px;vertical-align:middle}
-.pr .pch .k{font:600 7.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-right:8px}
-.pr .pch .tt{font:italic 700 14px/1.15 var(--serif);color:var(--sig);margin-right:8px}
-.pr .pch .tt.un{color:var(--faint)}
-.pr .pch .sb{font:500 9.5px/1.3 var(--sans);color:var(--ink-2)}
-.pr .pch .sc{width:90px;text-align:right;white-space:nowrap}
-.pr .pch .sc span{display:inline-block;font:600 9px/1 var(--sans);color:var(--gold-ink);background:var(--gold-tint);border-radius:999px;padding:4px 8px}
-.pr .pt{table-layout:fixed;border-top:1px solid var(--line)}
-.pr .pt>tbody>tr>td{vertical-align:top;padding:6px 9px 7px;border-left:1px solid var(--line);overflow-wrap:break-word;word-wrap:break-word;
-  -webkit-hyphens:manual;hyphens:manual}
-.pr .pt>tbody>tr>td:first-child{border-left:0}
-.pr h4{margin:0 0 5px;font:600 7.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--sig)}
-.pr .kv td{font-size:9.5px;line-height:1.3;padding:1px 0;vertical-align:top}
-.pr .kv td.l{font:italic 600 9.5px/1.3 var(--serif);color:var(--ink);padding-right:6px}
-.pr .kv td.v{font-weight:600;color:var(--gold-ink);text-align:right}
-.pr .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:0;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.25)}
-.pr .ps{margin:0 0 3px}
-.pr .ps td{font-size:9px;line-height:1.2;padding:0}
-.pr .ps td.l{font:italic 600 9.5px/1.2 var(--serif)}
-.pr .ps td.v{font-weight:600;color:var(--gold-ink);text-align:right;white-space:nowrap}
-.pr .ps.na td{color:var(--faint)}
-.pr .pbar{table-layout:fixed;border-collapse:separate;border-spacing:2px 0;margin:2px -2px 0;width:calc(100% + 4px)}
-.pr .pbar td{height:4px;padding:0;border-radius:2px;background:#EFE8DD}
-.pr .pbar td.f{background:var(--sig)}
-.pr .nt{margin:0 0 4px}
-.pr .nt .l{display:block;font:italic 600 9.5px/1.2 var(--serif);color:var(--ink);margin:0 0 1px}
-.pr .nt p{margin:0;font-size:9.5px;line-height:1.32;color:var(--gold-ink)}
-.pr .big{font:italic 700 13px/1.15 var(--serif);color:var(--sig);margin:0 0 4px}
-.pr .tags{margin:0 0 5px;line-height:1.9}
-.pr .tag{display:inline-block;font:600 6.8px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:3px 4px;margin:0 2px 0 0;
-  border-radius:4px;border:.75px solid var(--line-2);color:var(--faint);white-space:nowrap}
-.pr .tag.on{border-color:transparent;background:var(--gold-tint);color:var(--gold-ink)}
-.pr .hr{height:1px;background:var(--line);margin:5px 0}
-.pr .gt{table-layout:fixed}
-.pr .gt th{font:italic 600 8px/1 var(--serif);color:var(--muted);text-align:left;padding:0 5px 3px}
-.pr .gt th.a{color:var(--sig)}
-.pr .gt td{font-size:9px;line-height:1.25;padding:3px 5px;vertical-align:top;border-top:2px solid #fff;overflow-wrap:break-word;word-wrap:break-word}
-.pr .gt td.f{font:italic 600 9px/1.25 var(--serif);padding-left:0}
-.pr .gt td.g{background:#FAF7F2;font-weight:600;color:var(--ink-2);border-radius:5px 0 0 5px}
-.pr .gt td.g.ok{background:var(--ok);color:var(--ok-ink)}
-.pr .gt td.g.no{background:var(--no);color:var(--no-ink)}
-.pr .gt td.ac{background:#FAF7F2;font:italic 600 9px/1.25 var(--serif);color:var(--sig);border-left:1px solid #fff;border-radius:0 5px 5px 0}
-.pr .mk{font-weight:700;margin-left:3px}
-.pr .hint{font:italic 500 9px/1.3 var(--serif);color:var(--muted)}
-@media (min-width:1400px){ .wrap{max-width:1560px} }
-@media print{
-  @page{size:letter landscape;margin:.3in .35in}
-  html,body{background:#fff !important;padding:0 !important}
-  body>*{display:none !important}
-  body>#printRoot{display:block !important}
-  .ppage{break-after:page;page-break-after:always;break-inside:avoid}
-  .ppage:last-child{break-after:auto;page-break-after:auto}
+/* ---------------- Lexicon picker */
+.lx{position:fixed;inset:0;z-index:55;display:none;background:rgba(20,10,14,.45);align-items:flex-end;justify-content:center}
+.lx.show{display:flex;animation:fade .2s ease}
+.lxp{width:100%;height:calc(100% - 10px - var(--sat));background:var(--paper);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -20px 60px rgba(0,0,0,.25);animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+.lx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:4px 18px 10px}
+.lx-hd h2{margin:0;font:700 26px/1.05 var(--serif)}
+.lx-hd .tt span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.lx-search{display:flex;align-items:center;gap:9px;height:44px;margin:0 18px;border-radius:12px;background:var(--seg);padding:0 12px;color:var(--muted)}
+.lx-search svg{width:16px;height:16px;flex:none}
+.lx-search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px}
+.lx-picks{display:flex;align-items:center;gap:12px;padding:12px 18px 10px}
+.lx-picks .tks{flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;min-height:34px}
+.lx-picks .tks::-webkit-scrollbar{display:none}
+.lx-picks .tok{flex:none;background:var(--sig-tint);color:var(--ink)}
+.lx-picks .tok:before{display:none}
+.lx-picks .tok.own{background:none;box-shadow:inset 0 0 0 1px var(--line-2)}
+.ph0{color:var(--faint);font-size:13.5px;align-self:center}
+.lx-picks .lnk{flex:none;font-size:13.5px}
+.lx-main{flex:1;min-height:0;display:flex;flex-direction:column}
+.lx-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 18px 10px;border-bottom:1px solid var(--line);flex:none}
+.lx-tabs::-webkit-scrollbar{display:none}
+.lx-tabs button{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--card);border-radius:18px;padding:7px 12px;font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.lx-tabs button b{min-width:18px;height:18px;border-radius:9px;background:var(--sig);color:var(--on-sig);font-size:11px;display:grid;place-items:center;padding:0 5px}
+.lx-tabs button.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.lx-tabs button.on b{background:var(--paper);color:var(--ink)}
+.lx.searching .lx-tabs{display:none}
+.lx-body{flex:1;overflow:auto;padding:0 18px calc(24px + var(--sab));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.lx-sec{padding:18px 0 8px}
+.lx-sec+.lx-sec{border-top:1px solid var(--line)}
+.lx-sec h3{margin:0 0 12px;font:700 21px/1.1 var(--serif)}
+.lx-sec .cap{margin:-6px 0 12px;color:var(--muted);font-size:13px}
+.lx-end{height:40vh}
+.cl{margin-bottom:16px}
+.cl-h{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.cl-h img{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none}
+.cl-h b{font-weight:600;font-size:14.5px}
+.cl-h .org{font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.cl-h small{margin-left:auto;min-width:20px;height:20px;border-radius:10px;background:var(--sig-tint);color:var(--sig);font-weight:700;font-size:11.5px;display:grid;place-items:center;padding:0 6px}
+.lcs{display:flex;flex-wrap:wrap;gap:7px}
+.lc{display:inline-flex;align-items:center;gap:6px;min-height:38px;border:1px solid var(--line-2);background:var(--card);border-radius:19px;padding:0 14px;font-size:14.5px;font-weight:500;line-height:1.1;transition:background .12s,border-color .12s}
+.lc.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig);font-weight:600}
+.lc.on:before{content:"";width:9px;height:5px;border:2px solid currentColor;border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg);margin-left:-2px}
+.lc small{font-size:11.5px;color:var(--muted);font-weight:500}
+.lc.on small{color:inherit;opacity:.8}
+.lc:active{transform:scale(.97)}
+.ripe{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
+.ripe>span{font-weight:500;color:var(--ink-2);font-size:14px}
+.ripe .seg{flex:0 1 300px}.ripe .opt{min-height:32px;font-size:13px;padding:0 8px}
+.more{display:flex;width:100%;align-items:center;gap:10px;border:1px dashed var(--line-2);border-radius:12px;background:none;padding:12px 14px;text-align:left;margin:2px 0 10px}
+.more span{font-weight:600;color:var(--sig)}
+.more small{color:var(--muted);font-size:12.5px;flex:1}
+.more i{font-style:normal;font-size:20px;color:var(--sig);line-height:1}
+.srch .lcs{padding-top:4px}
+.none{color:var(--muted);margin:4px 0 0}
+.addown{display:flex;align-items:center;gap:10px;margin-top:16px;border:1px dashed var(--faint);background:none;border-radius:12px;padding:13px 14px;width:100%;text-align:left;color:var(--sig);font-weight:600}
+.addown i{font-style:normal;font-size:19px;line-height:1}
+@media (min-width:900px){
+  .lx{align-items:center}
+  .lxp{max-width:1000px;height:min(800px, calc(100% - 60px));border-radius:22px}
+  .lx-hd{padding:22px 26px 12px}
+  .lx-search{margin:0 26px}
+  .lx-picks{padding:12px 26px}
+  .lx-main{flex-direction:row;border-top:1px solid var(--line)}
+  .lx-tabs{flex-direction:column;width:210px;padding:14px 12px;border-bottom:0;border-right:1px solid var(--line);overflow:auto;gap:2px}
+  .lx-tabs button{border:0;background:none;border-radius:10px;padding:10px 12px;justify-content:space-between;font-size:14.5px}
+  .lx-tabs button.on{background:var(--sig-tint);color:var(--sig)}
+  .lx-tabs button.on b{background:var(--sig);color:var(--on-sig)}
+  .lx-body{padding:0 30px 30px}
 }
+@keyframes rise{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* lightbox, toast, modal */
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:20px}
+.lightbox.show{display:flex}.lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+.toast{position:fixed;left:50%;bottom:calc(84px + var(--sab));z-index:90;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;transition:all .25s;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;z-index:85;background:rgba(20,10,14,.5);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal .box{background:var(--paper);border-radius:18px;padding:22px;max-width:420px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+.modal p{margin:0 0 18px;font-size:15.5px;line-height:1.5}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+/* welcome: a full page in the 2.0 style — serif title, grouped lists, one button at the bottom */
+.welcome{position:fixed;inset:0;z-index:65;display:none;overflow:auto;background:var(--paper);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.welcome.show{display:block;animation:fade .25s ease}
+.welcome [hidden]{display:none !important}
+.welcome::before{content:"";display:block;height:calc(var(--sat) + 6px);background:var(--bar)}
+.welcome .wc{max-width:560px;margin:0 auto;min-height:calc(100% - var(--sat) - 6px);display:flex;flex-direction:column;padding:34px max(20px,env(safe-area-inset-left,0px)) calc(24px + var(--sab))}
+.welcome .wc>.eyebrow{color:var(--gold);text-align:left}
+.welcome h2{margin:10px 0 0;font:700 34px/1.05 var(--serif);letter-spacing:-.015em;color:var(--ink);text-align:left;text-wrap:balance}
+.welcome .rule{display:none}
+.welcome .wlead{margin:10px 0 8px;color:var(--muted);font-size:15.5px;text-align:left}
+.wstep{padding:24px 0 0;border:0}
+.wsh{display:flex;align-items:center;gap:10px;margin:0 2px 10px}
+.wsh h3{margin:0;font:700 20px/1.2 var(--serif);font-variant-numeric:lining-nums}
+.wn{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--gold);color:var(--gold-ink);background:none;font:700 12px/1 var(--sans)}
+.wstep.done .wn{border-color:var(--ok-ink);background:var(--ok-ink);font-size:0}
+.wstep.done .wn:after{content:"";width:8px;height:4px;border:2px solid var(--paper);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
+.wopts{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 16px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;transition:background .12s}
+.wopt:first-child{border-top:0}
+.wopt:active{background:var(--seg)}
+.wopt:disabled{opacity:.55}
+.wopt .wt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wopt b{font:600 16px/1.25 var(--sans);color:var(--ink)}
+.wopt .wt>span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.wopt .chev{flex:none;width:15px;height:15px;color:var(--faint)}
+#wCreate{background:none}
+#wCreate b{color:var(--sig)}
+#wCreate .wt>span:after{content:"Recommended";display:inline-block;margin-left:8px;padding:2px 7px;border-radius:6px;background:var(--sig-tint);color:var(--sig);font:600 10.5px/1.4 var(--sans);letter-spacing:.04em;vertical-align:1px}
+.wok{display:flex;flex-direction:column;gap:4px;padding:15px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);position:relative;padding-left:46px}
+.wok:before{content:"";position:absolute;left:16px;top:17px;width:18px;height:18px;border-radius:50%;background:var(--ok-ink)}
+.wok:after{content:"";position:absolute;left:21px;top:22px;width:8px;height:4px;border:2px solid var(--card);border-top:0;border-right:0;transform:rotate(-45deg)}
+.wok b{font:600 15.5px/1.3 var(--sans);color:var(--ink)}
+.wok span{font-size:13.5px;line-height:1.45;color:var(--muted)}
+.wchange{border:0;background:none;padding:0;margin-left:4px;font:600 13.5px/1 var(--sans);color:var(--sig)}
+.welcome .wsub{font-size:14.5px;margin:0 2px 10px;color:var(--ink-2)}
+.welcome .steps{margin:0;padding:0 16px;list-style:none;counter-reset:s;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.welcome .steps li{counter-increment:s;display:flex;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--line);font-size:14.5px;line-height:1.4;color:var(--ink)}
+.welcome .steps li:first-child{border-top:0}
+.welcome .steps li:before{content:counter(s);flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold-ink);display:grid;place-items:center;font:700 11px/1 var(--sans)}
+.welcome .steps svg{width:17px;height:17px;vertical-align:-3px;color:#0A7AFF}
+.welcome .fine{font-size:13px;color:var(--muted);line-height:1.5;margin:10px 2px 0}
+.welcome .err{color:var(--no-ink);font-size:13.5px;margin:8px 2px 0;min-height:0}
+.welcome .err:empty{display:none}
+.welcome .btn{width:100%}
+#wS2 .btn{margin-top:4px}
+#wFinish{margin-top:auto;position:sticky;bottom:calc(12px + var(--sab));min-height:52px;font-size:16.5px;border-radius:14px;box-shadow:0 10px 24px -12px rgba(109,26,54,.6)}
+.wstep:last-of-type{margin-bottom:28px}
+#wFinish:disabled{opacity:1;background:var(--seg);border-color:var(--seg);color:var(--muted);box-shadow:none}
+@media (min-width:700px){ .welcome .wc{padding-top:64px} .welcome h2{font-size:40px} }
+/* ---------------- design pass: sheets, settings, notebook, taste details */
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line-2);margin:8px auto 10px;flex:none;touch-action:none}
+.sheet.show{animation:fade .2s ease}
+.sheet.show .panel{animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+.sheet .panel{padding-top:2px}
+.panel.dragging,.lxp.dragging{transition:none !important;animation:none !important}
+/* settings as an inset grouped list */
+#settings .panel section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px 0;margin-top:16px;overflow:hidden}
+#settings .panel section h3{margin:0 0 8px}
+#settings .panel section>p,#settings .gs{font-size:14px;margin-bottom:12px}
+#settings .row2{gap:0;margin:0 -16px}
+#settings .row2 .btn{border:0;border-top:1px solid var(--line);border-radius:0;background:none;justify-items:start;padding:0 16px;min-height:50px;color:var(--sig);font-weight:600}
+#settings .row2 .btn.pri{color:var(--sig);font-weight:700}
+#settings .chk{margin:0 0 14px}
+#settings .thrRow{padding-bottom:12px}
+#settings .about{margin:16px 4px 0 !important}
+#settings section>.about{margin:0 0 14px !important;padding:0}
+/* notebook large title */
+.nb-title{background:var(--paper)}
+.nb-title .in{display:flex;align-items:baseline;justify-content:space-between;padding-top:18px;padding-bottom:2px}
+.nb-title h2{margin:0;font:700 30px/1.05 var(--serif);letter-spacing:-.01em}
+.nb-title span{color:var(--muted);font-size:13.5px}
+.nb-tools{border-bottom:0}
+.grp{position:sticky;top:calc(56px + 62px + var(--sat));z-index:5;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.row{transition:background .12s}
+.row:active{background:var(--seg)}
+.row+.grp{margin-top:6px}
+.grp+.row{border-top:0}
+@media (min-width:900px){ .nb-title{display:none} .grp{top:0} .nb-split{height:calc(100vh - 56px - 62px - var(--sat))} }
+.hbtn{display:inline-flex;align-items:center;gap:6px}.hbtn svg{width:14px;height:14px}
+/* taste details */
+.chip{min-height:38px}
+#saveBtn.quiet{color:var(--muted);border-color:var(--line)}
+.stage .sh h2{font-size:24px}
+.f>label{font-size:14px}
+.desc{border-radius:16px}
+.toast{bottom:calc(92px + var(--sab))}
+.tc-foot .btn{display:inline-flex;gap:7px}
+.tc-foot svg{width:15px;height:15px}
+.tok:before{display:none}
+.tok{padding-left:11px}
+.tok.own{background:none;box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (max-width:559px){ .ripe{flex-direction:column;align-items:stretch;gap:8px} .ripe .seg{flex:none} }
+.showing:empty{display:none}
+
 </style>
 </head>
-<body>
+<body data-view="taste">
+<header class="mast"><div class="in">
+  <h1>Tasting Notes</h1>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button type="button" role="tab" data-view="taste" aria-selected="true">Taste</button>
+    <button type="button" role="tab" data-view="notebook" aria-selected="false">Notebook</button>
+  </nav>
+  <div class="mtools"><button type="button" class="hbtn" id="selBtn">Select</button><button type="button" class="hbtn" id="pdfBtn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button></div>
+  <button class="gear" id="gear" type="button" data-s="off" aria-label="Settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg><i></i></button>
+</div></header>
 
-<div class="mast"><div class="wrap">
-  <div class="brand"><div class="eyebrow"><span class="lg">WSET Level 4 · Systematic Approach to Tasting</span><span class="sm">WSET Level 4 · SAT</span></div><h1>Blind Tasting Notes</h1></div>
-  <div class="sp"></div>
-  <div class="tabs" id="tabs" role="tablist" data-on="entry"><span class="thumb"></span>
-    <button type="button" role="tab" data-view="entry" aria-selected="true">Entry</button>
-    <button type="button" role="tab" data-view="summary" aria-selected="false">Summary</button>
-  </div>
-  <div class="tools2">
-    <button class="gpill" id="gpill" type="button" data-s="off"><span class="d"></span><span id="gtext">On this device</span></button>
-    <button class="gear" id="gear" type="button" aria-label="Settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="2.6"/><path d="M10 1.8v2.4M10 15.8v2.4M1.8 10h2.4M15.8 10h2.4M4.2 4.2l1.7 1.7M14.1 14.1l1.7 1.7M4.2 15.8l1.7-1.7M14.1 5.9l1.7-1.7"/></svg></button>
-  </div>
-</div></div>
-
-<!-- ============================================================ ENTRY -->
-<div id="entryView">
-  <div class="idbar"><div class="wrap"><div class="grid">
-    <div class="fld"><label class="eyebrow" for="date">Date</label><input type="date" id="date"></div>
-    <div class="fld"><label class="eyebrow">Wine #</label><div class="stepper"><button type="button" id="noDn" aria-label="Previous number">−</button><span id="no">1</span><button type="button" id="noUp" aria-label="Next number">+</button></div></div>
-    <div class="fld ev"><label class="eyebrow" for="event">Tasting / Event</label><input type="text" id="event" list="dl-event" placeholder="e.g. Diploma class" autocomplete="off" autocapitalize="words"></div>
-    <div class="fld ld"><label class="eyebrow">Saved wines</label><button type="button" class="openbtn" id="openSaved"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5V15a1.5 1.5 0 001.5 1.5h12a1.5 1.5 0 001.5-1.5V8a1.5 1.5 0 00-1.5-1.5H9.5L7.8 4.5H4A1.5 1.5 0 002.5 6v.5"/></svg><span>Open a Saved Wine</span><span id="savedCount" class="eyebrow" style="flex:none;color:var(--muted)"></span></button><select id="load"><option value="">Choose…</option></select></div>
-    <div class="idwho"><b id="who2">Wine #1</b><span class="pill" id="state2">New</span></div>
-  </div></div></div>
-  <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
-  <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.10.1 · <a href="#" class="opensettings">Settings</a></div>
-  <div class="bar"><div class="wrap">
-    <button class="btn" id="newBtn" type="button">New</button>
-    <button class="btn" id="saveBtn" type="button">Save</button>
-    <button class="btn pri savenext" id="nextBtn" type="button">Save &amp; Next Wine</button>
-  </div></div>
+<!-- ============================================================ TASTE -->
+<div id="tasteView">
+  <div class="idline"><div class="in"><b id="idWine">Wine 1</b><span id="idSub"></span><span class="state" id="state">New</span><button type="button" class="lnk" id="idChange">Change</button></div></div>
+  <nav class="stages" id="stages"><div class="in">
+    <button type="button" data-s="0" class="on"><i></i>Appearance</button><button type="button" data-s="1"><i></i>Nose</button><button type="button" data-s="2"><i></i>Palate</button><button type="button" data-s="3"><i></i>Conclusions</button><button type="button" data-s="4"><i></i>Identity</button>
+  </div></nav>
+  <main class="in" id="taste"><div class="loading">Opening your tasting notebook…</div></main>
+  <div class="foot">Tasting Notes <span id="verLabel"></span> · <a href="#" class="opensettings">Settings</a></div>
+  <div class="bar"><div class="in"><button class="btn" id="saveBtn" type="button">Save</button><button class="btn pri" id="nextBtn" type="button">Save &amp; Next Wine</button></div></div>
 </div>
 
-<!-- ============================================================ SUMMARY -->
-<div id="summaryView" class="hidden">
-  <div class="tools"><div class="wrap">
-    <div class="f"><label class="eyebrow" for="fField">Filter</label><select id="fField"></select></div>
-    <div class="f"><label class="eyebrow" for="fValue">Show</label><select id="fValue"></select></div>
-    <div class="f"><label class="eyebrow" for="sField">Sort by</label><select id="sField"></select></div>
-    <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="q" placeholder="Search notes — e.g. eucalyptus, Barossa, Vajra" autocomplete="off"></div>
-    <div class="acts">
-      <button class="ghost ord" id="ord" type="button" data-desc="0" title="Sort order"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg><span>Ascending</span></button>
-      <div class="dens" role="group" aria-label="Density"><button type="button" data-d="full" class="on">Detail</button><button type="button" data-d="list">List</button></div>
-      <span class="sp"></span>
-      <button class="ghost" id="selBtn" type="button">Select</button>
-      <button class="ghost" id="printBtn" type="button" title="Print or save as PDF"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button>
-    </div>
+<!-- ============================================================ NOTEBOOK -->
+<div id="nbView">
+  <div class="nb-title"><div class="in"><h2>Notebook</h2><span id="nbCount"></span></div></div>
+  <div class="nb-tools"><div class="in">
+    <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="q" placeholder="Search your notes" autocomplete="off"></div>
+    <button type="button" class="fbtn" id="filterBtn">Filter</button>
   </div></div>
-  <div class="wrap">
-    <div class="showing" id="showing"></div>
-    <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.10.1</div>
+  <div class="nb-split">
+    <div class="nb-list"><div class="showing" id="showing"></div><div id="list"><div class="loading">Opening your tasting notebook…</div></div></div>
+    <div class="nb-card" id="cardPane"></div>
   </div>
-  <div class="selbar" id="selbar"><div class="wrap">
+  <div class="selbar" id="selbar"><div class="in">
     <span class="n" id="selN">0 selected</span>
-    <button class="btn" id="selAll" type="button">Select All Shown</button>
+    <button class="btn" id="selAll" type="button">All Shown</button>
     <button class="btn" id="selPdf" type="button">Share PDF</button>
     <button class="btn pri" id="selSend" type="button">Send to a Friend</button>
     <button class="btn" id="selDone" type="button">Done</button>
   </div></div>
 </div>
 
+<!-- ============================================================ SHEETS -->
+<div class="sheet" id="changeSheet" role="dialog" aria-labelledby="chTitle"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><h2 id="chTitle">This wine</h2><button class="x" type="button" id="changeDone">Done</button></div>
+  <div class="frm">
+    <label for="cDate">Date</label><input type="date" id="cDate">
+    <label>Wine number</label><div class="stepper"><button type="button" id="cDn" aria-label="Previous number">−</button><span id="cNo">1</span><button type="button" id="cUp" aria-label="Next number">+</button></div>
+    <label for="cEvent">Tasting or event</label><input type="text" id="cEvent" list="dl-event" placeholder="e.g. Diploma class" autocomplete="off" autocapitalize="words">
+  </div>
+  <button class="btn" id="cNew" type="button">Start a New Wine</button>
+  <h3 class="eyebrow">Open a saved wine</h3>
+  <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="openQ" placeholder="Producer, grape, event" autocomplete="off"></div>
+  <div class="olist" id="openList"></div>
+</div></div>
+
+<div class="sheet" id="filterSheet" role="dialog" aria-labelledby="fTitle"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><h2 id="fTitle">Filter and sort</h2><button class="x" type="button" id="filterDone">Done</button></div>
+  <div class="frm">
+    <label for="fField">Filter by</label><select id="fField"></select>
+    <label for="fValue">Show</label><select id="fValue"></select>
+    <label for="sField">Sort by</label><select id="sField"></select>
+    <label>Order</label><div class="seg" id="ordSeg"><button type="button" class="opt" data-o="a">Ascending</button><button type="button" class="opt" data-o="d">Descending</button></div>
+  </div>
+  <button class="lnk" id="fReset" type="button">Reset to all wines, by date</button>
+  <h3 class="eyebrow">Share</h3>
+  <div class="row2"><button class="btn" id="fSelect" type="button">Select Wines</button><button class="btn" id="fPdf" type="button">Share PDF of These Wines</button></div>
+</div></div>
+
+<div class="sheet card-sheet" id="cardSheet" role="dialog" aria-label="Tasting card"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><span></span><button class="x" type="button" id="cardClose">Done</button></div>
+  <div id="cardBody"></div>
+</div></div>
+
+<div class="lx" id="lx" role="dialog" aria-labelledby="lxTitle"><div class="lxp">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="lx-hd"><div class="tt"><h2 id="lxTitle">Aromas</h2><span id="lxSub"></span></div><button class="x" type="button" id="lxDone">Done</button></div>
+  <div class="lx-search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="lxQ" placeholder="Search the Lexicon, or type your own" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
+  <div class="lx-picks"><div class="tks" id="lxPicks"></div><button type="button" class="lnk" id="lxSame" hidden>Same as the nose</button></div>
+  <div class="lx-main"><nav class="lx-tabs" id="lxTabs" aria-label="Aroma families"></nav><div class="lx-body" id="lxBody"></div></div>
+</div></div>
+
 <div class="sheet" id="settings" role="dialog" aria-labelledby="setTitle"><div class="panel">
-  <button class="x" type="button" id="setClose">Done</button>
-  <h2 id="setTitle">Settings</h2>
+  <div class="grab" aria-hidden="true"></div><div class="ph"><h2 id="setTitle">Settings</h2><button class="x" type="button" id="setClose">Done</button></div>
   <section>
     <h3 class="eyebrow">Google Sheet</h3>
     <div class="gs" id="gsStatus"></div>
@@ -906,11 +584,12 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.10.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
+
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
-  <h2 id="wTitle">Welcome to Blind Tasting Notes</h2>
+  <h2 id="wTitle">Welcome to Tasting Notes</h2>
   <div class="rule"></div>
   <p class="wlead">Two quick steps and you're ready to taste.</p>
   <section class="wstep" id="wS1">
@@ -929,1014 +608,25 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </section>
   <button class="btn pri" type="button" id="wFinish" disabled>Choose an option in step 1</button>
 </div></div>
+
 <div class="modal" id="ready"><div class="box">
   <p id="readyMsg"></p>
   <div class="acts"><button class="btn" id="readyClose" type="button">Close</button><button class="btn pri" id="readyGo" type="button">Share</button></div>
 </div></div>
-<div class="lexsheet" id="lexSheet" role="dialog" aria-labelledby="lexTitle"><div class="lp">
-  <div class="lph"><div><div class="eyebrow">WSET Wine-Lexicon</div><h2 id="lexTitle">Aromas</h2></div><button class="lexdone" type="button" id="lexDone">Done</button></div>
-  <div class="lexsel" id="lexSel"></div>
-  <div class="lexctl">
-    <div class="lexsearch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="lexQ" placeholder="Find a descriptor" autocomplete="off"></div>
-    <div class="dens lextiers" id="lexTiers"><button type="button" data-t="Primary" class="on">Primary</button><button type="button" data-t="Secondary">Secondary</button><button type="button" data-t="Tertiary">Tertiary</button></div>
-  </div>
-  <div class="lexbody" id="lexBody"></div>
-</div></div>
-<div class="lexsheet" id="openSheet" role="dialog" aria-labelledby="openTitle"><div class="lp">
-  <div class="lph"><div><div class="eyebrow">Your notebook</div><h2 id="openTitle">Open a Saved Wine</h2></div><button class="lexdone" type="button" id="openClose">Close</button></div>
-  <div class="lexctl"><div class="lexsearch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="openQ" placeholder="Search producer, grape, region, event" autocomplete="off"></div></div>
-  <div class="olist" id="openList"></div>
-</div></div>
-<div class="lightbox" id="lightbox"><img id="lbImg" alt="Label photo"></div>
-<div class="toast" id="toast"></div>
-<div id="printMeasure" class="pr" aria-hidden="true"></div>
-<div id="printRoot" class="pr" aria-hidden="true"></div>
-<div id="pdfStage" class="pr" aria-hidden="true"></div>
 <div class="modal" id="modal"><div class="box"><p id="mMsg"></p><div class="acts">
   <button class="btn" id="mNo" type="button">Cancel</button><button class="btn pri" id="mYes" type="button">OK</button></div></div></div>
+
+<div class="lightbox" id="lightbox"><img id="lbImg" alt="Label photo"></div>
+<div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
 <script src="logic.js"></script>
 <script src="store.js"></script>
 <script src="google.js"></script>
+<script src="lexicon.js"></script>
+<script src="app.js"></script>
+<script src="app2.js"></script>
 <script>
-var BOOT = (function(){ var q = new URLSearchParams(location.search); return { d: '', n: 0, view: q.get('view') === 'summary' ? 'summary' : 'entry' }; })();
-var S = {}, ALL = [], WINES = [], LISTS = {}, URLS = {};
-var rec = {}, orig = null, dirty = false, openSec = 0, view = 'entry';
-var SUM = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: false, dens: 'full' };
-var SW = {'Lemon-Green':'#D6DC7A','Lemon':'#F1E27E','Gold':'#E2B64A','Amber':'#C98A2E','Pink':'#F2B3C1','Pink-Orange':'#F0A27F',
-  'Orange':'#E5843C','Purple':'#4E1A45','Ruby':'#8C1C33','Garnet':'#772331','Tawny':'#9C5530','Brown':'#6E4325'};
-var SHORT = {'Medium(-)':'Med −','Medium(+)':'Med +','Medium':'Med','Medium-Dry':'Med-Dry','Medium-Sweet':'Med-Sweet',
-  'Hazy (Faulty?)':'Hazy','Unclean (Faulty?)':'Unclean','Pronounced':'Pron.','Fully Developed':'Fully Dev.'};
-var LONG = {'Medium(-)':'Medium (−)','Medium(+)':'Medium (+)'};
-var DRAFT_KEY = 'btn-entry-draft', SUM_KEY = 'btn-summary-view';
-var WIDE = window.matchMedia('(min-width: 1080px)');
-var CHEV = '<svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5-5 5"/></svg>';
-var PEN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>';
-
-function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-function api(fn){ var args = [].slice.call(arguments, 1); try { return Promise.resolve(API[fn].apply(null, args)); } catch (e) { return Promise.reject(e); } }
-function sh(v){ return SHORT[v] || v; }
-function lg(v){ return LONG[v] || v; }
-function store(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-function recall(k){ try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
-
-/* ====================================================================== views */
-function setView(v){
-  view = v;
-  $('tabs').setAttribute('data-on', v);
-  [].forEach.call(document.querySelectorAll('#tabs button'), function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-view') === v)); });
-  $('entryView').classList.toggle('hidden', v !== 'entry');
-  $('summaryView').classList.toggle('hidden', v !== 'summary');
-  if (v === 'summary') renderSummary();
-  else [].forEach.call(document.querySelectorAll('textarea'), grow);
-  window.scrollTo(0, 0);
-}
-$('tabs').addEventListener('click', function(e){ var b = e.target.closest('button'); if (b) setView(b.getAttribute('data-view')); });
-
-/* ====================================================================== ENTRY: definition */
-function F(){ return [
-  { t:'Appearance', sum:function(){ return [rec.clarity, [rec.appInt, rec.color].filter(Boolean).join(' ')].filter(Boolean).join(' · '); },
-    items:[ ['opts','clarity','Clarity',S.clarity], ['opts','appInt','Intensity',S.appInt,'seg'],
-      ['opts','type','Wine Type',S.type], ['color'], ['note','appNotes','Appearance Notes','Legs, deposit, rim, bubbles…'] ] },
-  { t:'Nose', sum:function(){ var n = chosen('aromas').length; return [rec.noseInt, rec.development, n ? n + ' descriptors' : ''].filter(Boolean).join(' · '); },
-    items:[ ['opts','condition','Condition',S.condition], ['opts','noseInt','Intensity',S.intensity,'seg'],
-      ['opts','development','Development',S.development], ['note','aromas','Aromas','Primary · secondary · tertiary'],
-      ['note','noseNotes','Nose Comments','Overall impression, how it evolves in the glass, anything that stands out…'] ] },
-  { t:'Structure & Palate', sum:function(){ var a=[]; if(rec.sweetness)a.push(rec.sweetness); if(rec.acidity)a.push('Acid '+sh(rec.acidity));
-      if(rec.tannin)a.push('Tan '+sh(rec.tannin)); if(rec.alcohol)a.push('Alc '+sh(rec.alcohol)); if(rec.body)a.push('Body '+sh(rec.body));
-      if(rec.finish)a.push(rec.finish+' finish'); return a.join(' · '); },
-    items:[ ['opts','sweetness','Sweetness',S.sweetness], ['opts','acidity','Acidity',S.five,'seg'], ['opts','tannin','Tannin',S.five,'seg'],
-      ['text','tanNature','Tannin Nature','Ripe, fine-grained, grippy, green…'], ['opts','alcohol','Alcohol',S.alcohol,'seg'],
-      ['opts','body','Body',S.body,'seg'], ['opts','flavInt','Flavor Intensity',S.intensity,'seg'], ['opts','finish','Finish',S.finish,'seg'],
-      ['note','flavors','Flavors','What the palate shows',true], ['note','palate','Palate Notes','Texture, pétillance, residual sugar…'] ] },
-  { t:'Quality & Aging', sum:function(){ return [rec.quality, rec.aging && (rec.aging==='Suitable'?'Suitable for aging':'Not for aging')].filter(Boolean).join(' · '); },
-    items:[ ['opts','quality','Quality',S.quality], ['multi','blic','Why (BLIC)',S.blic], ['note','qReason','Quality Reasoning','Balance, length, intensity, complexity…'],
-      ['opts','aging','Bottle Aging',S.aging], ['note','aReason','Aging Reasoning','Structure, fruit, development…'] ] },
-  { t:'Appellation, Varieties, Photo', sum:function(){ if (rec.open) return ['Tasted open', rec.aGrape].filter(Boolean).join(' · '); var s = score(); return [rec.gGrape, s ? s.hits + ' of 4' : ''].filter(Boolean).join(' · '); },
-    items:[ ['guess'] ] }
-]; }
-
-/* ====================================================================== ENTRY: render */
-function renderEntry(){
-  var defs = F();
-  var secs = defs.map(function(sec, i){
-    var body = '', open = false;
-    sec.items.forEach(function(it){
-      var isMod = it[0] === 'opts' || it[0] === 'multi' || it[0] === 'text' || it[0] === 'color';
-      if (isMod && !open) { body += '<div class="mods">'; open = true; }
-      if (!isMod && open) { body += '</div>'; open = false; }
-      body += item(it);
-    });
-    if (open) body += '</div>';
-    return '<section class="sec' + (i === openSec ? ' open' : '') + '" data-i="' + i + '"><header><span class="n">' + pad2(i + 1) +
-      '</span><span class="t">' + sec.t + '</span><span class="s" id="sum' + i + '"></span><span class="prog"><i><b></b></i><em></em></span>' + CHEV + '</header>' +
-      '<div class="body">' + body +
-      (i < defs.length - 1 ? '<div class="next"><button type="button" data-next="' + (i + 1) + '">Next · ' + defs[i + 1].t + '</button></div>' : '') +
-      '</div></section>';
-  });
-  $('entryMain').innerHTML = secs.join('');
-  [].forEach.call(document.querySelectorAll('textarea'), grow);
-  refreshSums(); paintScore(); paintProgress(); paintLexCount();
-}
-function item(it){
-  var k = it[1];
-  if (it[0] === 'sub') return '<div class="sub eyebrow">' + it[1] + '</div>';
-  if (it[0] === 'opts' || it[0] === 'multi') return '<div class="row mod' + (it[4] !== 'seg' && it[3].length >= 5 ? ' wide' : '') + '"><div class="lab">' + it[2] + '</div><div class="' + (it[4] === 'seg' ? 'seg' : 'opts') +
-    '" data-k="' + k + '" data-multi="' + (it[0] === 'multi' ? 1 : 0) + '">' + it[3].map(function(v){ return opt(k, v, it[0] === 'multi'); }).join('') + '</div></div>';
-  if (it[0] === 'color') return colorRow();
-  if (it[0] === 'note') {
-    var lex = (k === 'aromas' || k === 'flavors');
-    return '<div class="note"><span class="lab">' + it[2] + '</span><div><textarea data-k="' + k +
-      '" rows="1" placeholder="' + esc(it[3]) + '">' + esc(rec[k]) + '</textarea>' +
-      (lex ? '<div class="dchips" id="dchips-' + k + '" data-lexopen="' + k + '"></div>' : '') +
-      (lex || it[4] ? '<div class="noteacts">' +
-        (lex ? '<button type="button" class="lexopen" data-lexopen="' + k + '"><span class="ic">+</span>Add from Lexicon<span class="ct" id="lexct-' + k + '"></span></button>' : '') +
-        (it[4] ? '<button type="button" class="mini" id="sameNose">Same as nose</button>' : '') + '</div>' : '') + '</div></div>';
-  }
-  if (it[0] === 'text') return '<div class="row mod"><div class="lab">' + it[2] + '</div><input type="text" data-k="' + k + '" value="' + esc(rec[k]) +
-    '" placeholder="' + esc(it[3]) + '"></div>';
-  if (it[0] === 'guess') return guessBlock();
-  return '';
-}
-/* ---- WSET Lexicon chips */
-var LEXG = (function(){
-  var tier = '', out = [];
-  var short = { 'Yeast (Lees, Autolysis, Flor)': 'Yeast', 'Malolactic Conversion': 'Malolactic', 'Deliberately Oxidized Wines': 'Oxidative',
-    'Red Wine': 'Red Wine', 'White Wine': 'White Wine', 'Fruit Ripeness': 'Ripeness' };
-  function split(t){ var a = [], d = 0, cur = ''; for (var i = 0; i < t.length; i++) { var c = t[i];
-      if (c === '(') d++; if (c === ')') d--; if (c === ',' && !d) { a.push(cur.trim()); cur = ''; } else cur += c; }
-    if (cur.trim()) a.push(cur.trim()); return a; }
-  LEXICON.forEach(function(r){
-    if (/Aromas and Flavors$/.test(r[0])) { tier = r[0].replace(' Aromas and Flavors', ''); return; }
-    var words = [];
-    split(r[1]).forEach(function(w){
-      if (/^e\.g\./i.test(w)) return;
-      var m = w.match(/^(.*?)\s*\((?:e\.g\.\s*)?(.*)\)$/);
-      if (m && /^e\.g\./i.test(w.replace(/^.*?\(/, ''))) { m[2].split(/,\s*/).forEach(function(x){ words.push(x); }); return; }
-      w.split('/').length === 2 && !/\(/.test(w) ? words.push(w) : words.push(w.replace(/\s*\(.*\)$/, ''));
-    });
-    out.push({ tier: tier, name: short[r[0]] || r[0], words: words });
-  });
-  return out;
-})();
-function lexPanel(k){
-  var h = '<div class="lex" data-for="' + k + '">', last = '';
-  LEXG.forEach(function(g, i){
-    if (g.tier !== last) { h += (last ? '</div>' : '') + '<span class="tier eyebrow">' + g.tier + '</span><div class="lexg">'; last = g.tier; }
-    h += '<button type="button" data-g="' + i + '">' + esc(g.name) + '</button>';
-  });
-  return h + '</div><div class="lexd"></div></div>';
-}
-function addWord(k, word){
-  var t = document.querySelector('textarea[data-k="' + k + '"]'), v = (rec[k] || '').replace(/\s+$/, '');
-  word = word.toLowerCase();
-  rec[k] = !v ? word : /[,.;:]$/.test(v) ? v + ' ' + word : v + ', ' + word;
-  t.value = rec[k]; grow(t); touch();
-}
-var LEXC = { 'Floral': '#D98BB3', 'Green Fruit': '#8DB255', 'Citrus Fruit': '#E3C33F', 'Stone Fruit': '#E8995B', 'Tropical Fruit': '#F0B13A',
-  'Red Fruit': '#C8384A', 'Black Fruit': '#5A2A55', 'Herbaceous': '#6E9B54', 'Herbal': '#4F8A73', 'Spice': '#A2683A', 'Ripeness': '#B05B6F', 'Other': '#9A9A9A',
-  'Yeast': '#D3B07C', 'Malolactic': '#E3CB86', 'Oak': '#8B5A2B', 'Red Wine': '#7A3B2E', 'White Wine': '#C79A3B', 'Oxidative': '#9C7A4F' };
-var LEX = { k: 'aromas', tier: 'Primary', q: '' };
-function slugW(w){ return w.toLowerCase().replace(/\//g, '-').replace(/ /g, '-'); }
-function photoOf(w){ return 'aromas/' + slugW(w) + '.webp'; }
-function catOf(w){ var lw = w.toLowerCase(); for (var i = 0; i < LEXG.length; i++) if (LEXG[i].words.some(function(x){ return x.toLowerCase() === lw; })) return LEXG[i].name; return ''; }
-function matchesIn(text){ LEXALL = LEXALL || lexWords(); var seen = {};
-  return String(text || '').split(/\s*[,;]\s*|\.\s+/).map(norm1).filter(function(t){ if (!LEXALL[t] || seen[t]) return false; seen[t] = 1; return true; }).map(function(t){ return LEXALL[t]; }); }
-function toks(k){ return String(rec[k] || '').split(/\s*,\s*/).map(function(t){ return t.trim(); }).filter(Boolean); }
-function norm1(t){ return t.toLowerCase().replace(/[.;:]+$/, '').trim(); }
-function hasWord(k, w){ var lw = w.toLowerCase(); return toks(k).some(function(t){ return norm1(t) === lw; }); }
-function lexWords(){ var all = {}; LEXG.forEach(function(g){ g.words.forEach(function(w){ all[w.toLowerCase()] = w; }); }); return all; }
-var LEXALL = null;
-function chosen(k){ LEXALL = LEXALL || lexWords(); return toks(k).map(norm1).filter(function(t){ return LEXALL[t]; }).map(function(t){ return LEXALL[t]; }); }
-function toggleWord(k, w){
-  if (hasWord(k, w)) { var lw = w.toLowerCase(); rec[k] = toks(k).filter(function(t){ return norm1(t) !== lw; }).join(', '); }
-  else { var v = String(rec[k] || '').replace(/\s+$/, ''), word = w.toLowerCase(); rec[k] = !v ? word : /[,.;:]$/.test(v) ? v + ' ' + word : v + ', ' + word; }
-  var t = document.querySelector('textarea[data-k="' + k + '"]'); if (t) { t.value = rec[k]; grow(t); }
-  touch(); paintLexCount();
-}
-function paintLexCount(){ ['aromas','flavors'].forEach(function(k){
-  var e = $('lexct-' + k), c = $('dchips-' + k), list = chosen(k);
-  if (e) e.textContent = list.length ? list.length + ' chosen' : '';
-  if (c) c.innerHTML = list.map(function(w){ return '<span class="dchip" style="--cc:' + (LEXC[catOf(w)] || '#9A7438') + '"><img src="' + photoOf(w) + '" alt=""><span>' + esc(w) + '</span></span>'; }).join('');
-}); }
-function openLex(k){
-  LEX.k = k; LEX.q = ''; $('lexQ').value = '';
-  $('lexTitle').textContent = k === 'flavors' ? 'Flavors' : 'Aromas';
-  paintLex(); $('lexSheet').classList.add('show'); $('lexBody').scrollTop = 0;
-}
-function paintLex(){
-  var k = LEX.k, q = LEX.q.trim().toLowerCase();
-  [].forEach.call(document.querySelectorAll('#lexTiers button'), function(b){ b.classList.toggle('on', !q && b.getAttribute('data-t') === LEX.tier); });
-  var picked = chosen(k);
-  $('lexSel').innerHTML = picked.length ? picked.map(function(w){ return '<button type="button" class="tok" data-w="' + esc(w) + '"><img src="' + photoOf(w) + '" alt="">' + esc(w) + '<b>×</b></button>'; }).join('')
-    : '<span class="hint">Tap descriptors to add them to your note — tap again to remove. You can still type freely.</span>';
-  var html = '';
-  LEXG.forEach(function(g){
-    if (!q && g.tier !== LEX.tier) return;
-    var words = q ? g.words.filter(function(w){ return w.toLowerCase().indexOf(q) >= 0; }) : g.words;
-    if (!words.length) return;
-    var n = words.filter(function(w){ return hasWord(k, w); }).length;
-    html += '<div class="lcat" style="--cc:' + (LEXC[g.name] || '#9A7438') + '"><h3><i></i>' + esc(g.name) + (q ? ' · ' + g.tier : '') +
-      (n ? '<em>' + n + ' chosen</em>' : '') + '</h3><div class="ltiles">' +
-      words.map(function(w){ return '<button type="button" class="ltile' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(w) + '"><img src="' + photoOf(w) + '" alt="" loading="lazy" decoding="async"><span>' + esc(w) + '</span></button>'; }).join('') + '</div></div>';
-  });
-  $('lexBody').innerHTML = html || '<div class="lexempty">No descriptors match “' + esc(LEX.q) + '”. Type it straight into your note instead.</div>';
-}
-$('lexBody').addEventListener('click', function(e){ var t = e.target.closest('.ltile'); if (!t) return; toggleWord(LEX.k, t.getAttribute('data-w'));
-  var on = hasWord(LEX.k, t.getAttribute('data-w')); t.classList.toggle('on', on);
-  var st = $('lexBody').scrollTop; paintLex(); $('lexBody').scrollTop = st; });
-$('lexSel').addEventListener('click', function(e){ var t = e.target.closest('.tok'); if (!t) return; toggleWord(LEX.k, t.getAttribute('data-w')); var st = $('lexBody').scrollTop; paintLex(); $('lexBody').scrollTop = st; });
-$('lexTiers').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; LEX.tier = b.getAttribute('data-t'); LEX.q = ''; $('lexQ').value = ''; paintLex(); $('lexBody').scrollTop = 0; });
-$('lexQ').addEventListener('input', function(){ LEX.q = this.value; paintLex(); });
-$('lexDone').onclick = function(){ $('lexSheet').classList.remove('show'); };
-$('lexSheet').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
-
-/* ---- section progress */
-var PROG = [['clarity','appInt','type','color','appNotes'],['condition','noseInt','development','aromas','noseNotes'],
-  ['sweetness','acidity','tannin','tanNature','alcohol','body','flavInt','finish','flavors','palate'],
-  ['quality','blic','qReason','aging','aReason'],
-  ['gGrape','gCountry','gRegion','gVintage','producer','aGrape','aCountry','aRegion','aVintage']];
-function paintProgress(){
-  PROG.forEach(function(keys, i){
-    var el = document.querySelector('.sec[data-i="' + i + '"] .prog'); if (!el) return;
-    var ks = i === 4 && rec.open ? keys.filter(function(k){ return k.charAt(0) !== 'g'; }) : keys;
-    var n = ks.filter(function(k){ return String(rec[k] || '').trim(); }).length;
-    el.querySelector('b').style.width = Math.round(100 * n / ks.length) + '%';
-    el.querySelector('em').textContent = n === ks.length ? '✓' : n + '/' + ks.length;
-    el.classList.toggle('done', n === ks.length);
-  });
-}
-
-/* ---- open a saved wine */
-function paintOpen(){
-  var q = $('openQ').value.trim().toLowerCase(), last = '', h = '';
-  ALL.slice().sort(function(a, b){ return a.ymd < b.ymd ? 1 : a.ymd > b.ymd ? -1 : b.wineNo - a.wineNo; }).forEach(function(w){
-    var text = [w.producer, w.aGrape, w.gGrape, w.aRegion, w.aCountry, w.event, w.dateLabel].join(' ').toLowerCase();
-    if (q && text.indexOf(q) < 0) return;
-    if (w.ymd !== last) {
-      var n = ALL.filter(function(x){ return x.ymd === w.ymd; }).length;
-      h += '<div class="od">' + (w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date') +
-        '<span>' + esc(w.event || '') + (w.event ? ' · ' : '') + n + ' wine' + (n === 1 ? '' : 's') + '</span></div>';
-      last = w.ymd;
-    }
-    var sub = [w.aGrape || (w.gGrape ? 'Guess: ' + w.gGrape : ''), w.aRegion, w.aVintage].filter(Boolean).join(' · ');
-    h += '<button type="button" data-d="' + w.ymd + '" data-n="' + w.wineNo + '" style="--wc:' + (SW[w.color] || 'var(--line-2)') + '"><i></i><span><b>' +
-      esc(w.producer || (w.aGrape ? w.aGrape : 'Not yet revealed')) + '</b><small>' + esc(sub || (w.color ? w.color : '')) + '</small></span><span class="n">#' + esc(w.wineNo) + '</span></button>';
-  });
-  $('openList').innerHTML = h || '<div class="lexempty">' + (ALL.length ? 'No saved wines match.' : 'No saved wines yet.') + '</div>';
-}
-$('openSaved').onclick = function(){ $('openQ').value = ''; paintOpen(); $('openSheet').classList.add('show'); $('openList').scrollTop = 0; };
-$('openClose').onclick = function(){ $('openSheet').classList.remove('show'); };
-$('openSheet').addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
-$('openQ').addEventListener('input', paintOpen);
-$('openList').addEventListener('click', function(e){
-  var b = e.target.closest('button[data-d]'); if (!b) return;
-  var d = b.getAttribute('data-d'), n = +b.getAttribute('data-n');
-  $('openSheet').classList.remove('show');
-  guard('Open this wine?').then(function(go){ if (go) openWine(d, n); });
-});
-function isOn(k, v, multi){ return multi ? (rec[k] || '').split(/\s*,\s*/).indexOf(v) >= 0 : rec[k] === v; }
-function opt(k, v, multi){
-  var dot = SW[v] ? '<span class="dot" style="background:' + SW[v] + '"></span>' : '';
-  return '<button type="button" class="opt' + (isOn(k, v, multi) ? ' on' : '') + '" data-v="' + esc(v) + '" title="' + esc(v) + '">' + dot + esc(sh(v)) + '</button>';
-}
-function colorList(){ return rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null; }
-var CHIP = {
-  White: { L:'W', 'Lemon-Green':['#EEF0BC','#D3D97A','Very youthful'], 'Lemon':['#F8EDB0','#EBD668','Youthful'],
-    'Gold':['#F2D488','#D9A842','Developed or oaked'], 'Amber':['#E3AE5E','#BA7526','Mature, oxidative'], 'Brown':['#B07836','#7C4819','Fully oxidized'] },
-  'Rosé': { L:'R', 'Pink':['#F9D3DB','#EDA4B5','Youthful'], 'Pink-Orange':['#F8CBB2','#E8977A','Developing'], 'Orange':['#F2B479','#D98038','Mature'] },
-  Red: { L:'N', 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'],
-    'Garnet':['#97363C','#5C1920','Developing'], 'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
-function chipOf(v){ var t = CHIP[rec.type] || CHIP.Red; return t[v] || [SW[v] || '#ccc', SW[v] || '#999', '']; }
-function chip(v, i){
-  var c = chipOf(v), on = rec.color === v, t = CHIP[rec.type] || {};
-  return '<button type="button" class="opt pc' + (on ? ' on' : '') + '" data-v="' + esc(v) + '" title="' + esc(v) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '">' +
-    '<span class="pc-sw"><span class="pc-ck">✓</span></span>' +
-    '<span class="pc-lab"><b>' + esc(v.replace('-', '‑')) + '</b><i>' + esc(c[2]) + '</i></span></button>';
-}
-function colorRow(){
-  var list = colorList();
-  return '<div class="row mod wide" id="colorRow"><div class="lab">Color</div>' + (list ?
-    '<div class="opts pcs n' + list.length + '" data-k="color" data-multi="0">' + list.map(chip).join('') + '</div>' :
-    '<div class="hint">Choose the wine type first</div>') + '</div>';
-}
-var OPEN = 'Tasted Open, Not Blind';
-function guessBlock(){
-  var open = !!rec.open;
-  var rows = [['Grape','gGrape','aGrape','grape'],['Country','gCountry','aCountry','country'],['Region','gRegion','aRegion','region'],['Vintage','gVintage','aVintage','']];
-  var h = '<div id="guessWrap"><div class="openrow"><button type="button" class="opt tog' + (open ? ' on' : '') + '" id="openBtn" aria-pressed="' + open + '">' +
-    '<span class="box">' + (open ? '✓' : '') + '</span>' + OPEN + '</button>' +
-    '<span class="hint">' + (open ? 'No guess, no score' : 'Leave off for a blind tasting') + '</span></div>';
-  h += '<div class="gr' + (open ? ' open' : '') + '"><span></span>' + (open ? '' : '<span class="h eyebrow">My Guess</span>') + '<span class="h a eyebrow">Actual</span>';
-  rows.forEach(function(r){ h += '<span class="lab">' + r[0] + '</span>' + (open ? '' : inp(r[1], r[3])) + inp(r[2], r[3]); });
-  return h + '</div><div class="note pw"><span class="lab">Producer / Wine Name</span>' +
-    '<input type="text" data-k="producer" value="' + esc(rec.producer) + '" placeholder="' + (open ? 'Producer and wine' : 'After the reveal') + '"></div>' +
-    '<div class="phrow"><span class="lab">Label Photo</span><div class="phbox" id="phBox">' + photoBox() + '</div></div>' +
-    '<div class="scoreline">' + (open ? '<b>Tasted open</b><span class="ns">Not scored</span>' : '<b>Score</b><span id="score">—</span>') + '</div></div>';
-}
-/* ---- label photo */
-var THUMBS = {};                                    // wine id → { thumb, full } object URLs
-function photoBox(){
-  var u = rec.id && THUMBS[rec.id];
-  if (rec.hasPhoto && rec.id && !u) Photos.urls(rec.id).then(function(x){ if (x) { THUMBS[rec.id] = x; var b = $('phBox'); if (b) b.innerHTML = photoBox(); } });
-  return (u && rec.hasPhoto ? '<img src="' + u.thumb + '" data-full="' + u.full + '" alt="Label">' : '') +
-    '<label class="ghost">' + (rec.hasPhoto ? 'Replace' : 'Add Photo') + '<input type="file" accept="image/*" id="phInput"></label>' +
-    (rec.hasPhoto ? '<button type="button" class="ghost" id="phRemove">Remove</button>' : '');
-}
-document.addEventListener('change', function(e){
-  if (e.target.id !== 'phInput' || !e.target.files || !e.target.files[0]) return;
-  if (!rec.id) rec.id = uid();
-  toast('Adding photo…');
-  Photos.add(rec.id, e.target.files[0]).then(function(){
-    delete THUMBS[rec.id]; rec.hasPhoto = true; rec.photoUrl = ''; touch();
-    return Photos.urls(rec.id);
-  }).then(function(x){ THUMBS[rec.id] = x; $('phBox').innerHTML = photoBox(); toast('Photo added — tap Save to keep it'); })
-    .catch(function(err){ toast(err.message || 'Could not add that photo'); });
-});
-function removePhoto(){
-  ask('Remove the label photo from this wine?', 'Remove', 'Keep').then(function(go){
-    if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch();
-  });
-}
-function showPhoto(url){ $('lbImg').src = url; $('lightbox').classList.add('show'); }
-$('lightbox').onclick = function(){ this.classList.remove('show'); };
-function inp(k, dl){
-  return '<input type="text" data-k="' + k + '" value="' + esc(rec[k]) + '"' + (dl ? ' list="dl-' + dl + '"' : ' inputmode="numeric"') +
-    ' autocomplete="off" autocapitalize="words">';
-}
-
-/* ====================================================================== ENTRY: state */
-function low(v){ return String(v || '').trim().toLowerCase(); }
-function score(){
-  if (rec.open) return null;
-  var pairs = [['gGrape','aGrape'],['gCountry','aCountry'],['gRegion','aRegion'],['gVintage','aVintage']], of = 0, hits = 0, per = [];
-  pairs.forEach(function(p){ if (!low(rec[p[1]])) { per.push(null); return; } of++; var h = low(rec[p[0]]) === low(rec[p[1]]); if (h) hits++; per.push(h); });
-  return of ? { hits: hits, per: per } : null;
-}
-function paintScore(){
-  var s = score(), el = $('score'); if (!el) return;
-  el.textContent = s ? s.hits + ' of 4' : '—';
-  ['gGrape','gCountry','gRegion','gVintage'].forEach(function(k, i){
-    var e = document.querySelector('input[data-k="' + k + '"]'); if (!e) return;
-    e.classList.remove('hit', 'miss');
-    if (s && s.per[i] !== null && low(rec[k])) e.classList.add(s.per[i] ? 'hit' : 'miss');
-  });
-}
-function refreshSums(){
-  F().forEach(function(sec, i){ var e = $('sum' + i); if (!e) return;
-    e.textContent = (!WIDE.matches && !e.closest('.sec').classList.contains('open')) ? sec.sum() : ''; });
-}
-function label(){ var d = rec.date ? rec.date.split('-') : null;
-  return (d ? (+d[1]) + '/' + (+d[2]) + '/' + d[0].slice(2) + ', ' : '') + 'Wine #' + (rec.wineNo || '?'); }
-function setState(kind){
-  ['state','state2'].forEach(function(id){ var p = $(id);
-    p.className = 'pill' + (kind === 'dirty' ? ' dirty' : kind === 'saved' ? ' saved' : '');
-    p.textContent = kind === 'dirty' ? 'Unsaved changes' : kind === 'saved' ? 'Saved' : orig ? 'Saved' : 'New'; });
-}
-function setWho(){ $('who').textContent = label(); $('who2').textContent = label(); }
-function touch(){ dirty = true; setState('dirty'); setWho(); paintProgress(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
-function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
-function today(){ return BOOT.today || new Date().toISOString().slice(0, 10); }
-function nextNo(date){ var m = 0; WINES.forEach(function(w){ if (w.d === date) m = Math.max(m, w.n); }); return m + 1; }
-function syncId(){ $('date').value = rec.date || ''; $('no').textContent = rec.wineNo || 1; $('event').value = rec.event || ''; setWho(); }
-function show(r, o, isDirty){ rec = r; orig = o; dirty = !!isDirty; openSec = 0; syncId(); renderEntry(); setState(isDirty ? 'dirty' : ''); $('load').value = ''; }
-
-/* ====================================================================== ENTRY: events */
-document.addEventListener('click', function(e){
-  var lo = e.target.closest('[data-lexopen]');
-  if (lo) { openLex(lo.getAttribute('data-lexopen')); return; }
-  var lg = e.target.closest('.lexg button');
-  if (lg) {
-    var box = lg.closest('.lex'), on = lg.classList.contains('on');
-    [].forEach.call(box.querySelectorAll('.lexg button'), function(b){ b.classList.remove('on'); });
-    var d = box.querySelector('.lexd'), kk = box.getAttribute('data-for');
-    if (on) { d.innerHTML = ''; return; }
-    lg.classList.add('on');
-    var have = (rec[kk] || '').toLowerCase();
-    d.innerHTML = LEXG[+lg.getAttribute('data-g')].words.map(function(w){
-      return '<button type="button" class="' + (have.indexOf(w.toLowerCase()) >= 0 ? 'used' : '') + '">' + esc(w) + '</button>'; }).join('');
-    return;
-  }
-  var lw = e.target.closest('.lexd button');
-  if (lw) { addWord(lw.closest('.lex').getAttribute('data-for'), lw.textContent); lw.classList.add('used'); return; }
-  if (e.target.closest('#phRemove')) { removePhoto(); return; }
-  var thumb = e.target.closest('[data-full]');
-  if (thumb) { showPhoto(thumb.getAttribute('data-full')); return; }
-  if (e.target.closest('#openBtn')) {
-    rec.open = rec.open ? '' : OPEN;
-    $('guessWrap').outerHTML = guessBlock(); paintScore(); touch(); return;
-  }
-  var c = e.target.closest('.opt');
-  if (c && c.closest('#entryMain')) {
-    var box = c.parentNode, k = box.getAttribute('data-k'), v = c.getAttribute('data-v'), multi = box.getAttribute('data-multi') === '1';
-    if (multi) {
-      var cur = (rec[k] || '').split(/\s*,\s*/).filter(Boolean), i = cur.indexOf(v);
-      if (i >= 0) cur.splice(i, 1); else cur.push(v);
-      rec[k] = S[k] ? S[k].filter(function(x){ return cur.indexOf(x) >= 0; }).join(', ') : cur.join(', ');
-      c.classList.toggle('on');
-    } else {
-      rec[k] = rec[k] === v ? '' : v;
-      [].forEach.call(box.children, function(b){ b.classList.toggle('on', b.getAttribute('data-v') === rec[k]); });
-      if (k === 'type') { var ok = colorList() || []; if (ok.indexOf(rec.color) < 0) rec.color = ''; $('colorRow').outerHTML = colorRow(); }
-    }
-    touch(); return;
-  }
-  var h = e.target.closest('.sec>header');
-  if (h) { if (WIDE.matches) return; var sec = h.parentNode, si = +sec.getAttribute('data-i'); openOnly(sec.classList.contains('open') ? -1 : si); return; }
-  var nx = e.target.closest('[data-next]');
-  if (nx) { openOnly(+nx.getAttribute('data-next')); return; }
-  if (e.target.id === 'sameNose') {
-    e.preventDefault();
-    var t = document.querySelector('textarea[data-k="flavors"]'), a = (rec.aromas || '').trim();
-    if (!a) { toast('Add your aromas first'); return; }
-    rec.flavors = rec.flavors && rec.flavors.trim() ? rec.flavors.trim() + ' ' + a : a;
-    t.value = rec.flavors; grow(t); t.focus(); t.setSelectionRange(t.value.length, t.value.length); touch(); return;
-  }
-});
-function openOnly(i){
-  openSec = i;
-  [].forEach.call(document.querySelectorAll('.sec'), function(s){ s.classList.toggle('open', +s.getAttribute('data-i') === i); });
-  refreshSums();
-  if (i >= 0) { var s = document.querySelector('.sec[data-i="' + i + '"]');
-    var y = s.getBoundingClientRect().top + window.scrollY - document.querySelector('.strip').offsetHeight - 8;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); }
-  [].forEach.call(document.querySelectorAll('.sec.open textarea'), grow);
-}
-document.addEventListener('input', function(e){
-  var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return;
-  rec[k] = e.target.value; if (e.target.tagName === 'TEXTAREA') grow(e.target);
-  if (k === 'aromas' || k === 'flavors') paintLexCount();
-  if (/^[ga](Grape|Country|Region|Vintage)$/.test(k)) paintScore();
-  touch();
-});
-function grow(t){ if (!t.offsetParent) return; t.style.height = 'auto'; t.style.height = Math.max(48, t.scrollHeight + 2) + 'px'; }
-WIDE.addEventListener && WIDE.addEventListener('change', function(){ [].forEach.call(document.querySelectorAll('textarea'), grow); refreshSums(); });
-$('event').addEventListener('input', function(){ rec.event = this.value; touch(); });
-$('date').addEventListener('change', function(){ rec.date = this.value; if (!orig) { rec.wineNo = nextNo(rec.date); $('no').textContent = rec.wineNo; } touch(); });
-$('noUp').onclick = function(){ rec.wineNo = (+rec.wineNo || 0) + 1; $('no').textContent = rec.wineNo; touch(); };
-$('noDn').onclick = function(){ rec.wineNo = Math.max(1, (+rec.wineNo || 1) - 1); $('no').textContent = rec.wineNo; touch(); };
-$('load').addEventListener('change', function(){
-  var v = this.value; if (!v) return; var p = v.split('|');
-  guard('Open ' + this.options[this.selectedIndex].text + '?').then(function(go){ if (go) openWine(p[0], +p[1]); else $('load').value = ''; });
-});
-$('newBtn').onclick = function(){ guard('Start a new wine?').then(function(go){ if (!go) return; var d = today(), ev = rec.date === d ? rec.event : ''; clearDraft(); show({ date: d, wineNo: nextNo(d), event: ev || '' }, null, false); window.scrollTo(0, 0); }); };
-$('saveBtn').onclick = function(){ save(false); };
-document.addEventListener('click', function(e){
-  if (!e.target.closest('#saveBtn, #nextBtn, #tabs button[data-view="summary"]')) return;
-  if (!Sync.connected() || Sync.signedIn() || !navigator.onLine) return;
-  Sync.signIn().then(function(){ Sync.soon(); }, function(){});
-}, true);
-$('nextBtn').onclick = function(){ save(false, true); };
-
-function guard(q){
-  if (!dirty) return Promise.resolve(true);
-  return ask('You have unsaved changes to ' + label() + '. ' + q + ' Those changes will be lost.', 'Discard changes', 'Keep editing');
-}
-function ask(msg, yes, no){
-  return new Promise(function(res){
-    $('mMsg').textContent = msg; $('mYes').textContent = yes || 'OK'; $('mNo').textContent = no || 'Cancel'; $('modal').classList.add('show');
-    $('mYes').onclick = function(){ $('modal').classList.remove('show'); res(true); };
-    $('mNo').onclick = function(){ $('modal').classList.remove('show'); res(false); };
-  });
-}
-function toast(t){ var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(function(){ e.classList.remove('show'); }, 2600); }
-
-function openWine(d, n){
-  toast('Opening…');
-  return api('appLoad', d, n).then(function(r){
-    if (!r) { toast('That wine was not found'); return; }
-    clearDraft(); show(r, { date: r.date, wineNo: r.wineNo }, false); window.scrollTo(0, 0); toast('Opened ' + label());
-  }).catch(fail);
-}
-function save(force, next){
-  if (!rec.date) { toast('Choose a date first'); return; }
-  if (!rec.wineNo) { toast('Set the wine number'); return; }
-  var b = next ? $('nextBtn') : $('saveBtn'), was = b.textContent; b.disabled = true; b.textContent = 'Saving…';
-  api('appSave', rec, orig, force).then(function(r){
-    b.disabled = false; b.textContent = was;
-    if (r.conflict) return ask(r.conflict + ' Replace it with this note?', 'Replace', 'Cancel').then(function(go){ if (go) save(true, next); });
-    rec.id = r.id; setData(r.all);
-    orig = { date: rec.date, wineNo: rec.wineNo }; dirty = false; clearDraft(); setState('saved');
-    if (next) {
-      var d = rec.date, ev = rec.event || '', saved = label();
-      show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0);
-      toast('Saved ' + saved + ' · now Wine #' + rec.wineNo);
-    } else toast('Saved ' + label());
-  }).catch(function(err){ b.disabled = false; b.textContent = was; fail(err); });
-}
-
-/* ---- sign-in expiry (HTTP 401) */
-function isAuth(err){ return /401|403|authoriz|sign.?in|NetworkError|Connection/i.test(String(err && err.message || err)); }
-function fail(err){ toast('Something went wrong: ' + (err && err.message ? err.message : err)); }
-function signInExpired(){
-  store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() });
-  var was = dirty; dirty = false;
-  ask('Your Google sign-in for this page timed out (this happens when it sits open for a while). Your note is kept on this device and returns after a reload — then tap Save again.', 'Reload now', 'Not yet')
-    .then(function(go){ if (go) reloadApp(); else dirty = was; });
-}
-function reloadApp(){
-  var u = BOOT.self || '';
-  if (u) { try { window.open(u + (view === 'summary' ? '?view=summary' : ''), '_top'); return; } catch (e) {} }
-  try { window.top.location.reload(); } catch (e) { location.reload(); }
-}
-var lastSeen = Date.now();
-document.addEventListener('visibilitychange', function(){
-  if (document.visibilityState !== 'visible') { lastSeen = Date.now(); return; }
-  if (Date.now() - lastSeen > 5 * 60 * 1000 && Sync.connected()) Sync.soon();
-  lastSeen = Date.now();
-});
-window.addEventListener('beforeunload', function(e){ if (dirty) { e.preventDefault(); e.returnValue = ''; } });
-
-/* ====================================================================== data */
-function setData(all){
-  ALL = all || [];
-  WINES = ALL.filter(function(w){ return w.ymd && w.wineNo !== ''; })
-    .map(function(w){ return { d: w.ymd, n: Number(w.wineNo), label: w.label, producer: w.producer }; })
-    .sort(function(a, b){ return a.d < b.d ? 1 : a.d > b.d ? -1 : b.n - a.n; });
-  var pick = function(keys){ var seen = {};
-    ALL.forEach(function(w){ keys.forEach(function(k){ var v = String(w[k] || '').trim(); if (v && !seen[v.toLowerCase()]) seen[v.toLowerCase()] = v; }); });
-    return Object.keys(seen).map(function(k){ return seen[k]; }).sort(function(a, b){ return a.localeCompare(b); }); };
-  LISTS = { grape: pick(['gGrape','aGrape']), country: pick(['gCountry','aCountry']), region: pick(['gRegion','aRegion']), event: pick(['event']) };
-  $('savedCount').textContent = WINES.length ? WINES.length : '';
-  $('load').innerHTML = '<option value="">Choose…</option>' + WINES.map(function(w){
-    return '<option value="' + w.d + '|' + w.n + '">' + esc(w.label + (w.producer ? ' — ' + w.producer : '')) + '</option>'; }).join('');
-  ['grape','country','region','event'].forEach(function(k){
-    $('dl-' + k).innerHTML = (LISTS[k] || []).map(function(v){ return '<option value="' + esc(v) + '">'; }).join(''); });
-  if (view === 'summary') renderSummary(); else summaryStale = true;
-}
-var summaryStale = true;
-
-/* ====================================================================== SUMMARY */
-function fillSummaryControls(){
-  $('fField').innerHTML = FILTERS.map(function(f){ return '<option>' + esc(f[0]) + '</option>'; }).join('');
-  $('sField').innerHTML = SORTS.map(function(s){ return '<option>' + esc(s[0]) + '</option>'; }).join('');
-}
-function fillValues(){
-  var opts = filterOptions(ALL, SUM.field);
-  if (opts.indexOf(SUM.value) < 0) SUM.value = '(all)';
-  $('fValue').innerHTML = opts.map(function(v){ return '<option>' + esc(v) + '</option>'; }).join('');
-  $('fValue').value = SUM.value; $('fValue').disabled = SUM.field === '(no filter)';
-}
-function syncControls(){
-  $('fField').value = SUM.field; fillValues(); $('sField').value = SUM.sort;
-  $('ord').setAttribute('data-desc', SUM.desc ? '1' : '0'); $('ord').querySelector('span').textContent = SUM.desc ? 'Descending' : 'Ascending';
-  [].forEach.call(document.querySelectorAll('.dens button'), function(b){ b.classList.toggle('on', b.getAttribute('data-d') === SUM.dens); });
-}
-$('fField').onchange = function(){ SUM.field = this.value; SUM.value = '(all)'; fillValues(); store(SUM_KEY, SUM); renderSummary(); };
-$('fValue').onchange = function(){ SUM.value = this.value; store(SUM_KEY, SUM); renderSummary(); };
-$('sField').onchange = function(){ SUM.sort = this.value; store(SUM_KEY, SUM); renderSummary(); };
-$('ord').onclick = function(){ SUM.desc = !SUM.desc; syncControls(); store(SUM_KEY, SUM); renderSummary(); };
-document.querySelector('.dens').onclick = function(e){ var b = e.target.closest('button'); if (!b) return; SUM.dens = b.getAttribute('data-d'); syncControls(); store(SUM_KEY, SUM); renderSummary(); };
-$('printBtn').onclick = function(){ sharePdf(shownWines(), SUM.field !== '(no filter)' && SUM.value !== '(all)' ? SUM.value : ''); };
-window.addEventListener('beforeprint', function(){ if (!buildPrint.fresh) buildPrint(); });
-window.addEventListener('afterprint', function(){ buildPrint.fresh = false; });
-$('wines').addEventListener('click', function(e){
-  var th = e.target.closest('.wthumb');
-  if (th) { e.stopPropagation(); showPhoto(th.getAttribute('data-full')); return; }
-  if (selecting) { var art = e.target.closest('.wine'); if (art) { toggleSel(art.getAttribute('data-id')); } return; }
-  var ed = e.target.closest('.edit');
-  if (ed) { e.stopPropagation(); var p = ed.getAttribute('data-w').split('|');
-    guard('Open ' + ed.getAttribute('data-l') + '?').then(function(go){ if (!go) return; setView('entry'); openWine(p[0], +p[1]); }); return; }
-  var hd = e.target.closest('.wh');
-  if (hd && !WIDE.matches && SUM.dens === 'full') hd.parentNode.classList.toggle('list');
-});
-
-var SEL = {}, selecting = false, QTEXT = '';
-function shownWines(){
-  var wines = applyFilterSort(ALL, SUM.field, SUM.value, SUM.sort, SUM.desc ? 'Descending' : 'Ascending');
-  var q = QTEXT.trim().toLowerCase();
-  if (!q) return wines;
-  var keys = ['producer','event','aGrape','aRegion','aCountry','aVintage','gGrape','gRegion','gCountry','appNotes','aromas','noseNotes','flavors','tanNature','palate','qReason','aReason','quality','color'];
-  return wines.filter(function(w){ return keys.some(function(k){ return String(w[k] || '').toLowerCase().indexOf(q) >= 0; }); });
-}
-function renderSummary(){
-  summaryStale = false;
-  var wines = shownWines();
-  var filtered = SUM.field !== '(no filter)' && SUM.value !== '(all)';
-  $('showing').innerHTML = (filtered ? 'Showing <b>' + esc(SUM.value) + '</b> · ' + esc(SUM.field) + ' · ' + wines.length + ' of ' + ALL.length + ' wines' :
-    'All ' + ALL.length + ' wine' + (ALL.length === 1 ? '' : 's')) + ' · sorted by ' + esc(SUM.sort.toLowerCase());
-  $('wines').className = 'wines' + (SUM.dens === 'list' ? ' list' : '');
-  var byDate = SUM.sort === 'Date & Wine #' || SUM.sort === 'Tasting / Event', html = '', lastKey = null;
-  wines.forEach(function(w, i){
-    var gk = SUM.sort === 'Tasting / Event' ? (w.event || '') : w.ymd;
-    if (byDate && gk !== lastKey) {
-      var grp = wines.filter(function(x){ return (SUM.sort === 'Tasting / Event' ? (x.event || '') : x.ymd) === gk; });
-      var when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
-      var events = grp.map(function(x){ return x.event; }).filter(Boolean).filter(function(v, j, a){ return a.indexOf(v) === j; });
-      html += '<div class="dhead"><b>' + esc(SUM.sort === 'Tasting / Event' ? (gk || 'No event') : when) + '</b><span>' +
-        esc((SUM.sort === 'Tasting / Event' ? '' : events.join(' · ') + (events.length ? ' · ' : '')) + grp.length + ' wine' + (grp.length === 1 ? '' : 's')) + '</span></div>';
-      lastKey = gk;
-    }
-    html += card(w);
-  });
-  if (QTEXT.trim()) $('showing').innerHTML += ' · <b>' + wines.length + '</b> match' + (wines.length === 1 ? '' : 'es') + ' for “' + esc(QTEXT.trim()) + '”';
-  $('summaryView').classList.toggle('selecting', selecting);
-  fillThumbs(wines);
-  $('wines').innerHTML = wines.length ? html :
-    '<div class="empty card"><h3>No wines to show</h3><p>' + (ALL.length ? 'Nothing matches this filter.' : 'Your first saved wine will appear here.') + '</p></div>';
-}
-
-function ring(w){
-  if (w.open) return '<div class="openbadge" title="Tasted open — not scored">Open</div>';
-  var r = 21, c = 2 * Math.PI * r, f = w.score === '' ? 0 : Number(w.score) / 4;
-  return '<div class="ring" title="Score"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="' + r + '" fill="none" stroke="#EFE8DD" stroke-width="3.5"/>' +
-    (f ? '<circle cx="26" cy="26" r="' + r + '" fill="none" stroke="url(#gg)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="' +
-      (c * f).toFixed(1) + ' ' + c.toFixed(1) + '"/>' : '') +
-    '<defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9A35E"/><stop offset="1" stop-color="#8A6430"/></linearGradient></defs></svg>' +
-    '<div class="num">' + (w.score === '' ? '<small>—</small>' : '<span>' + w.score + '<small>/4</small></span>') + '</div></div>';
-}
-function card(w){
-  var sub = [w.aGrape, w.aRegion, w.aCountry, w.aVintage].filter(Boolean);
-  var title = w.producer ? esc(w.producer) : (w.aGrape ? esc(w.aGrape) : 'Not yet revealed');
-  var color = SW[w.color] || '';
-  var th = THUMBS[w.id];
-  var h = '<article class="wine' + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '"' + (color ? ' style="--wc:' + color + '"' : '') + '>' +
-    '<header class="wh"><span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' +
-    (th ? '<img class="wthumb" src="' + th.thumb + '" data-full="' + th.full + '" alt="Label">' : '') +
-    '<div class="meta"><div class="k eyebrow">' + esc(w.dateLabel || '') + (w.dateLabel ? ' · ' : '') + 'Wine #' + esc(w.wineNo) + '</div>' +
-    '<h3' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + title + '</h3>' +
-    (sub.length && w.producer ? '<div class="sub2">' + esc(sub.join(' · ')) + '</div>' :
-      (!w.producer && !w.aGrape && w.gGrape ? '<div class="sub2"><i>My guess</i> ' + esc(w.gGrape) + '</div>' : '')) +
-    '</div>' + ring(w) +
-    (w.ymd ? '<button class="edit" type="button" title="Edit this wine" aria-label="Edit this wine" data-w="' + w.ymd + '|' + w.wineNo + '" data-l="' + esc(w.label) + '">' + PEN + '</button>' : '') +
-    '</header><div class="wg">';
-  // appearance · nose · palate, each with its own notes
-  var dlx = function(list){ return '<dl class="dl">' + list.map(function(p){
-      return '<dt>' + p[0] + '</dt><dd>' + (p[1] === 'color' && SW[w.color] ? '<span class="sw" style="background:' + SW[w.color] + '"></span>' : '') + esc(lg(w[p[1]])) + '</dd>'; }).join('') + '</dl>'; };
-  var have = function(list){ return list.filter(function(p){ return w[p[1]]; }); };
-  var notes = function(list){ return have(list).map(function(p){ return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join(''); };
-  var strip = function(t){ var dm = matchesIn(t || '').slice(0, 8);
-    return dm.length ? '<div class="dstrip">' + dm.map(function(x){ return '<img src="' + photoOf(x) + '" alt="' + esc(x) + '" title="' + esc(x) + '" loading="lazy">'; }).join('') + '</div>' : ''; };
-  var none = '<p class="hint">Not recorded</p>';
-  var ap = have([['Clarity','clarity'],['Intensity','appInt'],['Color','color']]), apN = notes([['Notes','appNotes']]);
-  h += '<section class="c c1"><h4 class="eyebrow">Appearance</h4>' + (ap.length ? dlx(ap) : '') + apN + (ap.length || apN ? '' : none) + '</section>';
-  var no = have([['Condition','condition'],['Intensity','noseInt'],['Development','development']]), noN = notes([['Aromas','aromas'],['Comments','noseNotes']]);
-  h += '<section class="c c3"><h4 class="eyebrow">Nose</h4>' + (no.length ? dlx(no) : '') + noN + (no.length || noN ? '' : none) + '</section>';
-  h += '<section class="c c2"><h4 class="eyebrow">Palate</h4><div class="sts">' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],
-      ['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]]
-    .map(function(p){ var v = w[p[1]], i = v ? idx(p[2], v) : -1;
-      return '<div class="st' + (v ? '' : ' na') + '"><span class="l">' + p[0] + '</span><span class="segs">' +
-        p[2].map(function(_, j){ return '<i' + (j <= i ? ' class="f"' : '') + '></i>'; }).join('') + '</span><span class="v">' + (v ? esc(sh(v)) : '—') + '</span></div>';
-    }).join('') + '</div>' + notes([['Flavors','flavors'],['Tannin','tanNature'],['Notes','palate']]) + '</section>';
-  // quality & aging
-  var bl = (w.blic || '').split(/\s*,\s*/);
-  h += '<section class="c c4"><h4 class="eyebrow">Quality &amp; Aging</h4>' +
-    '<div class="q"><span class="big">' + (w.quality ? esc(w.quality) : '<span class="hint">Not assessed</span>') + '</span></div>' +
-    '<div class="tags">' + L.blic.map(function(b){ return '<span class="tag' + (bl.indexOf(b) >= 0 ? ' on' : '') + '">' + b + '</span>'; }).join('') + '</div>' +
-    (w.qReason ? '<div class="nt"><span class="l">Reasoning</span><p>' + esc(w.qReason) + '</p></div>' : '') +
-    '<div class="hr"></div><div class="ag"><span class="lab">Bottle Aging</span><span class="val">' + (w.aging ? esc(w.aging) : '—') + '</span></div>' +
-    (w.aReason ? '<div class="nt" style="margin-top:8px"><p>' + esc(w.aReason) + '</p></div>' : '') + '</section>';
-  // guess → actual
-  if (w.open) {
-    h += '<section class="c c5"><h4 class="eyebrow">The Wine · Tasted Open</h4><div class="gx one">' +
-      [['Grape','aGrape'],['Country','aCountry'],['Region','aRegion'],['Vintage','aVintage']].map(function(p){
-        return '<span class="gf">' + p[0] + '</span><span class="ga">' + (w[p[1]] ? esc(w[p[1]]) : '—') + '</span>'; }).join('') + '</div></section>';
-    return h + '</div></article>';
-  }
-  h += '<section class="c c5"><h4 class="eyebrow">Guess → Actual</h4><div class="gx"><span></span><span class="gh">My Guess</span><span class="gh a">Actual</span>' +
-    [['Grape','gGrape','aGrape'],['Country','gCountry','aCountry'],['Region','gRegion','aRegion'],['Vintage','gVintage','aVintage']].map(function(p, i){
-      var hit = w.hits ? w.hits[i] : null, cls = hit === null || !w[p[1]] ? '' : hit ? ' ok' : ' no';
-      return '<span class="gf">' + p[0] + '</span><span class="gg' + cls + '">' + (w[p[1]] ? esc(w[p[1]]) : '—') +
-        (cls ? '<b class="mk">' + (hit ? '✓' : '✕') + '</b>' : '') + '</span><span class="ga">' + (w[p[2]] ? esc(w[p[2]]) : '—') + '</span>';
-    }).join('') + '</div></section>';
-  return h + '</div></article>';
-}
-
-
-/* ====================================================================== PRINT: measured, pre-paginated pages */
-var PAGE_H = Math.floor(7.9 * 96) - 14;        // US Letter landscape minus .3in margins, small safety margin
-var PER_PAGE_MAX = 3;
-function pcard(w){
-  var col = SW[w.color] || '';
-  var sub = [w.aGrape, w.aRegion, w.aCountry, w.aVintage].filter(Boolean).join(' · ');
-  var title = w.producer || w.aGrape || 'Not yet revealed';
-  var h = '<div class="pc"' + (col ? ' style="--wc:' + col + '"' : '') + '><table class="pch"><tr><td>' +
-    '<span class="k">' + esc(w.dateLabel || '') + (w.dateLabel ? ' · ' : '') + 'Wine #' + esc(w.wineNo) + '</span>' +
-    '<span class="tt' + (w.producer || w.aGrape ? '' : ' un') + '">' + esc(title) + '</span>' +
-    (w.producer && sub ? '<span class="sb">' + esc(sub) + '</span>' : '') +
-    (THUMBS[w.id] ? '<img class="pth" src="' + THUMBS[w.id].thumb + '" alt="">' : '') +
-    '</td><td class="sc">' + (w.open ? '<span>Tasted open</span>' : w.score === '' ? '' : '<span>Score ' + w.score + ' / 4</span>') + '</td></tr></table>';
-  h += '<table class="pt"><colgroup><col style="width:14%"><col style="width:19.5%"><col style="width:24.5%"><col style="width:21%"><col style="width:21%"></colgroup><tbody><tr>';
-  var kvt = function(list){ list = list.filter(function(p){ return w[p[1]]; }); return list.length ? '<table class="kv">' + list.map(function(p){
-      return '<tr><td class="l">' + p[0] + '</td><td class="v">' + (p[1] === 'color' && SW[w.color] ? '<span class="dot" style="background:' + SW[w.color] + '"></span>' : '') +
-        esc(lg(w[p[1]])) + '</td></tr>'; }).join('') + '</table>' : ''; };
-  var ntp = function(list){ return list.filter(function(p){ return w[p[1]]; }).map(function(p){ return '<div class="nt"><span class="l">' + p[0] + '</span><p>' + esc(w[p[1]]) + '</p></div>'; }).join(''); };
-  var or = function(x){ return x || '<span class="hint">Not recorded</span>'; };
-  h += '<td><h4>Appearance</h4>' + or(kvt([['Clarity','clarity'],['Intensity','appInt'],['Color','color']]) + ntp([['Notes','appNotes']])) + '</td>';
-  h += '<td><h4>Nose</h4>' + or(kvt([['Condition','condition'],['Intensity','noseInt'],['Development','development']]) + ntp([['Aromas','aromas'],['Comments','noseNotes']])) + '</td>';
-  h += '<td><h4>Palate</h4>' + [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],
-      ['Alcohol','alcohol',L.alcohol],['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]].map(function(p){
-      var v = w[p[1]], i = v ? idx(p[2], v) : -1;
-      return '<div class="ps' + (v ? '' : ' na') + '"><table><tr><td class="l">' + p[0] + '</td><td class="v">' + (v ? esc(sh(v)) : '—') + '</td></tr></table>' +
-        '<table class="pbar"><tr>' + p[2].map(function(_, j){ return '<td' + (j <= i ? ' class="f"' : '') + '></td>'; }).join('') + '</tr></table></div>';
-    }).join('') + ntp([['Flavors','flavors'],['Tannin','tanNature'],['Notes','palate']]) + '</td>';
-  // quality & aging
-  var bl = (w.blic || '').split(/\s*,\s*/);
-  h += '<td><h4>Quality &amp; Aging</h4><div class="big">' + (w.quality ? esc(w.quality) : '<span class="hint">Not assessed</span>') + '</div>' +
-    '<div class="tags">' + L.blic.map(function(b){ return '<span class="tag' + (bl.indexOf(b) >= 0 ? ' on' : '') + '">' + b + '</span>'; }).join('') + '</div>' +
-    (w.qReason ? '<div class="nt"><span class="l">Reasoning</span><p>' + esc(w.qReason) + '</p></div>' : '') +
-    '<div class="hr"></div><table class="kv"><tr><td class="l">Bottle Aging</td><td class="v">' + (w.aging ? esc(w.aging) : '—') + '</td></tr></table>' +
-    (w.aReason ? '<div class="nt" style="margin-top:2px"><p>' + esc(w.aReason) + '</p></div>' : '') + '</td>';
-  // guess → actual
-  if (w.open) {
-    h += '<td><h4>The Wine · Tasted Open</h4><table class="gt"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>' +
-      [['Grape','aGrape'],['Country','aCountry'],['Region','aRegion'],['Vintage','aVintage']].map(function(p){
-        return '<tr><td class="f">' + p[0] + '</td><td class="ac" style="border-radius:5px">' + (w[p[1]] ? esc(w[p[1]]) : '—') + '</td></tr>'; }).join('') + '</table></td>';
-    return h + '</tr></tbody></table></div>';
-  }
-  h += '<td><h4>Guess → Actual</h4><table class="gt"><colgroup><col style="width:26%"><col style="width:37%"><col style="width:37%"></colgroup>' +
-    '<tr><th></th><th>My Guess</th><th class="a">Actual</th></tr>' +
-    [['Grape','gGrape','aGrape'],['Country','gCountry','aCountry'],['Region','gRegion','aRegion'],['Vintage','gVintage','aVintage']].map(function(p, i){
-      var hit = w.hits ? w.hits[i] : null, cls = hit === null || !w[p[1]] ? '' : hit ? ' ok' : ' no';
-      return '<tr><td class="f">' + p[0] + '</td><td class="g' + cls + '">' + (w[p[1]] ? esc(w[p[1]]) : '—') +
-        (cls ? '<span class="mk">' + (hit ? '✓' : '✕') + '</span>' : '') + '</td><td class="ac">' + (w[p[2]] ? esc(w[p[2]]) : '—') + '</td></tr>';
-    }).join('') + '</table></td>';
-  return h + '</tr></tbody></table></div>';
-}
-function phead(meta){
-  return '<table class="phd"><tr><td class="ttl">Blind Tasting Notes</td><td class="mt">' + esc(meta) + '</td></tr></table>';
-}
-function buildPrint(list, title){
-  var wines = list || shownWines();
-  var filtered = SUM.field !== '(no filter)' && SUM.value !== '(all)';
-  var stamp = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
-  var meta = (title ? title + ' · ' : filtered ? SUM.field + ': ' + SUM.value + ' · ' : '') + wines.length + ' wine' + (wines.length === 1 ? '' : 's') + ' · printed ' + stamp;
-  // 1) measure every card at the exact printed width
-  var m = $('printMeasure');
-  m.innerHTML = phead(meta + ' · page 0 of 0') + wines.map(pcard).join('');
-  var headH = m.firstChild.offsetHeight + 8;
-  var cards = [].slice.call(m.querySelectorAll('.pc')).map(function(el){ return el.offsetHeight + 8; });
-  var avail = PAGE_H - headH;
-  // 2) pack whole cards onto pages (never split a wine); shrink a lone card only if it is taller than a page
-  var pages = [], cur = null;
-  wines.forEach(function(w, i){
-    var hgt = cards[i];
-    if (!cur || cur.items.length >= PER_PAGE_MAX || cur.h + hgt > avail) { cur = { items: [], h: 0 }; pages.push(cur); }
-    cur.items.push({ w: w, h: hgt }); cur.h += hgt;
-  });
-  m.innerHTML = '';
-  // 3) write the finished pages
-  $('printRoot').innerHTML = pages.map(function(pg, p){
-    return '<div class="ppage">' + phead(meta + ' · page ' + (p + 1) + ' of ' + pages.length) +
-      pg.items.map(function(it){
-        var html = pcard(it.w);
-        return it.h > avail ? '<div style="zoom:' + (avail / it.h).toFixed(3) + '">' + html + '</div>' : html;
-      }).join('') + '</div>';
-  }).join('') || '<div class="ppage">' + phead(meta) + '<p class="hint">No wines to print.</p></div>';
-  buildPrint.fresh = true;
-  return pages.length;
-}
-
-/* ---- thumbnails for the cards (loaded from the device, once) */
-var PHOTO_IDS = {};
-function fillThumbs(wines){
-  var need = wines.filter(function(w){ return PHOTO_IDS[w.id] && !THUMBS[w.id]; });
-  if (!need.length) return Promise.resolve();
-  return Promise.all(need.map(function(w){ return Photos.urls(w.id).then(function(x){ if (x) THUMBS[w.id] = x; }); }))
-    .then(function(){ if (view === 'summary') renderSummary(); });
-}
-function refreshPhotoIds(){ return DB.keys('photos').then(function(k){ PHOTO_IDS = {}; (k || []).forEach(function(id){ PHOTO_IDS[id] = true; }); }); }
-
-/* ---- select wines → print / share */
-function toggleSel(id){ if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); }
-function paintSel(){
-  var n = Object.keys(SEL).length;
-  $('selN').textContent = n + ' selected';
-  [].forEach.call(document.querySelectorAll('#wines .wine'), function(a){ var on = !!SEL[a.getAttribute('data-id')];
-    a.classList.toggle('sel', on); a.querySelector('.pick').textContent = on ? '✓' : ''; });
-  $('selPdf').disabled = $('selSend').disabled = !n;
-}
-function setSelecting(on){
-  selecting = on; if (!on) SEL = {};
-  $('selbar').classList.toggle('show', on); $('selBtn').textContent = on ? 'Cancel' : 'Select';
-  $('summaryView').classList.toggle('selecting', on); paintSel();
-}
-$('selBtn').onclick = function(){ setSelecting(!selecting); };
-$('selDone').onclick = function(){ setSelecting(false); };
-$('selAll').onclick = function(){ shownWines().forEach(function(w){ SEL[w.id] = true; }); paintSel(); };
-function selectedWines(){ return shownWines().filter(function(w){ return SEL[w.id]; }); }
-function flightTitle(list){
-  var ev = list.map(function(w){ return w.event; }).filter(Boolean).filter(function(v, i, a){ return a.indexOf(v) === i; });
-  var ds = list.map(function(w){ return w.dateLabel; }).filter(Boolean).filter(function(v, i, a){ return a.indexOf(v) === i; });
-  return (ev.length === 1 ? ev[0] : 'Tasting notes') + (ds.length === 1 ? ' – ' + ds[0] : '');
-}
-$('selPdf').onclick = function(){ var l = selectedWines(); sharePdf(l, flightTitle(l)); };
-$('selSend').onclick = function(){
-  var list = selectedWines(), title = flightTitle(list);
-  toast('Preparing the file…');
-  Backup.make(list.map(function(w){ return w.id; }), true, title).then(function(file){
-    var blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
-    readyToShare(blob, fileSafe(title) + '.tasting.json', title,
-      'Your file of ' + list.length + ' wine' + (list.length === 1 ? '' : 's') + ' is ready. Your friend opens it in the app with Settings › Restore or Import.');
-  }).catch(function(err){ toast(err.message || 'Could not share'); });
-};
-function fileSafe(t){ return String(t || 'Tasting notes').replace(/[\\/:*?"<>|]+/g, '-').trim(); }
-
-/* ---- share sheet: Safari only opens it straight from a tap, so files are prepared first, then offered */
-var READY = null;
-function readyToShare(blob, name, title, msg){
-  READY = { blob: blob, name: name, title: title };
-  $('readyMsg').textContent = msg; $('ready').classList.add('show');
-}
-$('readyClose').onclick = function(){ $('ready').classList.remove('show'); READY = null; };
-$('readyGo').onclick = function(){
-  var r = READY; if (!r) return;
-  $('ready').classList.remove('show');
-  shareFile(r.blob, r.name, r.title).catch(function(err){ toast(err.message || 'Could not open the share sheet'); });
-};
-
-/* ---- PDF: the print layout, page by page, made on the device (works in the Home Screen app) */
-var LIBS = {};
-function loadLib(src){
-  if (LIBS[src]) return LIBS[src];
-  return LIBS[src] = new Promise(function(res, rej){
-
-    var s = document.createElement('script'); s.src = src; s.setAttribute('data-lib', src);
-    s.onload = res; s.onerror = function(){ delete LIBS[src]; s.remove(); rej(new Error('Could not load the PDF maker. Open the app once while online.')); };
-    document.head.appendChild(s);
-  });
-}
-var PDFF = null;
-function b64(buf){ var u = new Uint8Array(buf), out = ''; for (var i = 0; i < u.length; i += 0x8000) out += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(out); }
-function pdfFonts(){
-  if (PDFF) return PDFF;
-  var list = [['archivo-400','Archivo','normal'],['archivo-600','Archivo','bold'],['playfair-700','Playfair','bold']];
-  PDFF = Promise.all(list.map(function(f){
-    return fetch('fonts/pdf/' + f[0] + '.ttf').then(function(r){ if (!r.ok) throw new Error('font'); return r.arrayBuffer(); })
-      .then(function(b){ return { file: f[0] + '.ttf', fam: f[1], st: f[2], data: b64(b) }; });
-  }));
-  PDFF.catch(function(){ PDFF = null; });
-  return PDFF;
-}
-var PC = { sig:'#6D1A36', gold:'#9A7438', goldInk:'#7E5C26', ink:'#1F1A1D', ink2:'#4A4146', muted:'#83777C', faint:'#B7ACA3',
-  line:'#E6DED2', seg:'#EFE8DD', goldT:'#F6EFE2', paper:'#FAF7F2', ok:'#E3EFDC', okI:'#2F5A22', no:'#F7DDDD', noI:'#8A2430' };
-function pdfText(t){ return String(t == null ? '' : t).replace(/[→➜]/g, '>').replace(/[✓✔]/g, '').replace(/\s+/g, ' ').trim(); }
-
-/* draws one wine card at (x, y), width W; with draw = false it only measures. Returns the height. */
-function pdfCard(D, w, x, y, W, draw, K, img){
-  var hgt = 0, P = 10 * K;
-  function font(f, st, size, color){ D.setFont(f, st); D.setFontSize(size * K); if (color) D.setTextColor(color); }
-  function txt(t, tx, ty, o){ if (draw) D.text(t, tx, ty, o || {}); }
-  function wrap(t, width){ return D.splitTextToSize(pdfText(t), width); }
-  // header
-  var col = SW[w.color] || PC.line;
-  var hy = y + 13.5 * K;
-  font('Archivo', 'bold', 6.4, PC.gold);
-  txt(((w.dateLabel || '') + (w.dateLabel ? '  ·  ' : '') + 'WINE #' + w.wineNo).toUpperCase(), x + P + 4, hy, { charSpace: 0.9 });
-  var right = x + W - P, sc = w.open ? 'Tasted open' : (w.score === '' ? '' : 'Score  ' + w.score + ' / 4');
-  if (sc) { font('Archivo', 'bold', 7.2); var sw = D.getTextWidth(sc) + 14 * K;
-    if (draw) { D.setFillColor(PC.goldT); D.roundedRect(right - sw, y + 8 * K, sw, 15 * K, 7.5 * K, 7.5 * K, 'F'); }
-    D.setTextColor(PC.goldInk); txt(sc, right - sw / 2, y + 18.2 * K, { align: 'center' }); right -= sw + 8 * K; }
-  if (img) { var ih = 44 * K, ip = D.getImageProperties(img), iw = Math.min(ih * 1.6, ih * ip.width / ip.height), iy = y + 6 * K;
-    var IMG = { x: right - iw, y: iy, w: iw, h: ih }; right -= iw + 10 * K; }
-  var title = pdfText(w.producer || w.aGrape || 'Not yet revealed');
-  font('Playfair', 'bold', 14, (w.producer || w.aGrape) ? PC.ink : PC.muted);
-  var tx = x + P + 4, ty = y + 28.5 * K;
-  title = wrap(title, right - tx)[0]; txt(title, tx, ty);
-  var tw = D.getTextWidth(title);
-  var sub = w.producer ? [w.aGrape, w.aRegion, w.aCountry, w.aVintage].filter(Boolean).join('  ·  ') : (!w.aGrape && w.gGrape ? 'My guess: ' + w.gGrape : '');
-  if (sub) { font('Archivo', 'bold', 8.2, (w.producer || w.aGrape) ? PC.ink : PC.muted); var room = right - (tx + tw + 9 * K); if (room > 40) txt(wrap(sub, room)[0], tx + tw + 9 * K, ty); }
-  var top = y + 37 * K;
-  // columns
-  var IW = W - 4, LAY = [[0, 0, .25], [0, .25, .35], [0, .60, .40], [1, 0, .48], [1, .48, .52]];
-  var rowTop = [top, 0], rowBot = [top, 0], vl = [];
-  function column(i, fn){ var L0 = LAY[i], r = L0[0];
-    if (r === 1 && !rowTop[1]) rowTop[1] = rowBot[0] + 2 * K;
-    var x0 = x + 4 + IW * L0[1], c = { x: x0 + 9 * K, w: IW * L0[2] - 18 * K, y: rowTop[r] + 12.5 * K };
-    if (L0[1] > 0) vl.push([x0, r]);
-    fn(c); rowBot[r] = Math.max(rowBot[r], c.y); }
-  function h4(c, t){ font('Archivo', 'bold', 6.2, PC.sig); txt(t.toUpperCase(), c.x, c.y, { charSpace: 1.1 }); c.y += 11.5 * K; }
-  function kv(c, l, v, dot){ font('Archivo', 'normal', 7.6, PC.ink2); txt(l, c.x, c.y);
-    var lw = Math.max(46 * K, D.getTextWidth(l) + 9 * K), vx = c.x + lw + (dot ? 8 * K : 0);
-    font('Archivo', 'bold', 7.3, PC.goldInk); var vv = wrap(v, c.x + c.w - vx)[0] || ''; txt(vv, vx, c.y);
-    if (dot && draw) { D.setFillColor(dot); D.circle(c.x + lw + 2.6 * K, c.y - 2.4 * K, 2.6 * K, 'F'); }
-    c.y += 11.5 * K; }
-  function note(c, l, v){ if (!v) return; c.y += 3 * K;
-    if (l) { font('Archivo', 'bold', 5.8, PC.muted); txt(l.toUpperCase(), c.x, c.y, { charSpace: .9 }); c.y += 9 * K; }
-    font('Archivo', 'normal', 7.6, PC.ink); wrap(v, c.w).forEach(function(line){ txt(line, c.x, c.y); c.y += 9.8 * K; }); c.y += 2 * K; }
-  function rule(c){ c.y += 2 * K; if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(c.x, c.y, c.x + c.w, c.y); } c.y += 10 * K; }
-  function hint(c, t){ font('Archivo', 'normal', 7.4, PC.faint); txt(t, c.x, c.y); c.y += 10 * K; }
-  // 1 appearance
-  column(0, function(c){ h4(c, 'Appearance'); var any = 0;
-    [['Clarity','clarity'],['Intensity','appInt'],['Color','color']].forEach(function(p){ if (w[p[1]]) { any = 1; kv(c, p[0], lg(w[p[1]]), p[1] === 'color' ? SW[w.color] : null); } });
-    if (w.appNotes) { any = 1; note(c, 'Notes', w.appNotes); } if (!any) hint(c, 'Not recorded'); });
-  // 2 nose
-  column(1, function(c){ h4(c, 'Nose'); var any = 0;
-    [['Condition','condition'],['Intensity','noseInt'],['Development','development']].forEach(function(p){ if (w[p[1]]) { any = 1; kv(c, p[0], lg(w[p[1]])); } });
-    if (w.aromas) { any = 1; note(c, 'Aromas', w.aromas); } if (w.noseNotes) { any = 1; note(c, 'Comments', w.noseNotes); } if (!any) hint(c, 'Not recorded'); });
-  // 3 palate
-  column(2, function(c){ h4(c, 'Palate');
-    [['Sweetness','sweetness',L.sweetness],['Acidity','acidity',L.five],['Tannin','tannin',L.five],['Alcohol','alcohol',L.alcohol],
-     ['Body','body',L.body],['Flavor Int.','flavInt',L.intensity],['Finish','finish',L.finish]].forEach(function(p){
-      var v = w[p[1]], n = p[2].length, i = v ? idx(p[2], v) : -1;
-      font('Archivo', 'normal', 7.6, v ? PC.ink2 : PC.faint); txt(p[0], c.x, c.y);
-      font('Archivo', 'bold', 7, v ? PC.goldInk : PC.faint); txt(v ? sh(v) : '—', c.x + c.w, c.y, { align: 'right' });
-      var bx = c.x + 50 * K, bW = c.w - 50 * K - 40 * K, by = c.y - 4.2 * K, g = 1.5 * K, bw = (bW - g * (n - 1)) / n;
-      if (draw) for (var j = 0; j < n; j++) { D.setFillColor(j <= i ? PC.sig : PC.seg); D.roundedRect(bx + j * (bw + g), by, bw, 3.6 * K, 1.8 * K, 1.8 * K, 'F'); }
-      c.y += 10.8 * K; });
-    if (w.flavors) note(c, 'Flavors', w.flavors); if (w.tanNature) note(c, 'Tannin', w.tanNature); if (w.palate) note(c, 'Notes', w.palate); });
-  // 4 quality & aging
-  column(3, function(c){ h4(c, 'Quality & Aging');
-    if (w.quality) { font('Archivo', 'bold', 11, PC.sig); txt(pdfText(w.quality), c.x, c.y + 2 * K); c.y += 13 * K; } else hint(c, 'Not assessed');
-    var bl = (w.blic || '').split(/\s*,\s*/), px = c.x;
-    font('Archivo', 'bold', 5.6);
-    L.blic.forEach(function(b){ var on = bl.indexOf(b) >= 0, t = b.toUpperCase(), tw2 = D.getTextWidth(t) + 0.7 * t.length + 9 * K;
-      if (px + tw2 > c.x + c.w) { px = c.x; c.y += 13 * K; }
-      if (draw) { if (on) { D.setFillColor(PC.goldT); D.roundedRect(px, c.y - 1, tw2, 11 * K, 5.5 * K, 5.5 * K, 'F'); }
-        else { D.setDrawColor(PC.line); D.setLineWidth(.6); D.roundedRect(px, c.y - 1, tw2, 11 * K, 5.5 * K, 5.5 * K, 'S'); } }
-      D.setTextColor(on ? PC.goldInk : PC.faint); txt(t, px + 4.5 * K, c.y + 6.6 * K, { charSpace: .7 }); px += tw2 + 4 * K; });
-    c.y += 17 * K;
-    if (w.qReason) note(c, 'Reasoning', w.qReason);
-    rule(c); kv(c, 'Bottle Aging', w.aging || '—'); if (w.aReason) note(c, '', w.aReason); });
-  // 5 guess vs actual
-  column(4, function(c){
-    var rows = [['Grape','gGrape','aGrape'],['Country','gCountry','aCountry'],['Region','gRegion','aRegion'],['Vintage','gVintage','aVintage']];
-    h4(c, w.open ? 'The Wine · Tasted Open' : 'Guess  /  Actual');
-    var fw = c.w * (w.open ? 0.3 : 0.23), gw = w.open ? 0 : (c.w - fw) / 2 - 2 * K, aw = c.w - fw - gw - (w.open ? 0 : 4 * K);
-    if (!w.open) { font('Archivo', 'bold', 5.4, PC.muted); txt('MY GUESS', c.x + fw + 4 * K, c.y, { charSpace: .6 }); txt('ACTUAL', c.x + fw + gw + 8 * K, c.y, { charSpace: .6 }); c.y += 6 * K; }
-    rows.forEach(function(r, ri){
-      var hit = w.hits ? w.hits[ri] : null, has = !w.open && w[r[1]], st = !has || hit === null ? '' : hit ? 'ok' : 'no';
-      font('Archivo', 'bold', 7.4); var gl = w.open ? [] : wrap(w[r[1]] || '—', gw - 8 * K - (st ? 8 * K : 0));
-      font('Archivo', 'bold', 7.4); var al = wrap(w[r[2]] || '—', aw - 8 * K);
-      var rh = Math.max(gl.length, al.length, 1) * 9 * K + 3.5 * K;
-      font('Archivo', 'bold', 5.4, PC.muted); txt(r[0].toUpperCase(), c.x, c.y + 7.6 * K, { charSpace: .5 });
-      var gx = c.x + fw, ax = gx + (w.open ? 0 : gw + 4 * K);
-      if (!w.open) {
-        if (draw) { D.setFillColor(st === 'ok' ? PC.ok : st === 'no' ? PC.no : PC.paper); D.roundedRect(gx, c.y, gw, rh, 3 * K, 3 * K, 'F'); }
-        font('Archivo', 'bold', 7.4, st === 'ok' ? PC.okI : st === 'no' ? PC.noI : PC.ink);
-        gl.forEach(function(line, li){ txt(line, gx + 4 * K, c.y + 7.6 * K + li * 9 * K); });
-        if (st && draw) { var mx = gx + gw - 7 * K, my = c.y + 5 * K; D.setDrawColor(st === 'ok' ? PC.okI : PC.noI); D.setLineWidth(1 * K);
-          if (st === 'ok') { D.line(mx - 2.6 * K, my, mx - 0.8 * K, my + 2 * K); D.line(mx - 0.8 * K, my + 2 * K, mx + 2.6 * K, my - 2.2 * K); }
-          else { D.line(mx - 2 * K, my - 2 * K, mx + 2 * K, my + 2 * K); D.line(mx + 2 * K, my - 2 * K, mx - 2 * K, my + 2 * K); } }
-      }
-      if (draw) { D.setFillColor(PC.goldT); D.roundedRect(ax, c.y, aw, rh, 3 * K, 3 * K, 'F'); }
-      font('Archivo', 'bold', 7.4, PC.ink); al.forEach(function(line, li){ txt(line, ax + 4 * K, c.y + 7.6 * K + li * 9 * K); });
-      c.y += rh + 2 * K; });
-  });
-  hgt = rowBot[1] - y + 3 * K;
-  if (draw) {
-    D.setDrawColor(PC.line); D.setLineWidth(.6); D.roundedRect(x, y, W, hgt, 6, 6, 'S');
-    D.setFillColor(col); D.roundedRect(x, y, 3.2, hgt, 1.6, 1.6, 'F');
-    D.setLineWidth(.5); D.line(x + 4, top, x + W, top);
-    D.line(x + 4, rowTop[1], x + W, rowTop[1]);
-    vl.forEach(function(v){ var t0 = v[1] ? rowTop[1] : top, b0 = v[1] ? y + hgt : rowTop[1]; D.line(v[0], t0 + 8 * K, v[0], b0 - 8 * K); });
-    if (img && IMG) { D.setFillColor('#FFFFFF'); D.rect(IMG.x - 2.5, IMG.y - 2.5, IMG.w + 5, IMG.h + 5, 'F');
-      D.addImage(img, 'JPEG', IMG.x, IMG.y, IMG.w, IMG.h, undefined, 'MEDIUM'); D.setDrawColor(PC.line); D.setLineWidth(.6); D.rect(IMG.x - 2.5, IMG.y - 2.5, IMG.w + 5, IMG.h + 5); }
-  }
-  return hgt;
-}
-function pdfThumb(id){
-  return Photos.get(id).then(function(p){ return p && p.thumb ? blobToDataUrl(p.thumb) : null; }).catch(function(){ return null; });
-}
-function makePdf(list, title){
-  if (!list.length) return Promise.reject(new Error('No wines to share.'));
-  var imgs = {};
-  return Promise.all([loadLib('lib/jspdf.min.js'), pdfFonts()]).then(function(r){
-    var fonts = r[1];
-    return Promise.all(list.filter(function(w){ return PHOTO_IDS[w.id]; }).map(function(w){ return pdfThumb(w.id).then(function(u){ if (u) imgs[w.id] = u; }); }))
-      .then(function(){ return fonts; });
-  }).then(function(fonts){
-    toast('Making PDF…');
-    var D = new jspdf.jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter', compress: true });
-    fonts.forEach(function(f){ D.addFileToVFS(f.file, f.data); D.addFont(f.file, f.fam, f.st); });
-    var PW = 612, PH = 792, M = 30, W = PW - 2 * M, TOP = 58, AV = PH - TOP - 20, GAP = 10;
-    var filtered = SUM.field !== '(no filter)' && SUM.value !== '(all)';
-    var stamp = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
-    var meta = (title ? title + '  ·  ' : filtered ? SUM.field + ': ' + SUM.value + '  ·  ' : '') + list.length + ' wine' + (list.length === 1 ? '' : 's') + '  ·  printed ' + stamp;
-    // measure, then pack whole wines onto pages (max 3 a page; shrink a wine only if it is taller than a page)
-    var items = list.map(function(w){ var K = 1, h = pdfCard(D, w, M, 0, W, false, K, imgs[w.id]);
-      while (h > AV && K > 0.62) { K -= 0.06; h = pdfCard(D, w, M, 0, W, false, K, imgs[w.id]); } return { w: w, h: h, K: K }; });
-    var pages = [], cur = null;
-    items.forEach(function(it){ if (!cur || cur.items.length >= 3 || cur.h + it.h > AV) { cur = { items: [], h: 0 }; pages.push(cur); } cur.items.push(it); cur.h += it.h + GAP; });
-    pages.forEach(function(pg, pi){
-      if (pi) D.addPage('letter', 'portrait');
-      D.setFont('Playfair', 'bold'); D.setFontSize(17); D.setTextColor(PC.sig); D.text('Blind Tasting Notes', M, 40);
-      D.setFont('Archivo', 'normal'); D.setFontSize(7.6); D.setTextColor(PC.muted); D.text(pdfText(meta + '  ·  page ' + (pi + 1) + ' of ' + pages.length), PW - M, 40, { align: 'right' });
-      D.setDrawColor(PC.gold); D.setLineWidth(.7); D.line(M, 48, PW - M, 48);
-      var y = TOP; pg.items.forEach(function(it){ pdfCard(D, it.w, M, y, W, true, it.K, imgs[it.w.id]); y += it.h + GAP; });
-    });
-    return D.output('blob');
-  });
-}
-function sharePdf(list, title){
-  makePdf(list, title).then(function(blob){
-    var name = fileSafe(title || 'Blind Tasting Notes') + '.pdf';
-    readyToShare(blob, name, title || 'Blind Tasting Notes',
-      'Your PDF of ' + list.length + ' wine' + (list.length === 1 ? '' : 's') + ' is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
-  }).catch(function(err){ toast(err.message || 'Could not make the PDF'); });
-}
-$('q').addEventListener('input', function(){ QTEXT = this.value; renderSummary(); });
-
-/* ---- printing (all shown wines, or a selection) */
-function printWines(list, title){
-  var go = function(){ buildPrint(list, title); setTimeout(function(){ window.print(); }, 80); };
-  Promise.all(list.filter(function(w){ return PHOTO_IDS[w.id] && !THUMBS[w.id]; }).map(function(w){ return Photos.urls(w.id).then(function(x){ if (x) THUMBS[w.id] = x; }); }))
-    .then(function(){ return document.fonts && document.fonts.ready; }).then(go, go);
-}
-
-/* ---- settings */
 function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
 $('gear').onclick = openSettings;
@@ -1968,17 +658,7 @@ $('bkFile').onchange = function(){
     .catch(function(err){ toast(err.message || 'Could not read that file'); });
 };
 
-/* ---- Google Sheet connection */
-var GTEXT = { off: 'On this device', idle: 'Google Sheet', synced: 'Synced', syncing: 'Syncing…', signin: 'Tap to sync', offline: 'Offline', error: 'Sync problem' };
-Sync.on(function(s, detail){
-  $('gpill').setAttribute('data-s', s); $('gtext').textContent = GTEXT[s] || s;
-  if (s === 'error' && detail && detail.message) console.warn(detail.message);
-  if ($('settings').classList.contains('show')) paintGoogle();
-});
-$('gpill').onclick = function(){
-  if (!Sync.connected()) { openSettings(); return; }
-  Sync.sync(true).then(afterSync).catch(function(err){ toast(err.message === 'signin' ? 'Sign in to Google to sync' : (err.message || 'Could not sync')); });
-};
+
 function afterSync(){ refreshPhotoIds().then(function(){ setData(appAllSync()); }); }
 window.onSynced = afterSync;
 function paintGoogle(){
@@ -2005,6 +685,7 @@ $('gsButtons').onclick = function(e){
     .then(function(go){ if (go) { Sync.disconnect(); paintGoogle(); } });
 };
 
+
 /* ---- offline app shell */
 if ('serviceWorker' in navigator) {
   var hadSW = !!navigator.serviceWorker.controller, swReloaded = false;
@@ -2024,27 +705,7 @@ if ('serviceWorker' in navigator) {
 }
 applyTheme();
 
-/* ====================================================================== start */
-function start(init){
-  S = init.scales; URLS = init.urls; BOOT.today = init.today;
-  var saved = recall(SUM_KEY); if (saved) for (var k in SUM) if (saved[k] !== undefined) SUM[k] = saved[k];
-  if (!saved && window.innerWidth < 700 && init.all.length > 12) SUM.dens = 'list';
-  if (!FILTERS.some(function(f){ return f[0] === SUM.field; })) SUM.field = '(no filter)';
-  if (!SORTS.some(function(s){ return s[0] === SUM.sort; })) SUM.sort = 'Date & Wine #';
-  fillSummaryControls(); setData(init.all); syncControls();
-  var draft = recall(DRAFT_KEY), d = today();
-  if (BOOT.d && BOOT.n) {
-    if (draft && !(draft.orig && draft.orig.date === BOOT.d && +draft.orig.wineNo === +BOOT.n)) {
-      show(draft.rec, draft.orig, true);
-      ask('You have an unsaved draft (' + label() + '). Open the wine you chose instead?', 'Open that wine', 'Keep my draft')
-        .then(function(go){ if (go) openWine(BOOT.d, +BOOT.n); });
-    } else if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved changes'); }
-    else openWine(BOOT.d, +BOOT.n);
-  } else if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); }
-  else show({ date: d, wineNo: nextNo(d) }, null, false);
-  setView(BOOT.view === 'summary' && !(BOOT.d && BOOT.n) ? 'summary' : 'entry');
-}
-/* ---- first visit: add to Home Screen (iPhone / iPad Safari), then offer Google Sheets */
+
 var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 var STANDALONE = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 var BIP = null, INSTALLED = false, W1 = '';
@@ -2121,6 +782,7 @@ $('wFinish').onclick = function(){
   toast(W1 === 'local' ? 'Notes will be saved on this device' : 'Ready. Your notes will sync to your Google Sheet');
 };
 
+
 Sync.preload();                                       // so Google's sign-in window can open the moment it's tapped
 refreshPhotoIds().then(function(){ return api('appInit'); }).then(function(init){
   start(init);
@@ -2128,8 +790,10 @@ refreshPhotoIds().then(function(){ return api('appInit'); }).then(function(init)
   maybeWelcome();
 }).catch(function(err){
   var m = '<div class="loading">Could not open your tasting notebook. ' + esc(err && err.message || err) + '</div>';
-  $('entryMain').innerHTML = m; $('wines').innerHTML = m;
+  $('taste').innerHTML = m; $('list').innerHTML = m;
 });
+
+$('verLabel').textContent = VERSION_LABEL;
 </script>
 </body>
 </html>

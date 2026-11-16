@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.0 preview';
+var VERSION_LABEL = 'v2.0';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -264,7 +264,7 @@ function paintId() {
   var st = $('state'); st.className = 'state' + (dirty ? ' dirty' : ''); st.textContent = dirty ? 'Unsaved' : orig ? 'Saved' : 'New'; $('saveBtn').classList.toggle('quiet', !dirty);
 }
 function touch(quiet) { dirty = true; paintId(); if (!quiet) paintStages(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
-function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
+function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem('btn-entry-draft'); } catch (e) {} }
 function today() { return S.today || new Date().toISOString().slice(0, 10); }
 function nextNo(date) { var m = 0; WINES.forEach(function (w) { if (w.d === date) m = Math.max(m, w.n); }); return m + 1; }
 function show(r, o, isDirty) { rec = r; orig = o; dirty = !!isDirty; OPENED = {}; paintId(); renderTaste(); }

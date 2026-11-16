@@ -301,7 +301,7 @@ function start(init) {
   if (!FILTERS.some(function (f) { return f[0] === NB.field; })) NB.field = '(no filter)';
   if (!SORTS.some(function (s) { return s[0] === NB.sort; })) NB.sort = 'Date & Wine #';
   setData(init.all);
-  var draft = recall(DRAFT_KEY), d = today();
+  var draft = recall(DRAFT_KEY) || recall('btn-entry-draft'), d = today();     // also picks up an unsaved draft from 1.x
   if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
   setView(new URLSearchParams(location.search).get('view') === 'notebook' ? 'notebook' : 'taste');
   spy();

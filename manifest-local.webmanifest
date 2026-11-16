@@ -1,5 +1,5 @@
 {
-  "name": "Blind Tasting Notes",
+  "name": "Tasting Notes",
   "short_name": "Tasting Notes",
   "description": "Record, filter and print blind tasting notes using a systematic approach to tasting.",
   "start_url": "./?setup=local",
