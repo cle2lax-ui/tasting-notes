@@ -385,9 +385,8 @@ function closeSwipe() { if (SWIPE.open) { SWIPE.open.style.transform = ''; SWIPE
 /* ====================================================================== staying current (v2.9)
    A web app can't close itself on iPhone or iPad, but it can reload itself. The note in progress is
    kept on the device (the draft) and comes back exactly as it was, so a reload never loses work.
-   - an update that arrives while the app is open loads as soon as the person pauses (20 seconds idle)
-   - after 4 hours open, the app checks for an update and refreshes itself at the next pause */
-var BOOTED = Date.now(), LASTINPUT = Date.now(), FRESH_MS = 4 * 3600 * 1000;
+   - the app looks for an update once a day; one that arrives loads as soon as the person pauses (20 seconds idle) */
+var LASTINPUT = Date.now();
 ['pointerdown', 'keydown', 'input', 'touchstart', 'scroll'].forEach(function (ev) { document.addEventListener(ev, function () { LASTINPUT = Date.now(); }, true); });
 function busy() { return document.visibilityState !== 'visible' || Date.now() - LASTINPUT < 20000 || $('modal').classList.contains('show') || $('ready').classList.contains('show') || !!document.querySelector('.sheet.show, .lx.show, .welcome.show'); }
 function safeReload(why) {
@@ -396,12 +395,12 @@ function safeReload(why) {
   if (!busy()) return go();
   safeReload.t = setInterval(function () { if (!busy()) { clearInterval(safeReload.t); go(); } }, 4000);
 }
-function freshCheck() {
-  if (Date.now() - BOOTED < FRESH_MS || safeReload.t) return;
-  var r = navigator.serviceWorker && navigator.serviceWorker.getRegistration ? navigator.serviceWorker.getRegistration() : Promise.resolve(null);
-  r.then(function (g) { return g && g.update(); }).catch(function () {}).then(function () { setTimeout(function () { safeReload('fresh'); }, 3000); });
+/* once a day: ask for an update when the app is opened or brought back and the last check was over 24 hours ago */
+function dailyCheck(reg) {
+  var last = 0; try { last = +localStorage.getItem('btn-upd-check') || 0; } catch (e) {}
+  if (Date.now() - last < 24 * 3600 * 1000) return;
+  try { localStorage.setItem('btn-upd-check', String(Date.now())); } catch (e) {}
+  reg.update().catch(function () {});
 }
-setInterval(freshCheck, 60 * 1000);
-document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') freshCheck(); });
 (function () { var w = ''; try { w = sessionStorage.getItem('btn-updated') || ''; sessionStorage.removeItem('btn-updated'); } catch (e) {}
-  if (w) setTimeout(function () { toast((w === 'fresh' ? 'Refreshed' : 'Updated to Tasting Notes ' + VERSION_LABEL) + (dirty ? '. Your note is right where you left it' : '')); }, 1500); })();
+  if (w) setTimeout(function () { toast('Updated to Tasting Notes ' + VERSION_LABEL + (dirty ? '. Your note is right where you left it' : '')); }, 1500); })();
