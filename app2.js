@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Notebook, tasting card, PDF, sync status, start-up. */
-var NB = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: false, q: '', cur: '' };
+var NB = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: true, q: '', cur: '' };
 var SEL = {}, selecting = false;
 var WIDEQ = window.matchMedia('(min-width: 900px)');
 
@@ -62,7 +62,7 @@ function renderNotebook(keepScroll) {
   $('showing').innerHTML = !ALL.length ? '' : (filtered ? esc(NB.field) + ': <b>' + esc(NB.value) + '</b> · ' : '') + wines.length + ' of ' + ALL.length + ' wine' + (ALL.length === 1 ? '' : 's') +
     (NB.q.trim() ? ' matching “' + esc(NB.q.trim()) + '”' : '') + ' · ' + esc(NB.sort.toLowerCase());
   $('nbCount').textContent = ALL.length + ' wine' + (ALL.length === 1 ? '' : 's');
-  $('filterBtn').classList.toggle('on', filtered || NB.sort !== 'Date & Wine #' || NB.desc);
+  $('filterBtn').classList.toggle('on', filtered || NB.sort !== 'Date & Wine #' || !NB.desc);
   wines.forEach(function (w) {
     var gk = NB.sort === 'Tasting / Event' ? (w.event || '') : w.ymd;
     if (byGroup && gk !== last) {
@@ -108,12 +108,12 @@ $('filterBtn').onclick = function () {
 };
 function fillValues() { var o = filterOptions(ALL, NB.field); if (o.indexOf(NB.value) < 0) NB.value = '(all)'; $('fValue').innerHTML = o.map(function (v) { return '<option>' + esc(v) + '</option>'; }).join(''); $('fValue').value = NB.value; $('fValue').disabled = NB.field === '(no filter)'; }
 function paintOrd() { $$('#ordSeg button').forEach(function (b) { b.classList.toggle('on', (b.getAttribute('data-o') === 'd') === NB.desc); }); }
-function saveNb() { store(NB_KEY, { field: NB.field, value: NB.value, sort: NB.sort, desc: NB.desc }); renderNotebook(); }
+function saveNb() { store(NB_KEY, { field: NB.field, value: NB.value, sort: NB.sort, desc: NB.desc, dv: 2 }); renderNotebook(); }
 $('fField').onchange = function () { NB.field = this.value; NB.value = '(all)'; fillValues(); saveNb(); };
 $('fValue').onchange = function () { NB.value = this.value; saveNb(); };
 $('sField').onchange = function () { NB.sort = this.value; saveNb(); };
 $('ordSeg').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; NB.desc = b.getAttribute('data-o') === 'd'; paintOrd(); saveNb(); };
-$('fReset').onclick = function () { NB.field = '(no filter)'; NB.value = '(all)'; NB.sort = 'Date & Wine #'; NB.desc = false; $('fField').value = NB.field; fillValues(); $('sField').value = NB.sort; paintOrd(); saveNb(); };
+$('fReset').onclick = function () { NB.field = '(no filter)'; NB.value = '(all)'; NB.sort = 'Date & Wine #'; NB.desc = true; $('fField').value = NB.field; fillValues(); $('sField').value = NB.sort; paintOrd(); saveNb(); };
 $('filterDone').onclick = function () { sheet('filterSheet', false); };
 $('fSelect').onclick = function () { sheet('filterSheet', false); setSelecting(true); };
 $('fPdf').onclick = function () { sheet('filterSheet', false); var f = NB.field !== '(no filter)' && NB.value !== '(all)'; sharePdf(shownWines(), f ? NB.value : ''); };
@@ -307,7 +307,7 @@ WIDEQ.addEventListener && WIDEQ.addEventListener('change', function () { if (vie
 /* ====================================================================== start */
 function start(init) {
   S = init.scales; S.today = init.today;
-  var saved = recall(NB_KEY); if (saved) for (var k in saved) if (k in NB) NB[k] = saved[k];
+  var saved = recall(NB_KEY); if (saved) { if (saved.dv !== 2) delete saved.desc; for (var k in saved) if (k in NB) NB[k] = saved[k]; }   // v2.6: newest first is the default
   if (!FILTERS.some(function (f) { return f[0] === NB.field; })) NB.field = '(no filter)';
   if (!SORTS.some(function (s) { return s[0] === NB.sort; })) NB.sort = 'Date & Wine #';
   setData(init.all);
