@@ -314,17 +314,9 @@ $('nextBtn').onclick = function () { save(false, true); };
 window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 /* ====================================================================== the Lexicon picker
-   One scroll of aroma families with a sticky family bar (scroll-spy), "For this wine" first,
+   One scroll of aroma families with a sticky family bar (scroll-spy),
    search that finishes the job, and your picks pinned at the top. */
 var LX = { k: 'aromas', q: '', more: {} };
-function forYou(k) {
-  var type = rec.type || '', count = {};
-  ALL.forEach(function (w) { if (type && w.type !== type) return; String(w[k] || '').split(/\s*,\s*/).forEach(function (t) { t = t.toLowerCase().replace(/[.;:]+$/, '').trim(); if (WORDHOME[t] && RIPENESS.indexOf(WORDHOME[t].w) < 0) count[t] = (count[t] || 0) + 1; }); });
-  var mine = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; }).slice(0, 12);
-  var start = (LEAD[type] || LEAD['']).start.map(function (w) { return w.toLowerCase(); });
-  var out = mine.slice(); start.forEach(function (w) { if (out.length < 12 && out.indexOf(w) < 0) out.push(w); });
-  return { words: out, personal: mine.length >= 4 };
-}
 function openLx(k) {
   LX.k = k; LX.q = ''; LX.more = {}; $('lxQ').value = '';
   paintLx(); $('lx').classList.add('show'); document.body.classList.add('locked'); $('lxBody').scrollTop = 0; lxSpy();
@@ -359,7 +351,7 @@ function paintLx() {
   $('lxSub').textContent = [rec.type ? rec.type + ' wine' : '', n ? n + ' chosen' : 'Tap to choose'].filter(Boolean).join(' · ');
   $('lxPicks').innerHTML = n ? toks(k).map(function (t) { return tokHTML(t, k); }).join('') : '<span class="ph0">Your ' + (k === 'flavors' ? 'flavors' : 'aromas') + ' appear here</span>';
   $('lxSame').hidden = k !== 'flavors' || !toks('aromas').length;
-  $('lxTabs').innerHTML = '<button type="button" data-jump="for">For this wine</button>' + LEXFAM.map(function (f) { var c = famCount(f); return '<button type="button" data-jump="' + f.k + '">' + esc(f.name) + (c ? '<b>' + c + '</b>' : '') + '</button>'; }).join('');
+  $('lxTabs').innerHTML = LEXFAM.map(function (f) { var c = famCount(f); return '<button type="button" data-jump="' + f.k + '">' + esc(f.name) + (c ? '<b>' + c + '</b>' : '') + '</button>'; }).join('');
   paintLxBody();
 }
 function paintLxBody() {
@@ -372,13 +364,12 @@ function paintLxBody() {
       (exact ? '' : '<button type="button" class="addown" data-own="' + esc(LX.q.trim()) + '"><i>+</i>Add “' + esc(LX.q.trim()) + '” in your own words</button>') + '</section>';
     return;
   }
-  var fy = forYou(k);
-  $('lxBody').innerHTML = '<section class="lx-sec" id="lxs-for" data-f="for"><h3>For this wine</h3><p class="cap">' + (fy.personal ? 'The ones you use most' + (rec.type ? ' for ' + rec.type.toLowerCase() + ' wines' : '') + '.' : 'Common ' + (rec.type ? rec.type.toLowerCase() + ' wine ' : '') + 'descriptors to start from.') + '</p><div class="lcs">' + fy.words.map(function (w) { return lxChip(WORDHOME[w].w); }).join('') + '</div></section>' +
+  $('lxBody').innerHTML =
     LEXFAM.map(familyHTML).join('') + '<div class="lx-end"></div>';
   $('lxBody').scrollTop = keep; lxSpy();
 }
 function lxSpy() {
-  var body = $('lxBody'), top = body.getBoundingClientRect().top + 8, cur = 'for';
+  var body = $('lxBody'), top = body.getBoundingClientRect().top + 8, cur = 'fruit';
   $$('#lxBody .lx-sec[data-f]').forEach(function (s) { if (s.getBoundingClientRect().top <= top + 40) cur = s.getAttribute('data-f'); });
   $$('#lxTabs button').forEach(function (b) { var on = b.getAttribute('data-jump') === cur; b.classList.toggle('on', on); if (on && b.scrollIntoView && !lxSpy.lock) { var p = b.parentNode; if (p.scrollWidth > p.clientWidth) p.scrollTo({ left: b.offsetLeft - 16, behavior: 'smooth' }); } });
 }

@@ -31,12 +31,12 @@ var LEXFAM = [
 ];
 var RIPENESS = ['Unripe Fruit', 'Ripe Fruit', 'Dried Fruit', 'Cooked Fruit'];
 var SHOWNAME = { 'Biscuit/Graham Cracker': 'Biscuit', 'Black/White Pepper': 'Black or white pepper' };
-/* what leads for each wine type: fruit cluster order (the rest fold) and a starter set when there is no history yet */
+/* fruit clusters that lead for each wine type (the rest fold under More fruit) */
 var LEAD = {
-  Red: { fruit: ['Red fruit', 'Black fruit', 'Dried and cooked fruit'], start: ['Red Cherry', 'Raspberry', 'Black Cherry', 'Blackberry', 'Black Plum', 'Violet', 'Vanilla', 'Black/White Pepper', 'Licorice', 'Leather', 'Earth', 'Tobacco'] },
-  White: { fruit: ['Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit'], start: ['Lemon', 'Lime', 'Grapefruit', 'Apple', 'Pear', 'Peach', 'Apricot', 'Blossom', 'Honeysuckle', 'Butter', 'Brioche', 'Honey', 'Wet Stones'] },
-  'Rosé': { fruit: ['Red fruit', 'Citrus fruit', 'Stone fruit'], start: ['Strawberry', 'Raspberry', 'Red Cherry', 'Redcurrant', 'Peach', 'Grapefruit', 'Orange', 'Blossom', 'Rose'] },
-  '': { fruit: ['Red fruit', 'Black fruit', 'Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit', 'Dried and cooked fruit'], start: ['Red Cherry', 'Blackberry', 'Lemon', 'Apple', 'Peach', 'Blossom', 'Vanilla', 'Butter', 'Honey', 'Earth'] }
+  Red: { fruit: ['Red fruit', 'Black fruit', 'Dried and cooked fruit'] },
+  White: { fruit: ['Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit'] },
+  'Rosé': { fruit: ['Red fruit', 'Citrus fruit', 'Stone fruit'] },
+  '': { fruit: ['Red fruit', 'Black fruit', 'Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit', 'Dried and cooked fruit'] }
 };
 var WORDHOME = {};
 LEXFAM.forEach(function (f) { f.clusters.forEach(function (c) { c[3].forEach(function (w) { if (!WORDHOME[w.toLowerCase()]) WORDHOME[w.toLowerCase()] = { f: f.k, c: c[0], t: c[1], w: w }; }); }); });
