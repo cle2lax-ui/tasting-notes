@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.3';
+var VERSION_LABEL = 'v2.4';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -99,9 +99,7 @@ function renderTaste() {
     h += '<section class="stage' + (fold ? ' folded' : '') + (done ? ' done' : '') + '" id="st-' + i + '" data-i="' + i + '"><div class="sh" role="button" tabindex="0" aria-expanded="' + !fold + '"><h2>' + st.t + '</h2><small id="sum-' + i + '">' +
       esc(done ? st.sum() : st.need.length ? n + ' of ' + st.need.length : '') + '</small><i class="chev" aria-hidden="true"></i></div><div class="sb">' + st.rows.map(rowHTML).join('') + '</div></section>';
   });
-  h += '<div class="clearsel"><button type="button" class="btn" id="clearSel">Clear selections</button><small>Keeps the date, wine number, event and label photo</small></div>';
   $('taste').innerHTML = h;
-  $('clearSel').onclick = clearSelections;
   $$('#taste textarea').forEach(grow);
   paintStages(); paintScore();
 }
@@ -110,6 +108,7 @@ function rerow(k) {
   STAGES().forEach(function (st) { st.rows.forEach(function (r) { if (r[1] === k || (k === 'color' && r[0] === 'color')) el.outerHTML = rowHTML(r); }); });
 }
 var FOLDED = {}, PINNED = {};
+$('clearSel').onclick = function () { clearSelections(); };
 /* ---- Clear selections: wipes every answer and note on this wine, after an Are you sure? step */
 var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer'];
 function answerKeys() { var ks = ID_KEYS.slice(); STAGES().forEach(function (st) { st.rows.forEach(function (r) { ks.push(r[0] === 'color' ? 'color' : r[1]); }); }); return ks.filter(Boolean); }

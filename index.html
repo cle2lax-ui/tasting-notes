@@ -552,6 +552,20 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 /* v2.3 smaller selected dot */
 .rail button.on:before{width:24px;height:24px;margin-top:5px;box-shadow:0 0 0 4px var(--sig-tint)}
 
+/* v2.4 Clear sits in the Save bar */
+.bar .btn.clr{flex:none;max-width:none;padding:0 13px;gap:5px;grid-auto-flow:column;color:#B3261E;margin-right:auto}
+.bar .btn.clr svg{width:17px;height:17px}
+:root[data-theme="dim"] .bar .btn.clr{color:#F0A9AF}
+
+@media (max-width:759px){
+  .bar .in{gap:8px}
+  .bar .btn{padding:0 12px;white-space:nowrap;font-size:15px}
+  .bar #saveBtn{flex:0 1 92px}
+  .bar .btn.pri{flex:1 1 auto;max-width:none}
+  .bar .btn.clr{padding:0 11px;gap:4px}
+}
+@media (max-width:374px){ .bar .btn{font-size:14px;padding:0 10px} .bar .btn.clr svg{display:none} }
+
 </style>
 </head>
 <body data-view="taste">
@@ -573,7 +587,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
   </div></nav>
   <main class="in" id="taste"><div class="loading">Opening your tasting notebook…</div></main>
   <div class="foot">Tasting Notes <span id="verLabel"></span> · <a href="#" class="opensettings">Settings</a></div>
-  <div class="bar"><div class="in"><button class="btn" id="saveBtn" type="button">Save</button><button class="btn pri" id="nextBtn" type="button">Save &amp; Next Wine</button></div></div>
+  <div class="bar"><div class="in"><button class="btn clr" id="clearSel" type="button" aria-label="Clear selections"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5a5.5 5.5 0 1 1 1.6 3.9"/><path d="M4.2 5.2v4.4h4.4"/></svg>Clear</button><button class="btn" id="saveBtn" type="button">Save</button><button class="btn pri" id="nextBtn" type="button">Save &amp; Next Wine</button></div></div>
 </div>
 
 <!-- ============================================================ NOTEBOOK -->
@@ -658,7 +672,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.3. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.4. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -694,13 +708,13 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.3';</script>
-<script src="logic.js?v=2.3"></script>
-<script src="store.js?v=2.3"></script>
-<script src="google.js?v=2.3"></script>
-<script src="lexicon.js?v=2.3"></script>
-<script src="app.js?v=2.3"></script>
-<script src="app2.js?v=2.3"></script>
+<script>var BUILD = 'v2.4';</script>
+<script src="logic.js?v=2.4"></script>
+<script src="store.js?v=2.4"></script>
+<script src="google.js?v=2.4"></script>
+<script src="lexicon.js?v=2.4"></script>
+<script src="app.js?v=2.4"></script>
+<script src="app2.js?v=2.4"></script>
 <script>
 function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
