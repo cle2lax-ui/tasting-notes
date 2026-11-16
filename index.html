@@ -549,6 +549,9 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .clearsel small{color:var(--muted);font-size:13px;text-align:center}
 :root[data-theme="dim"] .clearsel .btn{color:#F0A9AF}
 
+/* v2.3 smaller selected dot */
+.rail button.on:before{width:24px;height:24px;margin-top:5px;box-shadow:0 0 0 4px var(--sig-tint)}
+
 </style>
 </head>
 <body data-view="taste">
@@ -655,7 +658,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.3. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -691,12 +694,13 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script src="logic.js"></script>
-<script src="store.js"></script>
-<script src="google.js"></script>
-<script src="lexicon.js"></script>
-<script src="app.js"></script>
-<script src="app2.js"></script>
+<script>var BUILD = 'v2.3';</script>
+<script src="logic.js?v=2.3"></script>
+<script src="store.js?v=2.3"></script>
+<script src="google.js?v=2.3"></script>
+<script src="lexicon.js?v=2.3"></script>
+<script src="app.js?v=2.3"></script>
+<script src="app2.js?v=2.3"></script>
 <script>
 function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
@@ -757,6 +761,15 @@ $('gsButtons').onclick = function(e){
 };
 
 
+
+/* ---- self-heal: if a stale script came from an old cache, clear the caches and load fresh, once */
+if (typeof VERSION_LABEL !== 'undefined' && VERSION_LABEL !== BUILD && window.caches) {
+  var healed = ''; try { healed = sessionStorage.getItem('btn-healed'); } catch (e) {}
+  if (healed !== BUILD) { try { sessionStorage.setItem('btn-healed', BUILD); } catch (e) {}
+    caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })
+      .then(function () { return navigator.serviceWorker && navigator.serviceWorker.getRegistration(); }).then(function (r) { if (r) r.update().catch(function(){}); location.reload(); });
+  }
+}
 /* ---- offline app shell */
 if ('serviceWorker' in navigator) {
   var hadSW = !!navigator.serviceWorker.controller, swReloaded = false;
