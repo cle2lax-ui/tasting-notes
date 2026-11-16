@@ -315,7 +315,8 @@ function start(init) {
   if (draft && draft.rec) { draft.rec.aromas = cleanDescs(draft.rec.aromas); draft.rec.flavors = cleanDescs(draft.rec.flavors); }
   if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
   if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
-  setView(new URLSearchParams(location.search).get('view') === 'notebook' ? 'notebook' : 'taste');
+  var back = ''; try { back = sessionStorage.getItem('btn-view') || ''; sessionStorage.removeItem('btn-view'); } catch (e) {}
+  setView(new URLSearchParams(location.search).get('view') === 'notebook' || back === 'notebook' ? 'notebook' : 'taste');
   spy();
 }
 
@@ -380,3 +381,27 @@ function closeSwipe() { if (SWIPE.open) { SWIPE.open.style.transform = ''; SWIPE
   });
   document.addEventListener('touchstart', function (e) { if (SWIPE.open && !e.target.closest('.rw2.open')) closeSwipe(); }, { passive: true });
 })();
+
+/* ====================================================================== staying current (v2.9)
+   A web app can't close itself on iPhone or iPad, but it can reload itself. The note in progress is
+   kept on the device (the draft) and comes back exactly as it was, so a reload never loses work.
+   - an update that arrives while the app is open loads as soon as the person pauses (20 seconds idle)
+   - after 4 hours open, the app checks for an update and refreshes itself at the next pause */
+var BOOTED = Date.now(), LASTINPUT = Date.now(), FRESH_MS = 4 * 3600 * 1000;
+['pointerdown', 'keydown', 'input', 'touchstart', 'scroll'].forEach(function (ev) { document.addEventListener(ev, function () { LASTINPUT = Date.now(); }, true); });
+function busy() { return document.visibilityState !== 'visible' || Date.now() - LASTINPUT < 20000 || $('modal').classList.contains('show') || $('ready').classList.contains('show') || !!document.querySelector('.sheet.show, .lx.show, .welcome.show'); }
+function safeReload(why) {
+  clearInterval(safeReload.t);
+  var go = function () { if (dirty) store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); try { sessionStorage.setItem('btn-updated', why || 'update'); sessionStorage.setItem('btn-view', document.body.getAttribute('data-view') || 'taste'); } catch (e) {} location.reload(); };
+  if (!busy()) return go();
+  safeReload.t = setInterval(function () { if (!busy()) { clearInterval(safeReload.t); go(); } }, 4000);
+}
+function freshCheck() {
+  if (Date.now() - BOOTED < FRESH_MS || safeReload.t) return;
+  var r = navigator.serviceWorker && navigator.serviceWorker.getRegistration ? navigator.serviceWorker.getRegistration() : Promise.resolve(null);
+  r.then(function (g) { return g && g.update(); }).catch(function () {}).then(function () { setTimeout(function () { safeReload('fresh'); }, 3000); });
+}
+setInterval(freshCheck, 60 * 1000);
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') freshCheck(); });
+(function () { var w = ''; try { w = sessionStorage.getItem('btn-updated') || ''; sessionStorage.removeItem('btn-updated'); } catch (e) {}
+  if (w) setTimeout(function () { toast((w === 'fresh' ? 'Refreshed' : 'Updated to Tasting Notes ' + VERSION_LABEL) + (dirty ? '. Your note is right where you left it' : '')); }, 1500); })();
