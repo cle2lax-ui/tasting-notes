@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.9';
+var VERSION_LABEL = 'v2.10';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -234,8 +234,8 @@ function descHTML(k, label) {
   return '<div class="f full" id="f-' + k + '"><label>' + label + '</label><div class="desc" data-k="' + k + '"><div class="tks">' + t.map(function (x) { return tokHTML(x, k); }).join('') +
     '<input type="text" class="din" data-din="' + k + '" placeholder="' + (t.length ? 'Add another' : k === 'flavors' ? 'Type a flavor' : 'Type an aroma') + '" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="none" enterkeyhint="done" name="desc-' + k + '"></div>' +
     '<div class="sug" id="sug-' + k + '"></div>' +
-    '<div class="dft"><button type="button" class="lnk" data-lex="' + k + '">Open the Lexicon</button>' +
-    (k === 'flavors' ? '<button type="button" class="lnk" id="sameNose" aria-pressed="' + t.some(isSame) + '">' + (t.some(isSame) ? '✓ Same as the nose' : 'Same as the nose') + '</button>' : '') + '<small>' + (function () { var n = t.filter(function (x) { return !isSame(x); }).length; return n ? n + (k === 'flavors' ? ' flavor' : ' aroma') + (n === 1 ? '' : 's') : ''; })() + '</small></div></div></div>';
+    '<div class="dft"><button type="button" class="dbtn" data-lex="' + k + '"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5.5C8.6 4.4 6.6 4 4 4v11c2.6 0 4.6.4 6 1.5 1.4-1.1 3.4-1.5 6-1.5V4c-2.6 0-4.6.4-6 1.5zM10 5.5v11"/></svg>Pick from the Lexicon</button>' +
+    (k === 'flavors' ? '<button type="button" class="dbtn same' + (t.some(isSame) ? ' on' : '') + '" id="sameNose" aria-pressed="' + t.some(isSame) + '">' + (t.some(isSame) ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 7"/></svg>' : '') + 'Same as the nose</button>' : '') + '<small>' + (function () { var n = t.filter(function (x) { return !isSame(x); }).length; return n ? n + (k === 'flavors' ? ' flavor' : ' aroma') + (n === 1 ? '' : 's') : ''; })() + '</small></div></div></div>';
 }
 function repaintDesc(k) {
   var el = $('f-' + k); if (el) { var had = document.activeElement && document.activeElement.getAttribute('data-din') === k; el.outerHTML = descHTML(k, k === 'flavors' ? 'Flavors' : 'Aromas'); if (had) document.querySelector('[data-din="' + k + '"]').focus(); }
@@ -289,7 +289,7 @@ document.addEventListener('click', function (e) {
   if (aw) { var kk = aw.getAttribute('data-k'); toggleWord(kk, aw.getAttribute('data-addw'), true); var inp = document.querySelector('[data-din="' + kk + '"]'); if (inp) { inp.value = ''; inp.focus(); } return; }
   var lx = t.closest('[data-lex]');
   if (lx) { openLx(lx.getAttribute('data-lex')); return; }
-  if (t.id === 'sameNose') { toggleSame(); return; }
+  if (t.closest('#sameNose')) { toggleSame(); return; }
   if (t.closest('#openBtn')) { rec.open = !rec.open; rerow('identity'); renderTaste(); touch(); return; }
   if (t.id === 'phRemove') { ask('Remove the label photo from this wine?', 'Remove', 'Keep').then(function (go) { if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch(); }); return; }
   var im = t.closest('#phBox img'); if (im) { showPhoto(im.getAttribute('data-full')); return; }
