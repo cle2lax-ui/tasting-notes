@@ -269,3 +269,7 @@ const LEXICON = [
     ['White Wine', 'Dried Fruit (e.g. Dried Apricot, Raisin), Orange Marmalade, Petrol (Gasoline), Cinnamon, Ginger, Nutmeg, Almond, Hazelnut, Honey, Caramel'],
     ['Deliberately Oxidized Wines', 'Almond, Hazelnut, Walnut, Chocolate, Coffee, Caramel'],
   ];
+
+/* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
+function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
+function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }

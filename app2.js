@@ -312,7 +312,9 @@ function start(init) {
   if (!SORTS.some(function (s) { return s[0] === NB.sort; })) NB.sort = 'Date & Wine #';
   setData(init.all);
   var draft = recall(DRAFT_KEY) || recall('btn-entry-draft'), d = today();     // also picks up an unsaved draft from 1.x
+  if (draft && draft.rec) { draft.rec.aromas = cleanDescs(draft.rec.aromas); draft.rec.flavors = cleanDescs(draft.rec.flavors); }
   if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
+  if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
   setView(new URLSearchParams(location.search).get('view') === 'notebook' ? 'notebook' : 'taste');
   spy();
 }

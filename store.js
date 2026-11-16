@@ -47,7 +47,16 @@ function keyOf(r) { return (r.date || '') + '#' + Number(r.wineNo || 0); }
 function localToday() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function wineLabel(d, n) { var p = String(d).split('-'); return (+p[1]) + '/' + (+p[2]) + '/' + p[0].slice(2) + ', Wine #' + Number(n); }
 
-function loadRows() { return DB.all('wines').then(function (list) { ROWS = list || []; return ROWS; }); }
+function loadRows() {
+  return DB.all('wines').then(function (list) {
+    ROWS = list || [];
+    // repair: strip web links that slipped into aromas or flavors; the fixed note is marked to sync back to the Sheet
+    var fixes = ROWS.filter(function (r) { var a = cleanDescs(r.aromas), f = cleanDescs(r.flavors); if (a === r.aromas && f === r.flavors) return false; r.aromas = a; r.flavors = f; r.dirty = true; return true; });
+    if (!fixes.length) return ROWS;
+    loadRows.repaired = (loadRows.repaired || 0) + fixes.length;
+    return Promise.all(fixes.map(function (r) { return DB.put('wines', r); })).then(function () { if (window.Sync) Sync.soon(); return ROWS; });
+  });
+}
 
 /** Every wine, normalized exactly like the Google edition's Summary. */
 function appAllSync() {
@@ -84,6 +93,7 @@ var API = {
     var row = {};
     for (var k in rec) row[k] = rec[k];
     row.wineNo = Number(rec.wineNo);
+    row.aromas = cleanDescs(row.aromas); row.flavors = cleanDescs(row.flavors);
     if (row.open) { row.gGrape = row.gCountry = row.gRegion = row.gVintage = ''; }
     row.id = mine ? mine.id : (rec.id || uid());
     if (mine) { row.sheetKey = mine.sheetKey; row.sheetSer = mine.sheetSer; if (!('photoUrl' in rec)) row.photoUrl = mine.photoUrl; }

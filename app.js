@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.4';
+var VERSION_LABEL = 'v2.5';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -232,7 +232,7 @@ function tokHTML(t, k) {
 function descHTML(k, label) {
   var t = toks(k);
   return '<div class="f full" id="f-' + k + '"><label>' + label + '</label><div class="desc" data-k="' + k + '"><div class="tks">' + t.map(function (x) { return tokHTML(x, k); }).join('') +
-    '<input type="text" class="din" data-din="' + k + '" placeholder="' + (t.length ? 'Add another' : k === 'flavors' ? 'Type a flavor' : 'Type an aroma') + '" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>' +
+    '<input type="text" class="din" data-din="' + k + '" placeholder="' + (t.length ? 'Add another' : k === 'flavors' ? 'Type a flavor' : 'Type an aroma') + '" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="none" enterkeyhint="done" name="desc-' + k + '"></div>' +
     '<div class="sug" id="sug-' + k + '"></div>' +
     '<div class="dft"><button type="button" class="lnk" data-lex="' + k + '">Open the Lexicon</button>' +
     (k === 'flavors' ? '<button type="button" class="lnk" id="sameNose" aria-pressed="' + t.some(isSame) + '">' + (t.some(isSame) ? '✓ Same as the nose' : 'Same as the nose') + '</button>' : '') + '<small>' + (function () { var n = t.filter(function (x) { return !isSame(x); }).length; return n ? n + (k === 'flavors' ? ' flavor' : ' aroma') + (n === 1 ? '' : 's') : ''; })() + '</small></div></div></div>';
@@ -264,7 +264,7 @@ document.addEventListener('keydown', function (e) {
   if (din && e.key === 'Enter') { e.preventDefault(); if (e.target.value.trim()) { addTyped(din, e.target.value); } }
   if (din && e.key === 'Backspace' && !e.target.value) { var t = toks(din); if (t.length) toggleWord(din, t[t.length - 1].replace(/[.;:]+$/, '')); }
 });
-function addTyped(k, v) { v = v.trim(); if (!v) return; var m = ALLWORDS.filter(function (w) { return w === v.toLowerCase(); })[0]; toggleWord(k, m || v, true); }
+function addTyped(k, v) { v = v.trim(); if (!v) return; if (isJunkTok(v)) { toast('A web link can’t be an aroma or flavor'); return; } var m = ALLWORDS.filter(function (w) { return w === v.toLowerCase(); })[0]; toggleWord(k, m || v, true); }
 function grow(t) { if (!t.offsetParent) return; t.style.height = 'auto'; t.style.height = Math.max(44, t.scrollHeight + 2) + 'px'; }
 
 /* ---- taps in the Taste view */
