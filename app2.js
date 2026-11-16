@@ -151,9 +151,9 @@ function prose(w) {
   var flTxt = same ? SAME + (more ? ', plus ' + more.replace(/[.;:]+$/, '') : '') + '.' : sent(more);
   if (p || flTxt || w.palate) out.push({ h: 'Palate', m: [sent(p), flTxt, sent(w.palate)].filter(Boolean).join(' ') });
   var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); });
-  var q = w.quality ? w.quality + (bl.length ? ': ' + (bl.length > 1 ? bl.slice(0, -1).join(', ') + ' and ' + bl[bl.length - 1] : bl[0]) : '') + '.' : '';
+  var q = w.quality || '', blTxt = bl.length ? sent(bl.length > 1 ? bl.slice(0, -1).join(', ') + ' and ' + bl[bl.length - 1] : bl[0]) : '';
   var ag = w.aging ? (w.aging === 'Suitable' ? 'Suitable for further aging.' : 'Not suitable for further aging.') : '';
-  if (q || ag || w.qReason || w.aReason) out.push({ h: 'Conclusions', q: q, m: [sent(w.qReason), ag, sent(w.aReason)].filter(Boolean).join(' ') });
+  if (q || blTxt || ag || w.qReason || w.aReason) out.push({ h: 'Conclusions', q: q, m: [blTxt, sent(w.qReason), ag, sent(w.aReason)].filter(Boolean).join(' ') });
   return out;
 }
 var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'five'], ['Tannin', 'tannin', 'five'], ['Alcohol', 'alcohol', 'alcohol'], ['Body', 'body', 'body'], ['Flavor int.', 'flavInt', 'intensity'], ['Finish', 'finish', 'finish']];
