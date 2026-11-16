@@ -490,6 +490,29 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 @media (max-width:400px){ .rail[style*="--n:6"] button em{font-size:10.5px} }
 .dft{flex-wrap:wrap;row-gap:6px}
 .dft .lnk{white-space:nowrap}
+/* rails v2.0.2: every rail the same length, the line runs through the centre of every dot, filled from the left */
+.rail{--n:5;--p:0;display:block;position:relative;height:66px;margin:0 32px;padding:0}
+.rail:before,.rail:after{content:"";position:absolute;top:15px;height:4px;border-radius:2px;left:0}
+.rail:before{right:0;background:var(--line-2)}
+.rail:after{width:calc(100% * var(--p));background:var(--sig)}
+.rail.unset:after{display:none}
+.rail button{position:absolute;top:0;left:calc(100% * var(--j) / (var(--n) - 1));transform:translateX(-50%);width:min(74px, calc(100% / (var(--n) - 1)));min-height:0;height:66px;padding:0;gap:0;display:flex;flex-direction:column;align-items:center;z-index:1}
+.rail button:before{flex:none;width:18px;height:18px;margin-top:8px;border-width:2px}
+.rail button.f1:before{width:12px;height:12px;margin-top:11px}
+.rail button.on:before{width:30px;height:30px;margin-top:2px}
+.rail button em{margin-top:auto;padding-bottom:2px;height:30px;display:flex;align-items:flex-start;justify-content:center}
+.rail button.f1 em,.rail button:not(.on) em{}
+.rail button:before{position:relative}
+.rail button.f1:before{margin-bottom:3px}.rail button:not(.on):not(.f1):before{margin-bottom:0}
+@media (min-width:560px){ .rail{margin:0 32px 0 28px} }
+/* card structure lines match the rails */
+.prof .line{position:relative;height:14px;display:block;margin:0 6px}
+.prof .line:before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--line-2)}
+.prof .line:after{content:"";position:absolute;left:0;top:6px;height:2px;width:calc(100% * var(--p));background:var(--sig)}
+.prof .line i{position:absolute;top:7px;left:calc(100% * var(--j) / (var(--n) - 1));transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--faint);z-index:1}
+.prof .line i.fl{width:7px;height:7px;background:var(--sig)}
+.prof .line i.on{width:13px;height:13px;background:var(--sig)}
+#taste .f .rail,#taste .f.rw .rail{margin:0 34px}
 
 </style>
 </head>
@@ -597,7 +620,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">

@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.0.1';
+var VERSION_LABEL = 'v2.0.2';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -70,7 +70,7 @@ function rowHTML(r) {
     var list = r[3], i = list.indexOf(rec[k]), p = i < 0 ? 0 : i / (list.length - 1);
     return '<div class="f rw" id="f-' + k + '"><label>' + r[2] + (i >= 0 ? '<small>' + esc(nice(rec[k])) + '</small>' : '') + '</label>' +
       '<div class="rail' + (i < 0 ? ' unset' : '') + '" data-k="' + k + '" style="--n:' + list.length + ';--p:' + p.toFixed(3) + '">' +
-      list.map(function (v, j) { return '<button type="button" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + esc(SHORTR[v] || v).replace('Acceptable', 'Accept&shy;able').replace('Outstanding', 'Out&shy;standing') + '</em></button>'; }).join('') + '</div></div>';
+      list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + esc(SHORTR[v] || v).replace('Acceptable', 'Accept&shy;able').replace('Outstanding', 'Out&shy;standing') + '</em></button>'; }).join('') + '</div></div>';
   }
   if (kind === 'color') {
     var cl = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null, t = CHIPC[rec.type] || {};

@@ -161,7 +161,7 @@ function cardHTML(w) {
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
   h += '<div><h6>Structure</h6><div class="prof">' + PROF.map(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
-    return '<div' + (i < 0 ? ' class="na"' : '') + '><span>' + p[0] + '</span><span class="line">' + list.map(function (_, j) { return '<i' + (j === i ? ' class="on"' : '') + '></i>'; }).join('') + '</span><em>' + esc(i < 0 ? '–' : SHORTR[w[p[1]]] || w[p[1]]) + '</em></div>';
+    return '<div' + (i < 0 ? ' class="na"' : '') + '><span>' + p[0] + '</span><span class="line" style="--n:' + list.length + ';--p:' + (i < 0 ? 0 : i / (list.length - 1)).toFixed(3) + '">' + list.map(function (_, j) { return '<i style="--j:' + j + '"' + (j === i ? ' class="on"' : j < i ? ' class="fl"' : '') + '></i>'; }).join('') + '</span><em>' + esc(i < 0 ? '–' : SHORTR[w[p[1]]] || w[p[1]]) + '</em></div>';
   }).join('') + '</div></div>';
   var rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
@@ -236,8 +236,10 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
     font('Archivo', 'normal', 6.6, i < 0 ? PC.faint : PC.ink2); txt(p[0], sx, sy);
     font('Archivo', 'bold', 6.4, i < 0 ? PC.faint : PC.ink); txt(i < 0 ? '–' : (SHORTR[w[p[1]]] || w[p[1]]), right, sy, { align: 'right' });
     var lx0 = sx + 52 * K, lx1 = right - 50 * K, ly0 = sy - 2.2 * K;
-    if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(lx0, ly0, lx1, ly0);
-      list.forEach(function (_, j) { var px = lx0 + (lx1 - lx0) * (list.length > 1 ? j / (list.length - 1) : 0); if (j === i) { D.setFillColor(PC.sig); D.circle(px, ly0, 2.4 * K, 'F'); } else { D.setFillColor(PC.faint); D.circle(px, ly0, 0.9 * K, 'F'); } }); }
+    if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.9 * K); D.line(lx0, ly0, lx1, ly0);
+      var at = function (j) { return lx0 + (lx1 - lx0) * (list.length > 1 ? j / (list.length - 1) : 0); };
+      if (i > 0) { D.setDrawColor(PC.sig); D.setLineWidth(1.3 * K); D.line(lx0, ly0, at(i), ly0); }
+      list.forEach(function (_, j) { var px = at(j); if (j === i) { D.setFillColor(PC.sig); D.circle(px, ly0, 2.6 * K, 'F'); } else if (i >= 0 && j < i) { D.setFillColor(PC.sig); D.circle(px, ly0, 1.4 * K, 'F'); } else { D.setFillColor(PC.faint); D.circle(px, ly0, 1.1 * K, 'F'); } }); }
     sy += 9.6 * K;
   });
   var gy = sy + 8 * K, rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
@@ -315,13 +317,15 @@ document.addEventListener('click', function (e) { if (e.target.classList && e.ta
 (function () {
   var drag = null;
   document.addEventListener('touchstart', function (e) {
+    if (e.target.closest('button, a, input')) return;
     var h = e.target.closest('.grab, .ph, .lx-hd'); if (!h) return;
     var panel = h.closest('.panel, .lxp'); if (!panel) return;
-    drag = { panel: panel, y0: e.touches[0].clientY, dy: 0 }; panel.classList.add('dragging');
+    drag = { panel: panel, y0: e.touches[0].clientY, dy: 0, moved: false };
   }, { passive: true });
-  document.addEventListener('touchmove', function (e) { if (!drag) return; drag.dy = Math.max(0, e.touches[0].clientY - drag.y0); drag.panel.style.transform = 'translateY(' + drag.dy + 'px)'; }, { passive: true });
+  document.addEventListener('touchmove', function (e) { if (!drag) return; drag.dy = Math.max(0, e.touches[0].clientY - drag.y0);
+    if (drag.dy > 6) { if (!drag.moved) { drag.moved = true; drag.panel.classList.add('dragging'); } drag.panel.style.transform = 'translateY(' + drag.dy + 'px)'; } }, { passive: true });
   document.addEventListener('touchend', function () {
-    if (!drag) return; var d = drag; drag = null; d.panel.classList.remove('dragging'); d.panel.style.transition = 'transform .2s'; d.panel.style.transform = '';
+    if (!drag) return; var d = drag; drag = null; if (!d.moved) return; d.panel.classList.remove('dragging'); d.panel.style.transition = 'transform .2s'; d.panel.style.transform = '';
     setTimeout(function () { d.panel.style.transition = ''; }, 220);
     if (d.dy > 110) closeSheetEl(d.panel.parentNode);
   });
