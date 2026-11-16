@@ -2,7 +2,7 @@
 var VERSION_LABEL = 'v2.0 preview';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
-var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook', GUIDE_KEY = 'btn2-guide';
+var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
 var THUMBS = {}, PHOTO_IDS = {};
 var OPENED = {};                                          // comment rows the user opened
 var SWC = {'Lemon-Green':'#D6DC7A','Lemon':'#F1E27E','Gold':'#E2B64A','Amber':'#C98A2E','Pink':'#F2B3C1','Pink-Orange':'#F0A27F',
@@ -183,8 +183,8 @@ function toggleWord(k, w, force) {
   touch(); repaintDesc(k);
 }
 function tokHTML(t, k) {
-  var f = famOf(t.replace(/[.;:]+$/, ''));
-  return '<span class="tok' + (f ? ' f-' + f : ' own') + '">' + esc(t) + '<button type="button" data-untok="' + esc(t) + '" data-k="' + k + '" aria-label="Remove ' + esc(t) + '">×</button></span>';
+  var known = !!WORDHOME[t.replace(/[.;:]+$/, '').toLowerCase()];
+  return '<span class="tok' + (known ? '' : ' own') + '">' + esc(t) + '<button type="button" data-untok="' + esc(t) + '" data-k="' + k + '" aria-label="Remove ' + esc(t) + '">×</button></span>';
 }
 function descHTML(k, label) {
   var t = toks(k);
@@ -198,7 +198,6 @@ function repaintDesc(k) {
   var el = $('f-' + k); if (el) { var had = document.activeElement && document.activeElement.getAttribute('data-din') === k; el.outerHTML = descHTML(k, k === 'flavors' ? 'Flavors' : 'Aromas'); if (had) document.querySelector('[data-din="' + k + '"]').focus(); }
   paintStages(); if ($('lx').classList.contains('show')) paintLx();
 }
-var ALLWORDS = (function () { var a = {}; Object.keys(WORDHOME).forEach(function (w) { a[w] = 1; }); return Object.keys(a); })();
 function suggest(q, k) {
   q = q.trim().toLowerCase(); if (!q) return [];
   return ALLWORDS.filter(function (w) { return w.indexOf(q) === 0 || w.indexOf(' ' + q) > 0; }).filter(function (w) { return !hasWord(k, w); }).slice(0, 6);
@@ -262,7 +261,7 @@ function label() { var d = rec.date ? rec.date.split('-') : null; return (d ? (+
 function paintId() {
   $('idWine').textContent = 'Wine ' + (rec.wineNo || '?');
   $('idSub').textContent = [dateNice(rec.date), rec.event].filter(Boolean).join(' · ');
-  var st = $('state'); st.className = 'state' + (dirty ? ' dirty' : ''); st.textContent = dirty ? 'Unsaved' : orig ? 'Saved' : 'New';
+  var st = $('state'); st.className = 'state' + (dirty ? ' dirty' : ''); st.textContent = dirty ? 'Unsaved' : orig ? 'Saved' : 'New'; $('saveBtn').classList.toggle('quiet', !dirty);
 }
 function touch(quiet) { dirty = true; paintId(); if (!quiet) paintStages(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
 function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
@@ -314,101 +313,84 @@ $('saveBtn').onclick = function () { save(false); };
 $('nextBtn').onclick = function () { save(false, true); };
 window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-/* ====================================================================== the Lexicon sheet (Aroma Compass) */
-var LX = { k: 'aromas', mode: 'wheel', fam: 'fruit', q: '', more: {}, step: 0 };
-function lxCounts() { return cellCounts(rec[LX.k]); }
+/* ====================================================================== the Lexicon picker
+   One scroll of aroma families with a sticky family bar (scroll-spy), "For this wine" first,
+   search that finishes the job, and your picks pinned at the top. */
+var LX = { k: 'aromas', q: '', more: {} };
+function forYou(k) {
+  var type = rec.type || '', count = {};
+  ALL.forEach(function (w) { if (type && w.type !== type) return; String(w[k] || '').split(/\s*,\s*/).forEach(function (t) { t = t.toLowerCase().replace(/[.;:]+$/, '').trim(); if (WORDHOME[t] && RIPENESS.indexOf(WORDHOME[t].w) < 0) count[t] = (count[t] || 0) + 1; }); });
+  var mine = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; }).slice(0, 12);
+  var start = (LEAD[type] || LEAD['']).start.map(function (w) { return w.toLowerCase(); });
+  var out = mine.slice(); start.forEach(function (w) { if (out.length < 12 && out.indexOf(w) < 0) out.push(w); });
+  return { words: out, personal: mine.length >= 4 };
+}
 function openLx(k) {
   LX.k = k; LX.q = ''; LX.more = {}; $('lxQ').value = '';
-  var wide = window.matchMedia('(min-width: 900px)').matches;
-  LX.mode = recall(GUIDE_KEY) ? 'guide' : recall('btn2-lxview') === 'list' ? 'list' : wide ? 'family' : 'wheel'; LX.step = 0;
-  if (LX.mode === 'guide') LX.fam = FAMS[0].k; else LX.fam = 'fruit';
-  paintLx(); $('lx').classList.add('show'); document.body.classList.add('locked'); $('lxBody').scrollTop = 0;
+  paintLx(); $('lx').classList.add('show'); document.body.classList.add('locked'); $('lxBody').scrollTop = 0; lxSpy();
 }
-$('lxDone').onclick = function () { $('lx').classList.remove('show'); document.body.classList.remove('locked'); };
-$('lxQ').addEventListener('input', function () { LX.q = this.value; paintLx(); });
+function closeLx() { $('lx').classList.remove('show'); document.body.classList.remove('locked'); }
+$('lxDone').onclick = closeLx;
+$('lx').addEventListener('click', function (e) { if (e.target === this) closeLx(); });
+$('lxQ').addEventListener('input', function () { LX.q = this.value; paintLxBody(); });
 $('lxQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var q = this.value.trim(); if (!q) return; addTyped(LX.k, q); this.value = ''; LX.q = ''; paintLx(); } });
-function lxChip(w) { var on = hasWord(LX.k, w); return '<button type="button" class="lc' + (on ? ' on' : '') + '" data-w="' + esc(w) + '">' + esc(wordLabel(w)) + '</button>'; }
+function lxChip(w) { var on = hasWord(LX.k, w); return '<button type="button" class="lc' + (on ? ' on' : '') + '" data-w="' + esc(w) + '" aria-pressed="' + on + '">' + esc(wordLabel(w)) + '</button>'; }
 function clusterHTML(c) {
-  var n = c[4].filter(function (w) { return hasWord(LX.k, w); }).length;
-  return '<div class="cl"><div class="cl-h"><img src="' + photoOfSlug(c[3]) + '" alt=""><b>' + esc(c[2]) + '</b>' + (n ? '<small>' + n + '</small>' : '') + '</div><div class="lcs">' + c[4].map(lxChip).join('') + '</div></div>';
+  var n = c[3].filter(function (w) { return hasWord(LX.k, w); }).length;
+  return '<div class="cl"><div class="cl-h"><img src="' + photoOfSlug(c[2]) + '" alt="" loading="lazy"><b>' + esc(c[0]) + '</b><span class="org">' + ORIGIN[c[1]] + '</span>' + (n ? '<small>' + n + '</small>' : '') + '</div><div class="lcs">' + c[3].map(lxChip).join('') + '</div></div>';
 }
-function tierHead(t, note) {
-  return '<div class="tier"><span class="ri">' + ['p', 's', 't'].map(function (x) { return '<i class="' + (x === t ? 'on' : '') + '"></i>'; }).join('') + '</span><b>' + TIERS[t] + '</b>' + (note ? '<small>' + note + '</small>' : '') + '</div>';
+function famCount(f) { var n = 0, seen = {}; f.clusters.forEach(function (c) { c[3].forEach(function (w) { if (!seen[w] && hasWord(LX.k, w)) { seen[w] = 1; n++; } }); }); if (f.k === 'fruit') RIPENESS.forEach(function (w) { if (hasWord(LX.k, w)) n++; }); return n; }
+function familyHTML(f) {
+  var h = '<section class="lx-sec" id="lxs-' + f.k + '" data-f="' + f.k + '"><h3>' + esc(f.name) + '</h3>', cs = f.clusters;
+  if (f.k === 'fruit') {
+    h += '<div class="ripe"><span>Fruit character</span><div class="seg">' + RIPENESS.map(function (w) { return '<button type="button" class="opt' + (hasWord(LX.k, w) ? ' on' : '') + '" data-ripe="' + w + '">' + w.split(' ')[0] + '</button>'; }).join('') + '</div></div>';
+    var lead = (LEAD[rec.type || ''] || LEAD['']).fruit;
+    var first = cs.filter(function (c) { return lead.indexOf(c[0]) >= 0; }).sort(function (a, b) { return lead.indexOf(a[0]) - lead.indexOf(b[0]); });
+    var rest = cs.filter(function (c) { return lead.indexOf(c[0]) < 0; });
+    var restOpen = LX.more.fruit || rest.some(function (c) { return c[3].some(function (w) { return hasWord(LX.k, w); }); });
+    h += first.map(clusterHTML).join('');
+    if (rest.length) h += restOpen ? rest.map(clusterHTML).join('') : '<button type="button" class="more" data-more="fruit"><span>More fruit</span><small>' + rest.map(function (c) { return c[0].replace(/ fruit$/, ''); }).join(', ') + '</small><i>+</i></button>';
+  } else h += cs.map(clusterHTML).join('');
+  return h + '</section>';
 }
-function familyHTML(fk) {
-  var lk = likely(rec.type), h = '';
-  ['p', 's', 't'].forEach(function (t) {
-    var cs = CLUSTERS.filter(function (c) { return c[0] === fk && c[1] === t; }); if (!cs.length && !(fk === 'fruit' && t === 'p')) return;
-    h += tierHead(t);
-    if (fk === 'fruit' && t === 'p') {
-      h += '<div class="ripe"><span>Fruit character</span><div>' + RIPENESS.map(function (w) { return '<button type="button" class="' + (hasWord(LX.k, w) ? 'on' : '') + '" data-ripe="' + w + '">' + w.split(' ')[0] + '</button>'; }).join('') + '</div></div>';
-      var lead = cs.filter(function (c) { return lk.fruit.indexOf(c[2]) >= 0; }), rest = cs.filter(function (c) { return lk.fruit.indexOf(c[2]) < 0; });
-      lead.sort(function (a, b) { return lk.fruit.indexOf(a[2]) - lk.fruit.indexOf(b[2]); });
-      h += lead.map(clusterHTML).join('');
-      var restPicked = rest.some(function (c) { return c[4].some(function (w) { return hasWord(LX.k, w); }); });
-      if (rest.length) h += LX.more.fruit || restPicked ? rest.map(clusterHTML).join('') : '<button type="button" class="more" data-more="fruit">' + rest.map(function (c) { return c[2].replace(' fruit', ''); }).join(', ').replace(/^./, function (x) { return x.toUpperCase(); }) + '<span>›</span></button>';
-    } else h += cs.map(clusterHTML).join('');
-  });
-  return h;
-}
-function famIndex(k) { for (var i = 0; i < FAMS.length; i++) if (FAMS[i].k === k) return i; return 0; }
 function paintLx() {
-  var k = LX.k, n = toks(k).length, lk = likely(rec.type), counts = lxCounts(), q = LX.q.trim().toLowerCase();
+  var k = LX.k, n = toks(k).length;
   $('lxTitle').textContent = k === 'flavors' ? 'Flavors' : 'Aromas';
-  $('lxSub').textContent = [rec.type ? rec.type + ' wine' : '', n ? n + ' chosen' : 'Nothing chosen yet'].filter(Boolean).join(' · ');
-  $('lxPicks').innerHTML = toks(k).map(function (t) { return tokHTML(t, k); }).join('');
-  $('lxSame').hidden = k !== 'flavors';
-  $$('#lxModes button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === (LX.mode === 'family' ? 'wheel' : LX.mode)); });
-  var wide = window.matchMedia('(min-width: 900px)').matches, body = '', left = '';
-  var hub = [n, k === 'flavors' ? 'flavors' : 'aromas'];
-  if (q) {
-    var hits = ALLWORDS.filter(function (w) { return w.indexOf(q) >= 0; }).slice(0, 24);
-    body = '<div class="lx-sec"><div class="tier"><b>' + (hits.length ? 'Matches' : 'No match in the Lexicon') + '</b></div><div class="lcs">' +
-      hits.map(function (w) { var h0 = WORDHOME[w][0]; return '<button type="button" class="lc srch' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(w) + '"><i class="dot f-' + h0.f + '"></i>' + esc(wordLabel(w)) + '<small>' + esc(h0.c) + '</small></button>'; }).join('') +
-      '</div>' + (ALLWORDS.indexOf(q) < 0 ? '<button type="button" class="addown" data-own="' + esc(LX.q.trim()) + '">Add “' + esc(LX.q.trim()) + '” as your own</button>' : '') + '</div>';
-  } else if (LX.mode === 'guide') {
-    var f = FAMS[LX.step];
-    body = '<div class="gm"><div class="gm-dots">' + FAMS.map(function (x, i) { return '<i class="' + (i < LX.step ? 'd' : i === LX.step ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
-      '<div class="gm-wheel">' + wheelSVG(counts, { dim: lk.dim, focus: f.k, labels: false, cls: 'sm' }) + '</div>' +
-      '<div class="gm-q"><span class="k f-' + f.k + '">Step ' + (LX.step + 1) + ' of 8 · ' + esc(f.name) + '</span><h3>' + esc(f.q) + '</h3><p>' + esc(f.hint) + '</p></div>' +
-      familyHTML(f.k) + '<div class="gm-bar"><button type="button" class="btn" data-gstep="back"' + (LX.step ? '' : ' disabled') + '>Back</button>' +
-      '<button type="button" class="btn" data-gstep="skip">Nothing here</button><button type="button" class="btn pri" data-gstep="next">' + (LX.step < 7 ? 'Next: ' + esc(FAMS[LX.step + 1].name) : 'Finish') + '</button></div></div>';
-  } else if (LX.mode === 'list') {
-    body = FAMS.map(function (f) { return '<div class="lx-sec' + (lk.dim.indexOf(f.k) >= 0 ? ' dimmed' : '') + '"><div class="fam-h"><h3>' + esc(f.name) + '</h3></div>' + familyHTML(f.k) + '</div>'; }).join('');
-  } else if (LX.mode === 'wheel' && !wide) {
-    body = '<div class="cx-wrap">' + wheelSVG(counts, { dim: lk.dim, hub: hub, tap: true, uid: 'lxw' }) + '</div>' + legendHTML() + '<p class="lx-tip">Tap a family to open it.</p>';
-  } else {
-    var fi = famIndex(LX.fam), ff = FAMS[fi];
-    var top = '<div class="fam-top">' + (wide ? '' : '<button type="button" class="mini" data-mode="wheel" aria-label="Back to the compass">' + wheelSVG(counts, { dim: lk.dim, focus: ff.k, labels: false, cls: 'sm' }) + '</button>') +
-      '<div class="ft"><span class="k">' + (fi + 1) + ' of 8</span><h3>' + esc(ff.name) + '</h3></div>' +
-      '<div class="nav"><button type="button" data-famstep="-1" aria-label="Previous family">‹</button><button type="button" data-famstep="1" aria-label="Next family">›</button></div></div>';
-    body = top + familyHTML(ff.k);
-    if (wide) left = '<div class="cx-wrap">' + wheelSVG(counts, { dim: lk.dim, focus: ff.k, hub: hub, tap: true, uid: 'lxw' }) + '</div>' + legendHTML();
-  }
-  $('lxLeft').innerHTML = left; $('lxLeft').hidden = !left;
-  $('lxBody').innerHTML = body;
+  $('lxSub').textContent = [rec.type ? rec.type + ' wine' : '', n ? n + ' chosen' : 'Tap to choose'].filter(Boolean).join(' · ');
+  $('lxPicks').innerHTML = n ? toks(k).map(function (t) { return tokHTML(t, k); }).join('') : '<span class="ph0">Your ' + (k === 'flavors' ? 'flavors' : 'aromas') + ' appear here</span>';
+  $('lxSame').hidden = k !== 'flavors' || !toks('aromas').length;
+  $('lxTabs').innerHTML = '<button type="button" data-jump="for">For this wine</button>' + LEXFAM.map(function (f) { var c = famCount(f); return '<button type="button" data-jump="' + f.k + '">' + esc(f.name) + (c ? '<b>' + c + '</b>' : '') + '</button>'; }).join('');
+  paintLxBody();
 }
-function legendHTML() { return '<div class="cx-legend"><span><i class="lg p"></i>Center: from the grape</span><span><i class="lg s"></i>Middle: from winemaking</span><span><i class="lg t"></i>Rim: from age</span></div>'; }
+function paintLxBody() {
+  var k = LX.k, q = LX.q.trim().toLowerCase(), keep = $('lxBody').scrollTop;
+  $('lx').classList.toggle('searching', !!q);
+  if (q) {
+    var hits = ALLWORDS.filter(function (w) { return w.indexOf(q) === 0 || w.indexOf(' ' + q) > 0 || w.indexOf('/' + q) > 0; });
+    var exact = ALLWORDS.indexOf(q) >= 0;
+    $('lxBody').innerHTML = '<section class="lx-sec srch">' + (hits.length ? '<div class="lcs">' + hits.slice(0, 30).map(function (w) { var h = WORDHOME[w]; return '<button type="button" class="lc' + (hasWord(k, w) ? ' on' : '') + '" data-w="' + esc(h.w) + '">' + esc(wordLabel(w)) + '<small>' + esc(h.c) + '</small></button>'; }).join('') + '</div>' : '<p class="none">Not in the WSET Lexicon.</p>') +
+      (exact ? '' : '<button type="button" class="addown" data-own="' + esc(LX.q.trim()) + '"><i>+</i>Add “' + esc(LX.q.trim()) + '” in your own words</button>') + '</section>';
+    return;
+  }
+  var fy = forYou(k);
+  $('lxBody').innerHTML = '<section class="lx-sec" id="lxs-for" data-f="for"><h3>For this wine</h3><p class="cap">' + (fy.personal ? 'The ones you use most' + (rec.type ? ' for ' + rec.type.toLowerCase() + ' wines' : '') + '.' : 'Common ' + (rec.type ? rec.type.toLowerCase() + ' wine ' : '') + 'descriptors to start from.') + '</p><div class="lcs">' + fy.words.map(function (w) { return lxChip(WORDHOME[w].w); }).join('') + '</div></section>' +
+    LEXFAM.map(familyHTML).join('') + '<div class="lx-end"></div>';
+  $('lxBody').scrollTop = keep; lxSpy();
+}
+function lxSpy() {
+  var body = $('lxBody'), top = body.getBoundingClientRect().top + 8, cur = 'for';
+  $$('#lxBody .lx-sec[data-f]').forEach(function (s) { if (s.getBoundingClientRect().top <= top + 40) cur = s.getAttribute('data-f'); });
+  $$('#lxTabs button').forEach(function (b) { var on = b.getAttribute('data-jump') === cur; b.classList.toggle('on', on); if (on && b.scrollIntoView && !lxSpy.lock) { var p = b.parentNode; if (p.scrollWidth > p.clientWidth) p.scrollTo({ left: b.offsetLeft - 16, behavior: 'smooth' }); } });
+}
+$('lxBody').addEventListener('scroll', function () { if (!lxSpy.t) lxSpy.t = requestAnimationFrame(function () { lxSpy.t = 0; lxSpy(); }); }, { passive: true });
 $('lx').addEventListener('click', function (e) {
   var t = e.target;
-  var fam = t.closest('[data-fam]'); if (fam) { LX.fam = fam.getAttribute('data-fam'); if (LX.mode !== 'guide') LX.mode = 'family'; paintLx(); $('lxBody').scrollTop = 0; return; }
-  var w = t.closest('.lc[data-w]'); if (w) { toggleWord(LX.k, w.getAttribute('data-w')); return; }
+  var j = t.closest('[data-jump]'); if (j) { var s = $('lxs-' + j.getAttribute('data-jump')); if (s) { $('lxBody').scrollTo({ top: s.offsetTop - 4, behavior: 'smooth' }); } return; }
+  var w = t.closest('.lc[data-w]'); if (w) { toggleWord(LX.k, w.getAttribute('data-w')); if (LX.q) { LX.q = ''; $('lxQ').value = ''; paintLx(); } return; }
   var rp = t.closest('[data-ripe]'); if (rp) { var v = rp.getAttribute('data-ripe'), had = hasWord(LX.k, v);
     RIPENESS.forEach(function (x) { if (hasWord(LX.k, x)) rec[LX.k] = toks(LX.k).filter(function (y) { return y.toLowerCase() !== x.toLowerCase(); }).join(', '); });
     if (!had) rec[LX.k] = toks(LX.k).concat([v.toLowerCase()]).join(', '); touch(); repaintDesc(LX.k); return; }
-  var mo = t.closest('[data-more]'); if (mo) { LX.more[mo.getAttribute('data-more')] = 1; paintLx(); return; }
-  var m = t.closest('[data-mode]'); if (m) { var md = m.getAttribute('data-mode'); LX.mode = md === 'wheel' && window.matchMedia('(min-width: 900px)').matches ? 'family' : md; LX.step = 0;
-    if (md === 'list' || md === 'wheel') store('btn2-lxview', md); LX.q = ''; $('lxQ').value = ''; paintLx(); $('lxBody').scrollTop = 0; return; }
-  var fs = t.closest('[data-famstep]'); if (fs) { var i = (famIndex(LX.fam) + +fs.getAttribute('data-famstep') + 8) % 8; LX.fam = FAMS[i].k; paintLx(); $('lxBody').scrollTop = 0; return; }
-  var gs = t.closest('[data-gstep]'); if (gs) { var a = gs.getAttribute('data-gstep');
-    if (a === 'back') LX.step = Math.max(0, LX.step - 1); else if (LX.step < 7) LX.step++; else { LX.mode = window.matchMedia('(min-width: 900px)').matches ? 'family' : 'wheel'; LX.fam = 'fruit'; toast('Done. Here is your compass'); }
-    paintLx(); $('lxBody').scrollTop = 0; return; }
+  var mo = t.closest('[data-more]'); if (mo) { LX.more[mo.getAttribute('data-more')] = 1; paintLxBody(); return; }
   var own = t.closest('[data-own]'); if (own) { addTyped(LX.k, own.getAttribute('data-own')); LX.q = ''; $('lxQ').value = ''; paintLx(); return; }
-  if (t.id === 'lxSame') { $('sameNose') ? $('sameNose').click() : null; if (!$('sameNose')) { var a2 = toks('aromas'); a2.forEach(function (x) { if (!hasWord('flavors', x)) rec.flavors = toks('flavors').concat([x]).join(', '); }); touch(); repaintDesc('flavors'); } return; }
+  if (t.closest('#lxSame')) { toks('aromas').forEach(function (x) { if (!hasWord('flavors', x)) rec.flavors = toks('flavors').concat([x]).join(', '); }); touch(); repaintDesc('flavors'); return; }
 });
-/* swipe between families on a phone */
-(function () { var x0 = null, y0 = null;
-  $('lxBody').addEventListener('touchstart', function (e) { if (LX.mode !== 'family') return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-  $('lxBody').addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
-    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) { LX.fam = FAMS[(famIndex(LX.fam) + (dx < 0 ? 1 : -1) + 8) % 8].k; paintLx(); } }, { passive: true });
-})();

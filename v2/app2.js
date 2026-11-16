@@ -56,8 +56,9 @@ function rowHTMLnb(w) {
 function renderNotebook(keepScroll) {
   var wines = shownWines(), byGroup = NB.sort === 'Date & Wine #' || NB.sort === 'Tasting / Event', html = '', last = null;
   var filtered = NB.field !== '(no filter)' && NB.value !== '(all)';
-  $('showing').innerHTML = (filtered ? esc(NB.field) + ': <b>' + esc(NB.value) + '</b> · ' : '') + wines.length + ' of ' + ALL.length + ' wine' + (ALL.length === 1 ? '' : 's') +
+  $('showing').innerHTML = !ALL.length ? '' : (filtered ? esc(NB.field) + ': <b>' + esc(NB.value) + '</b> · ' : '') + wines.length + ' of ' + ALL.length + ' wine' + (ALL.length === 1 ? '' : 's') +
     (NB.q.trim() ? ' matching “' + esc(NB.q.trim()) + '”' : '') + ' · ' + esc(NB.sort.toLowerCase());
+  $('nbCount').textContent = ALL.length + ' wine' + (ALL.length === 1 ? '' : 's');
   $('filterBtn').classList.toggle('on', filtered || NB.sort !== 'Date & Wine #' || NB.desc);
   wines.forEach(function (w) {
     var gk = NB.sort === 'Tasting / Event' ? (w.event || '') : w.ymd;
@@ -156,8 +157,6 @@ function cardHTML(w) {
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
     return '<p><b>' + p.h + '</b>' + esc(p.m) + (p.c ? ' <span class="c">' + esc(p.c) + '</span>' : '') + (p.m2 ? ' ' + esc(p.m2) : '') + (p.c2 ? ' <span class="c">' + esc(p.c2) + '</span>' : '') + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
-  var counts = cellCounts([w.aromas, w.flavors].filter(Boolean).join(', '));
-  if (Object.keys(counts).length) h += '<div class="fpw"><h6>Aroma fingerprint</h6>' + wheelSVG(counts, { labels: false, cls: 'fp' }) + '</div>';
   h += '<div><h6>Structure</h6><div class="prof">' + PROF.map(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
     return '<div' + (i < 0 ? ' class="na"' : '') + '><span>' + p[0] + '</span><span class="line">' + list.map(function (_, j) { return '<i' + (j === i ? ' class="on"' : '') + '></i>'; }).join('') + '</span><em>' + esc(i < 0 ? '–' : SHORTR[w[p[1]]] || w[p[1]]) + '</em></div>';
@@ -166,7 +165,7 @@ function cardHTML(w) {
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') + '</div></div>';
-  h += '</div></div><footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '">Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '">Share PDF</button></footer></article>';
+  h += '</div></div><footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button></footer></article>';
   return h;
 }
 function flightTitle(list) {
@@ -202,26 +201,9 @@ function pdfFonts() {
   return PDFF;
 }
 var PC = { sig: '#6D1A36', gold: '#9A7438', ink: '#1F1A1D', ink2: '#5A5055', muted: '#8A7F84', faint: '#CFC6BE', line: '#E7E0D6', ok: '#2F6B2A', no: '#9A2B38' };
-var FAMC = { fruit: '#C23B57', floral: '#B85CA0', green: '#5F9445', spice: '#C47324', oak: '#8A5530', yeast: '#C9A24F', nut: '#A9823A', earth: '#5E4334' };
 function mix(hex, a) { var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; var m = function (c) { return Math.round(c * a + 255 * (1 - a)); }; return 'rgb(' + m(r) + ',' + m(g) + ',' + m(b) + ')'; }
-function rgbArr(c) { var m = c.match(/\d+/g); return m ? m.map(Number) : [0, 0, 0]; }
 function pdfText(t) { return String(t == null ? '' : t).replace(/[→➜]/g, '>').replace(/[✓✔]/g, '').replace(/\s+/g, ' ').trim(); }
 function pdfThumb(id) { return Photos.get(id).then(function (p) { return p && p.thumb ? blobToDataUrl(p.thumb) : null; }).catch(function () { return null; }); }
-function pdfWheel(D, cx, cy, R, counts) {
-  var sc = R / 205;
-  famSpans().forEach(function (sp) {
-    ['p', 's', 't'].forEach(function (t) {
-      var r = RINGS[t], a0 = sp.a0 + 1, a1 = sp.a1 - 1, pts = [], st;
-      if (!HAS[sp.f.k + t]) return;
-      for (st = a0; st <= a1 + 0.01; st += Math.max(2, (a1 - a0) / 12)) pts.push(cxPol(r[1] * sc, Math.min(st, a1)));
-      for (st = a1; st >= a0 - 0.01; st -= Math.max(2, (a1 - a0) / 12)) pts.push(cxPol(r[0] * sc, Math.max(st, a0)));
-      var n = counts[sp.f.k + t] || 0, col = rgbArr(mix(FAMC[sp.f.k], n ? 0.9 : 0.16));
-      D.setFillColor(col[0], col[1], col[2]);
-      var segs = []; for (var i = 1; i < pts.length; i++) segs.push([pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]]);
-      D.lines(segs, cx + pts[0][0], cy + pts[0][1], [1, 1], 'F', true);
-    });
-  });
-}
 /* draws one wine; with draw=false it only measures. Returns the height. */
 function pdfCard(D, w, x, y, W, draw, K, img) {
   function font(f, st, size, color) { D.setFont(f, st); D.setFontSize(size * K); if (color) D.setTextColor(color); }
@@ -246,20 +228,17 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   });
   // right: fingerprint, structure, guess and actual
   var rx = x + LW + 22 * K, RW = W - LW - 22 * K, ry = top + 4 * K;
-  var counts = cellCounts([w.aromas, w.flavors].filter(Boolean).join(', '));
-  var hasFp = Object.keys(counts).length, fpR = 30 * K;
-  if (hasFp) { if (draw) pdfWheel(D, rx + fpR, ry + fpR + 2, fpR, counts); }
-  var sx = hasFp ? rx + fpR * 2 + 12 * K : rx, sw = right - sx, sy = ry + 6 * K;
+  var sx = rx, sy = ry + 6 * K;
   PROF.forEach(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
     font('Archivo', 'normal', 6.6, i < 0 ? PC.faint : PC.ink2); txt(p[0], sx, sy);
     font('Archivo', 'bold', 6.4, i < 0 ? PC.faint : PC.ink); txt(i < 0 ? '–' : (SHORTR[w[p[1]]] || w[p[1]]), right, sy, { align: 'right' });
-    var lx0 = sx + 44 * K, lx1 = right - 30 * K, ly0 = sy - 2.2 * K;
+    var lx0 = sx + 52 * K, lx1 = right - 34 * K, ly0 = sy - 2.2 * K;
     if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(lx0, ly0, lx1, ly0);
       list.forEach(function (_, j) { var px = lx0 + (lx1 - lx0) * (list.length > 1 ? j / (list.length - 1) : 0); if (j === i) { D.setFillColor(PC.sig); D.circle(px, ly0, 2.4 * K, 'F'); } else { D.setFillColor(PC.faint); D.circle(px, ly0, 0.9 * K, 'F'); } }); }
     sy += 9.6 * K;
   });
-  var gy = Math.max(sy, hasFp ? ry + fpR * 2 + 8 : 0) + 8 * K, rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
+  var gy = sy + 8 * K, rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
   var c1 = rx, c2 = rx + 40 * K, c3 = w.open ? c2 : rx + 40 * K + (right - rx - 40 * K) / 2, cw = (right - c2) / (w.open ? 1 : 2) - 4 * K;
   font('Archivo', 'bold', 5.4, PC.muted); if (!w.open) txt('MY GUESS', c2, gy, { charSpace: .6 }); txt('ACTUAL', c3, gy, { charSpace: .6 }); gy += 9 * K;
   rows.forEach(function (r, i) {
@@ -311,7 +290,6 @@ function sharePdf(list, title) {
 /* ====================================================================== sync status on the settings button */
 Sync.on(function (s, detail) { $('gear').setAttribute('data-s', s); $('gear').title = { off: 'Settings', idle: 'Google Sheet connected', synced: 'Synced with Google', syncing: 'Syncing…', signin: 'Google sign-in needed', offline: 'Offline', error: 'Sync problem' }[s] || 'Settings';
   if (s === 'error' && detail && detail.message) console.warn(detail.message); if ($('settings').classList.contains('show')) paintGoogle(); });
-$('guideTog').onchange = function () { store(GUIDE_KEY, this.checked); };
 var lastSeen = Date.now();
 document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'visible') { lastSeen = Date.now(); return; } if (Date.now() - lastSeen > 5 * 60 * 1000 && Sync.connected()) Sync.soon(); lastSeen = Date.now(); });
 WIDEQ.addEventListener && WIDEQ.addEventListener('change', function () { if (view === 'notebook') renderNotebook(); });
@@ -325,7 +303,24 @@ function start(init) {
   setData(init.all);
   var draft = recall(DRAFT_KEY), d = today();
   if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
-  $('guideTog').checked = !!recall(GUIDE_KEY);
   setView(new URLSearchParams(location.search).get('view') === 'notebook' ? 'notebook' : 'taste');
   spy();
 }
+
+/* ---- sheets: tap outside or drag down to close (as on iPhone) */
+function closeSheetEl(el) { if (el.id === 'lx') closeLx(); else sheet(el.id, false); }
+document.addEventListener('click', function (e) { if (e.target.classList && e.target.classList.contains('sheet') && e.target.classList.contains('show')) closeSheetEl(e.target); });
+(function () {
+  var drag = null;
+  document.addEventListener('touchstart', function (e) {
+    var h = e.target.closest('.grab, .ph, .lx-hd'); if (!h) return;
+    var panel = h.closest('.panel, .lxp'); if (!panel) return;
+    drag = { panel: panel, y0: e.touches[0].clientY, dy: 0 }; panel.classList.add('dragging');
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) { if (!drag) return; drag.dy = Math.max(0, e.touches[0].clientY - drag.y0); drag.panel.style.transform = 'translateY(' + drag.dy + 'px)'; }, { passive: true });
+  document.addEventListener('touchend', function () {
+    if (!drag) return; var d = drag; drag = null; d.panel.classList.remove('dragging'); d.panel.style.transition = 'transform .2s'; d.panel.style.transform = '';
+    setTimeout(function () { d.panel.style.transition = ''; }, 220);
+    if (d.dy > 110) closeSheetEl(d.panel.parentNode);
+  });
+})();
