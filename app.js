@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.13';
+var VERSION_LABEL = 'v2.14';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -54,10 +54,10 @@ function STAGES() { return [
   { t: 'Conclusions', need: ['quality', 'aging'], sum: function () { return [rec.quality, rec.aging && (rec.aging === 'Suitable' ? 'for aging' : 'drink now')].filter(Boolean).join(' · '); },
     rows: [['rail', 'quality', 'Quality', S.quality], ['chips', 'blic', 'Why', S.blic, 1], ['comment', 'qReason', 'Add your reasoning', 'Balance, length, intensity, complexity…'],
       ['chips', 'aging', 'Bottle aging', S.aging], ['comment', 'aReason', 'Add aging reasoning', 'Structure, fruit, development…']] },
-  { t: 'Identity', need: [], sum: function () { var s = score(); return rec.open ? 'Tasted open' : [rec.gGrape, s ? s.hits + ' of 4' : ''].filter(Boolean).join(' · '); }, rows: [['identity']] }
+  { t: 'Wine Identity and Photo', need: [], sum: function () { var s = score(); return rec.open ? 'Tasted open' : [rec.gGrape, s ? s.hits + ' of 4' : ''].filter(Boolean).join(' · '); }, rows: [['identity']] }
 ]; }
 function stageDone(st) {
-  if (st.t === 'Identity') return !!(rec.open ? rec.aGrape || rec.producer : rec.gGrape);
+  if (st.t === 'Wine Identity and Photo') return !!(rec.open ? rec.aGrape || rec.producer : rec.gGrape);
   return st.need.every(function (k) { return k === 'aromas' || k === 'flavors' ? toks(k).length : !!rec[k]; });
 }
 function isOn(k, v, multi) { return multi ? String(rec[k] || '').split(/\s*,\s*/).indexOf(v) >= 0 : rec[k] === v; }
@@ -152,6 +152,8 @@ function spy() {
   $$('#taste .stage').forEach(function (s, i) { if (s.getBoundingClientRect().top < top) cur = i; });
   if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight - 4) cur = 4;
   $$('#stages button').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-s') === cur); });
+  if (spy.cur !== cur) { spy.cur = cur; var on = document.querySelector('#stages button.on'), row = on && on.parentNode;   // keep the current stage's tab in view
+    if (row && row.scrollWidth > row.clientWidth) { var x = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2; row.scrollTo({ left: Math.max(0, x), behavior: 'smooth' }); } }
 }
 window.addEventListener('scroll', function () { if (view === 'taste') spy(); }, { passive: true });
 $('stages').addEventListener('click', function (e) {
@@ -442,4 +444,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.13';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.14';

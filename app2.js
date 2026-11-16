@@ -404,4 +404,4 @@ function dailyCheck(reg) {
 }
 (function () { var w = ''; try { w = sessionStorage.getItem('btn-updated') || ''; sessionStorage.removeItem('btn-updated'); } catch (e) {}
   if (w) setTimeout(function () { toast('Updated to Tasting Notes ' + VERSION_LABEL + (dirty ? '. Your note is right where you left it' : '')); }, 1500); })();
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.13';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.14';
