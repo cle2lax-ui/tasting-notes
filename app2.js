@@ -141,7 +141,9 @@ function prose(w) {
   if (n || w.aromas || w.noseNotes) out.push({ h: 'Nose', m: [sent(n), sent(w.aromas)].filter(Boolean).join(' '), c: sent(w.noseNotes) });
   var p = [w.sweetness && lw(w.sweetness), w.acidity && lw(w.acidity) + ' acidity', w.tannin && lw(w.tannin) + ' tannin' + (w.tanNature ? ' (' + String(w.tanNature).trim().replace(/\.$/, '').replace(/^./, function (c) { return c.toLowerCase(); }) + ')' : ''),
     w.alcohol && lw(w.alcohol) + ' alcohol', w.body && lw(w.body) + ' body', w.flavInt && lw(w.flavInt) + ' flavor intensity', w.finish && lw(w.finish) + ' finish'].filter(Boolean).join(', ');
-  if (p || w.flavors || w.palate) out.push({ h: 'Palate', m: [sent(p), sent(w.flavors)].filter(Boolean).join(' '), c: sent(w.palate) });
+  var fl = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), same = fl.some(isSame), more = fl.filter(function (x) { return !isSame(x); }).join(', ');
+  var flTxt = same ? SAME + (more ? ', plus ' + more.replace(/[.;:]+$/, '') : '') + '.' : sent(more);
+  if (p || flTxt || w.palate) out.push({ h: 'Palate', m: [sent(p), flTxt].filter(Boolean).join(' '), c: sent(w.palate) });
   var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); });
   var q = w.quality ? w.quality + (bl.length ? ': ' + (bl.length > 1 ? bl.slice(0, -1).join(', ') + ' and ' + bl[bl.length - 1] : bl[0]) : '') + '.' : '';
   var ag = w.aging ? (w.aging === 'Suitable' ? 'Suitable for further aging.' : 'Not suitable for further aging.') : '';
@@ -233,7 +235,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
     font('Archivo', 'normal', 6.6, i < 0 ? PC.faint : PC.ink2); txt(p[0], sx, sy);
     font('Archivo', 'bold', 6.4, i < 0 ? PC.faint : PC.ink); txt(i < 0 ? '–' : (SHORTR[w[p[1]]] || w[p[1]]), right, sy, { align: 'right' });
-    var lx0 = sx + 52 * K, lx1 = right - 34 * K, ly0 = sy - 2.2 * K;
+    var lx0 = sx + 52 * K, lx1 = right - 50 * K, ly0 = sy - 2.2 * K;
     if (draw) { D.setDrawColor(PC.line); D.setLineWidth(.5); D.line(lx0, ly0, lx1, ly0);
       list.forEach(function (_, j) { var px = lx0 + (lx1 - lx0) * (list.length > 1 ? j / (list.length - 1) : 0); if (j === i) { D.setFillColor(PC.sig); D.circle(px, ly0, 2.4 * K, 'F'); } else { D.setFillColor(PC.faint); D.circle(px, ly0, 0.9 * K, 'F'); } }); }
     sy += 9.6 * K;

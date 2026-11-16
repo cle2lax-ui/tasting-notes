@@ -477,6 +477,19 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .tok.own{background:none;box-shadow:inset 0 0 0 1px var(--line-2)}
 @media (max-width:559px){ .ripe{flex-direction:column;align-items:stretch;gap:8px} .ripe .seg{flex:none} }
 .showing:empty{display:none}
+/* rails: bigger dots, spelled-out labels may wrap to two lines */
+.rail:before,.rail:after{top:15px;height:4px}
+.rail button{min-height:52px;gap:7px}
+.rail button:before{width:18px;height:18px;margin-top:8px;border-width:2px}
+.rail button.f1:before{width:13px;height:13px;margin-top:10.5px}
+.rail button.on:before{width:30px;height:30px;margin-top:2px;box-shadow:0 0 0 5px var(--sig-tint)}
+.rail button em{white-space:normal;text-align:center;line-height:1.15;font-size:11.5px;max-width:100%;hyphens:manual;overflow-wrap:normal}
+.prof>div{grid-template-columns:82px minmax(0,1fr) 92px}
+.tok.same{background:var(--gold-tint);color:var(--gold-ink);font-weight:600}
+.rail button em{hyphens:manual;-webkit-hyphens:manual}
+@media (max-width:400px){ .rail[style*="--n:6"] button em{font-size:10.5px} }
+.dft{flex-wrap:wrap;row-gap:6px}
+.dft .lnk{white-space:nowrap}
 
 </style>
 </head>
@@ -584,7 +597,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">

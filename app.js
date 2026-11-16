@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.0';
+var VERSION_LABEL = 'v2.0.1';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -13,8 +13,10 @@ var CHIPC = {
   'Rosé': { 'Pink':['#F9D3DB','#EDA4B5','Youthful'], 'Pink-Orange':['#F8CBB2','#E8977A','Developing'], 'Orange':['#F2B479','#D98038','Mature'] },
   Red: { 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'], 'Garnet':['#97363C','#5C1920','Developing'],
     'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
-var SHORTR = { 'Medium(-)': 'M−', 'Medium(+)': 'M+', 'Medium': 'Med', 'Pronounced': 'Pron.', 'Medium-Dry': 'M-dry', 'Medium-Sweet': 'M-sweet',
-  'Off-Dry': 'Off-dry', 'Luscious': 'Lusc.', 'Acceptable': 'Accept.', 'Very Good': 'V. good', 'Outstanding': 'Outst.' };
+var SHORTR = { 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Pronounced': 'Pronounced', 'Medium-Dry': 'Medium-dry', 'Medium-Sweet': 'Medium-sweet',
+  'Off-Dry': 'Off-dry', 'Luscious': 'Luscious', 'Acceptable': 'Acceptable', 'Very Good': 'Very good', 'Outstanding': 'Outstanding' };
+var SAME = 'Palate confirms the aromas listed above';
+function isSame(t) { return String(t).toLowerCase().replace(/[.;:]+$/, '').trim() === SAME.toLowerCase(); }
 var NICE = { 'Hazy (Faulty?)': 'Hazy', 'Unclean (Faulty?)': 'Unclean', 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Not Suitable': 'Not suitable' };
 
 function $(id) { return document.getElementById(id); }
@@ -68,7 +70,7 @@ function rowHTML(r) {
     var list = r[3], i = list.indexOf(rec[k]), p = i < 0 ? 0 : i / (list.length - 1);
     return '<div class="f rw" id="f-' + k + '"><label>' + r[2] + (i >= 0 ? '<small>' + esc(nice(rec[k])) + '</small>' : '') + '</label>' +
       '<div class="rail' + (i < 0 ? ' unset' : '') + '" data-k="' + k + '" style="--n:' + list.length + ';--p:' + p.toFixed(3) + '">' +
-      list.map(function (v, j) { return '<button type="button" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + esc(SHORTR[v] || v) + '</em></button>'; }).join('') + '</div></div>';
+      list.map(function (v, j) { return '<button type="button" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + esc(SHORTR[v] || v).replace('Acceptable', 'Accept&shy;able').replace('Outstanding', 'Out&shy;standing') + '</em></button>'; }).join('') + '</div></div>';
   }
   if (kind === 'color') {
     var cl = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null, t = CHIPC[rec.type] || {};
@@ -175,6 +177,12 @@ $('lightbox').onclick = function () { this.classList.remove('show'); };
 
 /* ---- descriptors (aromas / flavors) */
 function toks(k) { return String(rec[k] || '').split(/\s*,\s*/).map(function (t) { return t.trim(); }).filter(Boolean); }
+function toggleSame() {
+  var t = toks('flavors'), on = t.some(isSame);
+  if (!on && !toks('aromas').length) { toast('Add your aromas first'); return; }
+  rec.flavors = on ? t.filter(function (x) { return !isSame(x); }).join(', ') : [SAME].concat(t).join(', ');
+  touch(); repaintDesc('flavors');
+}
 function hasWord(k, w) { var lw = w.toLowerCase(); return toks(k).some(function (t) { return t.toLowerCase().replace(/[.;:]+$/, '') === lw; }); }
 function toggleWord(k, w, force) {
   var lw = w.toLowerCase();
@@ -183,6 +191,7 @@ function toggleWord(k, w, force) {
   touch(); repaintDesc(k);
 }
 function tokHTML(t, k) {
+  if (isSame(t)) return '<span class="tok same">Same as the nose<button type="button" data-untok="' + esc(t) + '" data-k="' + k + '" aria-label="Remove">×</button></span>';
   var known = !!WORDHOME[t.replace(/[.;:]+$/, '').toLowerCase()];
   return '<span class="tok' + (known ? '' : ' own') + '">' + esc(t) + '<button type="button" data-untok="' + esc(t) + '" data-k="' + k + '" aria-label="Remove ' + esc(t) + '">×</button></span>';
 }
@@ -192,7 +201,7 @@ function descHTML(k, label) {
     '<input type="text" class="din" data-din="' + k + '" placeholder="' + (t.length ? 'Add another' : k === 'flavors' ? 'Type a flavor' : 'Type an aroma') + '" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>' +
     '<div class="sug" id="sug-' + k + '"></div>' +
     '<div class="dft"><button type="button" class="lnk" data-lex="' + k + '">Open the Lexicon</button>' +
-    (k === 'flavors' ? '<button type="button" class="lnk" id="sameNose">Same as the nose</button>' : '') + '<small>' + (t.length ? t.length + (k === 'flavors' ? ' flavors' : ' aromas') : '') + '</small></div></div></div>';
+    (k === 'flavors' ? '<button type="button" class="lnk" id="sameNose" aria-pressed="' + t.some(isSame) + '">' + (t.some(isSame) ? '✓ Same as the nose' : 'Same as the nose') + '</button>' : '') + '<small>' + (function () { var n = t.filter(function (x) { return !isSame(x); }).length; return n ? n + (k === 'flavors' ? ' flavor' : ' aroma') + (n === 1 ? '' : 's') : ''; })() + '</small></div></div></div>';
 }
 function repaintDesc(k) {
   var el = $('f-' + k); if (el) { var had = document.activeElement && document.activeElement.getAttribute('data-din') === k; el.outerHTML = descHTML(k, k === 'flavors' ? 'Flavors' : 'Aromas'); if (had) document.querySelector('[data-din="' + k + '"]').focus(); }
@@ -246,7 +255,7 @@ document.addEventListener('click', function (e) {
   if (aw) { var kk = aw.getAttribute('data-k'); toggleWord(kk, aw.getAttribute('data-addw'), true); var inp = document.querySelector('[data-din="' + kk + '"]'); if (inp) { inp.value = ''; inp.focus(); } return; }
   var lx = t.closest('[data-lex]');
   if (lx) { openLx(lx.getAttribute('data-lex')); return; }
-  if (t.id === 'sameNose') { var a = toks('aromas'); if (!a.length) { toast('Add your aromas first'); return; } a.forEach(function (w) { if (!hasWord('flavors', w)) rec.flavors = toks('flavors').concat([w]).join(', '); }); touch(); repaintDesc('flavors'); return; }
+  if (t.id === 'sameNose') { toggleSame(); return; }
   if (t.closest('#openBtn')) { rec.open = !rec.open; rerow('identity'); renderTaste(); touch(); return; }
   if (t.id === 'phRemove') { ask('Remove the label photo from this wine?', 'Remove', 'Keep').then(function (go) { if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch(); }); return; }
   var im = t.closest('#phBox img'); if (im) { showPhoto(im.getAttribute('data-full')); return; }
@@ -350,7 +359,7 @@ function paintLx() {
   $('lxTitle').textContent = k === 'flavors' ? 'Flavors' : 'Aromas';
   $('lxSub').textContent = [rec.type ? rec.type + ' wine' : '', n ? n + ' chosen' : 'Tap to choose'].filter(Boolean).join(' · ');
   $('lxPicks').innerHTML = n ? toks(k).map(function (t) { return tokHTML(t, k); }).join('') : '<span class="ph0">Your ' + (k === 'flavors' ? 'flavors' : 'aromas') + ' appear here</span>';
-  $('lxSame').hidden = k !== 'flavors' || !toks('aromas').length;
+  $('lxSame').hidden = k !== 'flavors'; $('lxSame').textContent = toks('flavors').some(isSame) ? '✓ Same as the nose' : 'Same as the nose';
   $('lxTabs').innerHTML = LEXFAM.map(function (f) { var c = famCount(f); return '<button type="button" data-jump="' + f.k + '">' + esc(f.name) + (c ? '<b>' + c + '</b>' : '') + '</button>'; }).join('');
   paintLxBody();
 }
@@ -383,5 +392,5 @@ $('lx').addEventListener('click', function (e) {
     if (!had) rec[LX.k] = toks(LX.k).concat([v.toLowerCase()]).join(', '); touch(); repaintDesc(LX.k); return; }
   var mo = t.closest('[data-more]'); if (mo) { LX.more[mo.getAttribute('data-more')] = 1; paintLxBody(); return; }
   var own = t.closest('[data-own]'); if (own) { addTyped(LX.k, own.getAttribute('data-own')); LX.q = ''; $('lxQ').value = ''; paintLx(); return; }
-  if (t.closest('#lxSame')) { toks('aromas').forEach(function (x) { if (!hasWord('flavors', x)) rec.flavors = toks('flavors').concat([x]).join(', '); }); touch(); repaintDesc('flavors'); return; }
+  if (t.closest('#lxSame')) { toggleSame(); return; }
 });
