@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tasting Notes">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" id="manifestLink" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <style>
@@ -484,7 +484,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .welcome .skip{border:0;background:none;color:var(--muted);font:600 13.5px/1 var(--sans);text-decoration:underline;margin-top:16px;padding:6px}
 .welcome .fine{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
 .welcome .err{color:var(--no-ink);font-size:13.5px;margin-top:10px;min-height:1em}
-/* ---- v1.10 entry polish */
+/* ---- v1.10.1 entry polish */
 .sec>header .prog{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
 .sec>header .prog i{display:block;width:46px;height:4px;border-radius:2px;background:var(--seg);overflow:hidden;position:relative}
 .sec>header .prog i b{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-hi),var(--gold));border-radius:2px;transition:width .35s var(--ease)}
@@ -557,7 +557,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .ltile,:root[data-theme="dim"] .lexsearch input,:root[data-theme="dim"] .openbtn{background:#1A1418;color:var(--ink)}
 :root[data-theme="dim"] .lexopen{background:#2A2117;color:var(--gold-ink);border-color:#4A3A22}
 :root[data-theme="dim"] .lph .lexdone{color:#6D1A36}
-/* ---- v1.10 beauty pass */
+/* ---- v1.10.1 beauty pass */
 .sec>header{padding:16px 18px 12px}
 .sec>header .n{font:italic 600 22px/1 var(--serif);color:var(--gold);width:auto;min-width:30px;letter-spacing:0}
 .sec>header .t{font:italic 700 20px/1.1 var(--serif)}
@@ -641,7 +641,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 :root[data-theme="dim"] .pc-lab b{color:#EDE3E6}
 :root[data-theme="dim"] .opts.pcs .opt.pc.on .pc-lab b{color:#E9C98B}
 
-/* v1.10 summary: Appearance · Nose · Palate · Quality · Guess */
+/* v1.10.1 summary: Appearance · Nose · Palate · Quality · Guess */
 .c .dl+.nt,.c .dl+.dstrip,.c .sts+.nt,.c .sts+.dstrip{margin-top:14px}
 .c .dstrip+.nt{margin-top:2px}
 @media (min-width:700px){
@@ -693,20 +693,20 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 .pr .gt td.ac{font-weight:700 !important}
 :root[data-theme="dim"] .nt p{color:var(--ink-2) !important}
 
-/* v1.10 summary: values sit right beside their labels instead of at the far edge */
+/* v1.10.1 summary: values sit right beside their labels instead of at the far edge */
 .dl{grid-template-columns:max-content minmax(0,1fr) !important;column-gap:18px !important;justify-content:start}
 .dl dd{justify-content:flex-start !important;text-align:left !important}
 
-/* v1.10 card header: grape · region · country · vintage in bold, same color as the producer */
+/* v1.10.1 card header: grape · region · country · vintage in bold, same color as the producer */
 .wh .sub2{font-weight:700 !important;color:var(--sig) !important;font-size:13.5px;letter-spacing:.005em}
 .wh .sub2 i{font-family:var(--sans) !important;font-weight:500 !important;color:var(--muted) !important}
 .pr .pch .sb{font-weight:700 !important;color:var(--ink) !important}
 
-/* v1.10 label photo: a little larger, in the label's own upright shape */
+/* v1.10.1 label photo: a little larger, in the label's own upright shape */
 .wthumb{width:66px !important;height:84px !important;border-radius:9px !important}
 @media (max-width:699px){ .wthumb{width:54px !important;height:70px !important} }
 
-/* v1.10 welcome: two steps */
+/* v1.10.1 welcome: two steps */
 .welcome [hidden]{display:none !important}
 .welcome .wc{max-width:520px;text-align:left;padding:30px 26px 24px}
 .welcome .wc>.eyebrow,.welcome .wc>h2{text-align:center}
@@ -742,6 +742,10 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
 #wFinish{margin-top:18px;min-height:50px;font-size:16px}
 #wFinish:disabled{opacity:.45;filter:saturate(.4)}
 @media (max-width:420px){ .welcome{padding:12px} .welcome .wc{padding:24px 18px 18px;border-radius:22px} .welcome h2{font-size:24px !important} }
+
+/* v1.10.1 welcome: whole card reachable on small phones */
+.welcome{align-items:flex-start !important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.welcome .wc{margin:auto}
 /* the printed page is always light */
 .pr{--paper:#F8F5EF;--card:#FFFFFF;--ink:#1F1A1D;--ink-2:#4A4146;--muted:#83777C;--faint:#B7ACA3;--line:#ECE5DA;--line-2:#DED4C5;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F6EFE2;--sig:#6D1A36;--ok:#E3EFDC;--ok-ink:#2F5A22;--no:#F7DDDD;--no-ink:#8A2430}
@@ -842,7 +846,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   </div></div></div>
   <div class="strip"><div class="wrap"><b id="who">Wine #1</b><span class="pill" id="state">New</span></div></div>
   <main class="wrap" id="entryMain"><div class="loading">Opening your tasting log…</div></main>
-  <div class="foot">Blind Tasting Notes · v1.10 · <a href="#" class="opensettings">Settings</a></div>
+  <div class="foot">Blind Tasting Notes · v1.10.1 · <a href="#" class="opensettings">Settings</a></div>
   <div class="bar"><div class="wrap">
     <button class="btn" id="newBtn" type="button">New</button>
     <button class="btn" id="saveBtn" type="button">Save</button>
@@ -868,7 +872,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
   <div class="wrap">
     <div class="showing" id="showing"></div>
     <div class="wines" id="wines"><div class="loading">Opening your tasting log…</div></div>
-    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.10</div>
+    <div class="foot"><a href="#" class="opensettings">Settings</a> · v1.10.1</div>
   </div>
   <div class="selbar" id="selbar"><div class="wrap">
     <span class="n" id="selN">0 selected</span>
@@ -902,7 +906,7 @@ textarea{min-height:48px;resize:none;overflow:hidden;display:block}
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.10. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Blind Tasting Notes v1.10.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
   <div class="eyebrow">WSET Level 4 · SAT</div>
@@ -2049,8 +2053,23 @@ window.addEventListener('appinstalled', function(){ BIP = null; INSTALLED = true
 function welcomeShow(on){ $('welcome').classList.toggle('show', !!on); if (on) { paintS1(); paintInstall(); } }
 function welcomeDone(){ store('btn-welcome', 'done'); welcomeShow(false); }
 function maybeWelcome(){
+  var q = new URLSearchParams(location.search);
+  if (q.get('setup') === 'local' && (STANDALONE || !IOS)) {   // in Safari the link stays, so Add to Home Screen still carries it
+    history.replaceState(null, '', location.pathname);
+    if (recall('btn-welcome') !== 'done' && !Sync.connected()) { store('btn-welcome', 'done'); toast('Notes will be saved on this device'); return; }
+  }
   if (recall('btn-welcome') === 'done' || Sync.connected()) return;
   welcomeShow(true);
+}
+function chosen1(kind){
+  W1 = kind; store('btn-welcome', 'done'); paintS1(); paintInstall();
+  if (kind === 'local' && IOS && !STANDALONE) {
+    // Safari and the Home Screen app keep separate storage: hand the choice over in the Home Screen link
+    history.replaceState(null, '', location.pathname + '?setup=local');
+    var ml = $('manifestLink'); if (ml) ml.href = 'manifest-local.webmanifest';
+  }
+  if (STANDALONE || INSTALLED) setTimeout(function(){ if ($('welcome').classList.contains('show') && W1) $('wFinish').click(); }, 1400);
+  else setTimeout(function(){ var f = $('wFinish'); if (f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 120);
 }
 function paintS1(){
   var done = !!W1, c = Sync.config();
@@ -2071,7 +2090,7 @@ function paintInstall(){
       '<li><span>Open <b>Tasting Notes</b> from your Home Screen. It opens full-screen and works offline.</span></li></ol>' +
       '<p class="fine">Safari and the Home Screen app keep separate notebooks on your device.' +
       (W1 && W1 !== 'local' ? ' When you first open the Home Screen app, choose <b>Connect an existing Google Sheet</b> and pick the same Sheet. Your notes will be there.' :
-        ' Add the icon before you start entering notes, and taste from the Home Screen app.') + '</p>';
+        ' Your choice carries over to the Home Screen app. Add the icon before you start entering notes.') + '</p>';
     return;
   }
   if (BIP) { b.innerHTML = '<p class="wsub">Install Tasting Notes like an app. It opens in its own window and works offline.</p><button class="btn" type="button" id="wInstallBtn">Add to Home Screen</button>'; return; }
@@ -2082,19 +2101,20 @@ document.addEventListener('click', function(e){
     var ev = BIP; BIP = null; ev.prompt();
     (ev.userChoice || Promise.resolve({})).then(function(r){ if (r && r.outcome === 'accepted') INSTALLED = true; paintInstall(); });
   }
-  if (e.target.closest('#wChange')) { W1 = ''; paintS1(); paintInstall(); }
+  if (e.target.closest('#wChange')) { W1 = ''; store('btn-welcome', null); history.replaceState(null, '', location.pathname);
+    var ml = $('manifestLink'); if (ml) ml.href = 'manifest.webmanifest'; paintS1(); paintInstall(); }
 });
 function wBusy(b, on, t){ ['wCreate','wPick','wLocal'].forEach(function(id){ $(id).disabled = on; }); if (t) b.querySelector('b').textContent = t; }
 function wFail(b, was, err){ wBusy(b, false, was); if (!err || !err.quiet) $('wErr').textContent = err && err.message === 'signin' ? 'Google sign-in is needed. Please try again.' : (err && err.message) || 'Something went wrong. Please try again.'; }
 $('wCreate').onclick = function(){
   var b = this, was = b.querySelector('b').textContent; $('wErr').textContent = ''; wBusy(b, true, 'Creating your Sheet…');
-  Sync.createSheet().then(function(){ wBusy(b, false, was); W1 = 'create'; paintS1(); paintInstall(); afterSync(); }, function(err){ wFail(b, was, err); });
+  Sync.createSheet().then(function(){ wBusy(b, false, was); chosen1('create'); afterSync(); }, function(err){ wFail(b, was, err); });
 };
 $('wPick').onclick = function(){
   var b = this, was = b.querySelector('b').textContent; $('wErr').textContent = ''; wBusy(b, true, 'Opening Google Drive…');
-  Sync.pickSheet().then(function(){ wBusy(b, false, was); W1 = 'pick'; paintS1(); paintInstall(); afterSync(); }, function(err){ wFail(b, was, err); });
+  Sync.pickSheet().then(function(){ wBusy(b, false, was); chosen1('pick'); afterSync(); }, function(err){ wFail(b, was, err); });
 };
-$('wLocal').onclick = function(){ $('wErr').textContent = ''; W1 = 'local'; paintS1(); paintInstall(); };
+$('wLocal').onclick = function(){ $('wErr').textContent = ''; chosen1('local'); };
 $('wFinish').onclick = function(){
   if (!W1) return;
   welcomeDone();
