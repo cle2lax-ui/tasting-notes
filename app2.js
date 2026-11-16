@@ -74,7 +74,8 @@ function renderNotebook(keepScroll) {
     }
     html += rowHTMLnb(w);
   });
-  $('list').innerHTML = wines.length ? html : '<div class="empty"><h3>No wines to show</h3><p>' + (ALL.length ? 'Nothing matches. Try clearing the search or filter.' : 'Your first saved wine will appear here.') + '</p></div>';
+  $('list').innerHTML = wines.length ? html : (ALL.length ? '<div class="empty"><h3>No wines to show</h3><p>Nothing matches. Try clearing the search or filter.</p></div>'
+    : '<div class="empty first"><h3>Your notebook is empty</h3><p>Click <button type="button" class="lnk" data-go="taste">Tasting</button> above to start a new tasting note</p></div>');
   $('nbView').classList.toggle('selecting', selecting);
   fillThumbs(wines);
   if (WIDEQ.matches) { var cur = wines.filter(function (w) { return w.id === NB.cur; })[0] || wines[0]; NB.cur = cur ? cur.id : ''; $('cardPane').innerHTML = cur ? cardHTML(cur) : ''; if (!keepScroll) $('cardPane').scrollTop = 0; }
@@ -316,7 +317,9 @@ function start(init) {
   if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
   if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
   var back = ''; try { back = sessionStorage.getItem('btn-view') || ''; sessionStorage.removeItem('btn-view'); } catch (e) {}
-  setView(new URLSearchParams(location.search).get('view') === 'notebook' || back === 'notebook' ? 'notebook' : 'taste');
+  // opens on the Notebook; Tasting when coming back to an unsaved note, or when asked for
+  var want = new URLSearchParams(location.search).get('view') || back || (draft ? 'taste' : 'notebook');
+  setView(want === 'taste' ? 'taste' : 'notebook');
   spy();
 }
 
@@ -405,3 +408,6 @@ function dailyCheck(reg) {
 (function () { var w = ''; try { w = sessionStorage.getItem('btn-updated') || ''; sessionStorage.removeItem('btn-updated'); } catch (e) {}
   if (w) setTimeout(function () { toast('Updated to Tasting Notes ' + VERSION_LABEL + (dirty ? '. Your note is right where you left it' : '')); }, 1500); })();
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.14';
+
+document.addEventListener('click', function (e) { if (e.target.closest('[data-go="taste"]')) { setView('taste'); window.scrollTo(0, 0); } });
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.15';
