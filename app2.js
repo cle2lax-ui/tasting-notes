@@ -1,7 +1,7 @@
 /* Blind Tasting Notes 2.0 — Notebook, tasting card, PDF, sync status, start-up. */
 var NB = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: true, q: '', cur: '' };
 var SEL = {}, selecting = false;
-var WIDEQ = window.matchMedia('(min-width: 900px)');
+var WIDEQ = { matches: false };   // v2.12: no side-by-side card on iPad; a wine opens full screen instead
 
 function setView(v) {
   view = v; document.body.setAttribute('data-view', v);
@@ -302,7 +302,7 @@ Sync.on(function (s, detail) { $('gear').setAttribute('data-s', s); $('gear').ti
   if (s === 'error' && detail && detail.message) console.warn(detail.message); if ($('settings').classList.contains('show')) paintGoogle(); });
 var lastSeen = Date.now();
 document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'visible') { lastSeen = Date.now(); return; } if (Date.now() - lastSeen > 5 * 60 * 1000 && Sync.connected()) Sync.soon(); lastSeen = Date.now(); });
-WIDEQ.addEventListener && WIDEQ.addEventListener('change', function () { if (view === 'notebook') renderNotebook(); });
+false && WIDEQ.addEventListener('change', function () { if (view === 'notebook') renderNotebook(); });
 
 /* ====================================================================== start */
 function start(init) {
