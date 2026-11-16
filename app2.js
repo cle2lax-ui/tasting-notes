@@ -142,18 +142,18 @@ function lw(v) { return nice(v).toLowerCase(); }
 function prose(w) {
   var out = [];
   var a = [w.clarity && lw(w.clarity), [w.appInt && lw(w.appInt), w.color && lw(w.color)].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-  if (a || w.appNotes) out.push({ h: 'Appearance', m: sent(a), c: sent(w.appNotes) });
+  if (a || w.appNotes) out.push({ h: 'Appearance', m: [sent(a), sent(w.appNotes)].filter(Boolean).join(' ') });
   var n = [w.condition && lw(w.condition), w.noseInt && lw(w.noseInt) + ' intensity', w.development && lw(w.development)].filter(Boolean).join(', ');
-  if (n || w.aromas || w.noseNotes) out.push({ h: 'Nose', m: [sent(n), sent(w.aromas)].filter(Boolean).join(' '), c: sent(w.noseNotes) });
+  if (n || w.aromas || w.noseNotes) out.push({ h: 'Nose', m: [sent(n), sent(w.aromas), sent(w.noseNotes)].filter(Boolean).join(' ') });
   var p = [w.sweetness && lw(w.sweetness), w.acidity && lw(w.acidity) + ' acidity', w.tannin && lw(w.tannin) + ' tannin' + (w.tanNature ? ' (' + String(w.tanNature).trim().replace(/\.$/, '').replace(/^./, function (c) { return c.toLowerCase(); }) + ')' : ''),
     w.alcohol && lw(w.alcohol) + ' alcohol', w.body && lw(w.body) + ' body', w.flavInt && lw(w.flavInt) + ' flavor intensity', w.finish && lw(w.finish) + ' finish'].filter(Boolean).join(', ');
   var fl = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), same = fl.some(isSame), more = fl.filter(function (x) { return !isSame(x); }).join(', ');
   var flTxt = same ? SAME + (more ? ', plus ' + more.replace(/[.;:]+$/, '') : '') + '.' : sent(more);
-  if (p || flTxt || w.palate) out.push({ h: 'Palate', m: [sent(p), flTxt].filter(Boolean).join(' '), c: sent(w.palate) });
+  if (p || flTxt || w.palate) out.push({ h: 'Palate', m: [sent(p), flTxt, sent(w.palate)].filter(Boolean).join(' ') });
   var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); });
   var q = w.quality ? w.quality + (bl.length ? ': ' + (bl.length > 1 ? bl.slice(0, -1).join(', ') + ' and ' + bl[bl.length - 1] : bl[0]) : '') + '.' : '';
   var ag = w.aging ? (w.aging === 'Suitable' ? 'Suitable for further aging.' : 'Not suitable for further aging.') : '';
-  if (q || ag || w.qReason || w.aReason) out.push({ h: 'Conclusions', m: q, c: sent(w.qReason), m2: ag, c2: sent(w.aReason) });
+  if (q || ag || w.qReason || w.aReason) out.push({ h: 'Conclusions', q: q, m: [sent(w.qReason), ag, sent(w.aReason)].filter(Boolean).join(' ') });
   return out;
 }
 var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'five'], ['Tannin', 'tannin', 'five'], ['Alcohol', 'alcohol', 'alcohol'], ['Body', 'body', 'body'], ['Flavor int.', 'flavInt', 'intensity'], ['Finish', 'finish', 'finish']];
@@ -163,7 +163,7 @@ function cardHTML(w) {
     '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + '</div>' +
     '<div class="score">' + (w.open ? '<span class="op">Tasted open</span>' : '<b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b><span>Score</span>') + '</div></header>';
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
-    return '<p><b>' + p.h + '</b>' + esc(p.m) + (p.c ? ' <span class="c">' + esc(p.c) + '</span>' : '') + (p.m2 ? ' ' + esc(p.m2) : '') + (p.c2 ? ' <span class="c">' + esc(p.c2) + '</span>' : '') + '</p>';
+    return '<p><b>' + p.h + '</b>' + (p.q ? '<strong class="q">' + esc(p.q) + '</strong>' : '') + esc(p.m) + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
   h += '<div><h6>Structure</h6><div class="prof">' + PROF.map(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
@@ -230,8 +230,8 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   var LW = W * 0.6, ly = top + 10 * K;
   prose(w).forEach(function (p) {
     font('Archivo', 'bold', 6, PC.sig); txt(p.h.toUpperCase(), x, ly, { charSpace: 1 }); ly += 9.5 * K;
-    var parts = [[p.m, PC.ink], [p.c, PC.ink2], [p.m2, PC.ink], [p.c2, PC.ink2]].filter(function (z) { return z[0]; });
-    parts.forEach(function (z) { font('Archivo', 'normal', 8, z[1]); D.splitTextToSize(pdfText(z[0]), LW).forEach(function (line) { txt(line, x, ly); ly += 10.4 * K; }); });
+    if (p.q) { font('Archivo', 'bold', 9.4, PC.ink); D.splitTextToSize(pdfText(p.q), LW).forEach(function (line) { txt(line, x, ly + 1 * K); ly += 12.4 * K; }); ly += 1 * K; }
+    if (p.m) { font('Archivo', 'normal', 8, PC.ink); D.splitTextToSize(pdfText(p.m), LW).forEach(function (line) { txt(line, x, ly); ly += 10.4 * K; }); }
     ly += 4.5 * K;
   });
   // right: fingerprint, structure, guess and actual
