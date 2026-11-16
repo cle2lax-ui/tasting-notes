@@ -543,6 +543,12 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .welcome .steps svg{color:var(--ink-2)}
 .welcome .steps li svg:last-of-type{color:#0A7AFF}
 
+/* v2.2 Clear selections */
+.clearsel{display:grid;justify-items:center;gap:8px;margin:34px 0 6px;padding-top:26px;border-top:1px solid var(--line)}
+.clearsel .btn{color:#B3261E;min-width:200px}
+.clearsel small{color:var(--muted);font-size:13px;text-align:center}
+:root[data-theme="dim"] .clearsel .btn{color:#F0A9AF}
+
 </style>
 </head>
 <body data-view="taste">
@@ -649,7 +655,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">

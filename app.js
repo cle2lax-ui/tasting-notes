@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.1';
+var VERSION_LABEL = 'v2.2';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -99,7 +99,9 @@ function renderTaste() {
     h += '<section class="stage' + (fold ? ' folded' : '') + (done ? ' done' : '') + '" id="st-' + i + '" data-i="' + i + '"><div class="sh" role="button" tabindex="0" aria-expanded="' + !fold + '"><h2>' + st.t + '</h2><small id="sum-' + i + '">' +
       esc(done ? st.sum() : st.need.length ? n + ' of ' + st.need.length : '') + '</small><i class="chev" aria-hidden="true"></i></div><div class="sb">' + st.rows.map(rowHTML).join('') + '</div></section>';
   });
+  h += '<div class="clearsel"><button type="button" class="btn" id="clearSel">Clear selections</button><small>Keeps the date, wine number, event and label photo</small></div>';
   $('taste').innerHTML = h;
+  $('clearSel').onclick = clearSelections;
   $$('#taste textarea').forEach(grow);
   paintStages(); paintScore();
 }
@@ -108,6 +110,20 @@ function rerow(k) {
   STAGES().forEach(function (st) { st.rows.forEach(function (r) { if (r[1] === k || (k === 'color' && r[0] === 'color')) el.outerHTML = rowHTML(r); }); });
 }
 var FOLDED = {}, PINNED = {};
+/* ---- Clear selections: wipes every answer and note on this wine, after an Are you sure? step */
+var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer'];
+function answerKeys() { var ks = ID_KEYS.slice(); STAGES().forEach(function (st) { st.rows.forEach(function (r) { ks.push(r[0] === 'color' ? 'color' : r[1]); }); }); return ks.filter(Boolean); }
+function clearSelections() {
+  var ks = answerKeys(), any = ks.some(function (k) { var v = rec[k]; return Array.isArray(v) ? v.length : !!(v && String(v).trim()); });
+  if (!any) { toast('Nothing to clear yet'); return; }
+  ask('Are you sure? This clears every selection, descriptor, note and guess for Wine ' + (rec.wineNo || '') + '. The date, wine number, event and label photo stay.' + (orig ? ' The saved copy changes only if you tap Save.' : ''), 'Clear', 'Cancel').then(function (go) {
+    if (!go) return;
+    ks.forEach(function (k) { delete rec[k]; });
+    FOLDED = {}; PINNED = {}; OPENED = {};
+    if (orig) touch(true); else { dirty = false; clearDraft(); paintId(); }
+    renderTaste(); window.scrollTo(0, 0); toast('Selections cleared');
+  });
+}
 /* finished stages fold to their one-line summary once you move on to a later stage */
 function foldAbove(i, anchor) {
   var y0 = anchor ? anchor.getBoundingClientRect().top : 0, changed = false;
