@@ -24,7 +24,9 @@ function setData(all) {
     ALL.forEach(function (w) { keys.forEach(function (k) { var v = String(w[k] || '').trim(); if (v && !seen[v.toLowerCase()]) seen[v.toLowerCase()] = v; }); });
     return Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (a, b) { return a.localeCompare(b); }); };
   LISTS = { grape: pick(['gGrape', 'aGrape']), country: pick(['gCountry', 'aCountry']), region: pick(['gRegion', 'aRegion']), event: pick(['event']) };
-  ['grape', 'country', 'region', 'event'].forEach(function (k) { $('dl-' + k).innerHTML = (LISTS[k] || []).map(function (v) { return '<option value="' + esc(v) + '">'; }).join(''); });
+  ['grape', 'country', 'region', 'event'].forEach(function (k) {
+    var seen = {}, all = (LISTS[k] || []).concat(WSET_LISTS[k] || []).filter(function (v) { var key = answerKey(v); if (seen[key]) return false; seen[key] = 1; return true; });
+    $('dl-' + k).innerHTML = all.map(function (v) { return '<option value="' + esc(v) + '">'; }).join(''); });
   if (view === 'notebook') renderNotebook();
 }
 function refreshPhotoIds() { return DB.keys('photos').then(function (k) { PHOTO_IDS = {}; (k || []).forEach(function (id) { PHOTO_IDS[id] = true; }); }); }
@@ -49,9 +51,10 @@ function labHTML(w, cls) {
 function dotsHTML(w) { if (w.open || !w.hits) return ''; return '<span class="dots">' + w.hits.map(function (h) { return '<i class="' + (h === null ? '' : h ? 'y' : 'n') + '"></i>'; }).join('') + '</span>'; }
 function rowHTMLnb(w) {
   var title = w.producer || w.aGrape || 'Not yet revealed', sub = w.producer ? idLine(w) : !w.aGrape && w.gGrape ? 'My guess: ' + [w.gGrape, w.gRegion].filter(Boolean).join(' · ') : idLine(w);
-  return '<button type="button" class="row' + (NB.cur === w.id && WIDEQ.matches ? ' cur' : '') + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '">' + (selecting ? '<span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' : '') + labHTML(w) +
+  var acts = selecting || !w.ymd ? '' : '<div class="ract" aria-hidden="true"><button type="button" class="ra edit" tabindex="-1" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button><button type="button" class="ra share" tabindex="-1" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>PDF</button><button type="button" class="ra del" tabindex="-1" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></div>';
+  return '<div class="rw2">' + acts + '<button type="button" class="row' + (NB.cur === w.id && WIDEQ.matches ? ' cur' : '') + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '">' + (selecting ? '<span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' : '') + labHTML(w) +
     '<span class="w"><b' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '<small>' + esc(['Wine ' + w.wineNo, w.quality].filter(Boolean).join(' · ')) + '</small></span>' +
-    '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + w.score + '<small>/4</small></b>') + dotsHTML(w) + '</span></button>';
+    '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + w.score + '<small>/4</small></b>') + dotsHTML(w) + '</span></button></div>';
 }
 function renderNotebook(keepScroll) {
   var wines = shownWines(), byGroup = NB.sort === 'Date & Wine #' || NB.sort === 'Tasting / Event', html = '', last = null;
@@ -78,7 +81,10 @@ function renderNotebook(keepScroll) {
 }
 $('q').addEventListener('input', function () { NB.q = this.value; renderNotebook(); });
 $('list').addEventListener('click', function (e) {
+  if (e.target.closest('.ract')) return;
   var r = e.target.closest('.row'); if (!r) return; var id = r.getAttribute('data-id');
+  if (SWIPE.justMoved) { SWIPE.justMoved = false; return; }
+  if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
   NB.cur = id;
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
@@ -167,7 +173,7 @@ function cardHTML(w) {
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') + '</div></div>';
-  h += '</div></div><footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button></footer></article>';
+  h += '</div></div><footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button><button type="button" class="btn danger" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></footer></article>';
   return h;
 }
 function flightTitle(list) {
@@ -329,4 +335,46 @@ document.addEventListener('click', function (e) { if (e.target.classList && e.ta
     setTimeout(function () { d.panel.style.transition = ''; }, 220);
     if (d.dy > 110) closeSheetEl(d.panel.parentNode);
   });
+})();
+
+/* ---- delete a wine (from this device and, on the next sync, from the Google Sheet) */
+document.addEventListener('click', function (e) {
+  var d = e.target.closest('[data-del]'); if (!d) return;
+  var id = d.getAttribute('data-del'), w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
+  var name = (w.producer || w.aGrape || 'this wine') + ' (' + (w.dateLabel || '') + ', Wine ' + w.wineNo + ')';
+  ask('Delete ' + name + '? ' + (Sync.connected() ? 'It will also be removed from your Google Sheet. ' : '') + 'This can’t be undone.', 'Delete', 'Cancel').then(function (go) {
+    if (!go) { closeSwipe(); return; }
+    api('appDelete', id).then(function (r) {
+      if (rec.id === id) { clearDraft(); var dd = today(); show({ date: dd, wineNo: 1 }, null, false); }
+      sheet('cardSheet', false); closeSwipe(); if (NB.cur === id) NB.cur = '';
+      setData(r.all); if (rec.id !== id && !orig) { rec.wineNo = rec.wineNo || nextNo(rec.date); paintId(); }
+      toast('Deleted');
+    }).catch(fail);
+  });
+});
+/* ---- swipe a Notebook row left for Edit, PDF and Delete (as in Mail) */
+var SWIPE = { open: null, justMoved: false };
+function closeSwipe() { if (SWIPE.open) { SWIPE.open.style.transform = ''; SWIPE.open.parentNode.classList.remove('open'); SWIPE.open = null; } }
+(function () {
+  var d = null, W = 222;
+  $('list').addEventListener('touchstart', function (e) {
+    var r = e.target.closest('.rw2 .row'); if (!r || selecting || !r.parentNode.querySelector('.ract')) return;
+    if (SWIPE.open && SWIPE.open !== r) closeSwipe();
+    d = { r: r, x0: e.touches[0].clientX, y0: e.touches[0].clientY, base: SWIPE.open === r ? -W : 0, dx: 0, lock: '' };
+  }, { passive: true });
+  $('list').addEventListener('touchmove', function (e) {
+    if (!d) return; var dx = e.touches[0].clientX - d.x0, dy = e.touches[0].clientY - d.y0;
+    if (!d.lock) { if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; d.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; }
+    if (d.lock !== 'x') return;
+    d.dx = dx; var x = Math.max(-W - 30, Math.min(0, d.base + dx));
+    d.r.style.transition = 'none'; d.r.style.transform = 'translateX(' + x + 'px)'; d.r.parentNode.classList.add('open');
+  }, { passive: true });
+  $('list').addEventListener('touchend', function () {
+    if (!d) return; var x = d, end = d.base + d.dx; d = null; if (x.lock !== 'x') return;
+    SWIPE.justMoved = true; setTimeout(function () { SWIPE.justMoved = false; }, 350);
+    x.r.style.transition = '';
+    if (end < -W / 2) { x.r.style.transform = 'translateX(' + -W + 'px)'; SWIPE.open = x.r; x.r.parentNode.classList.add('open'); }
+    else { x.r.style.transform = ''; x.r.parentNode.classList.remove('open'); if (SWIPE.open === x.r) SWIPE.open = null; }
+  });
+  document.addEventListener('touchstart', function (e) { if (SWIPE.open && !e.target.closest('.rw2.open')) closeSwipe(); }, { passive: true });
 })();

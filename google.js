@@ -252,6 +252,8 @@ var Sync = (function () {
         var ser = tsCol >= 0 && typeof vals[i][tsCol] === 'number' ? vals[i][tsCol] : 0;
         if (!sheet[k] || ser >= sheet[k].ser) sheet[k] = { r: i + 1, ser: ser, rec: rec, raw: vals[i] };
       }
+      var tomb = (conf.tomb || []).filter(function (k) { return !ROWS.some(function (r) { return keyOf(r) === k; }); });
+      var dropRows = tomb.map(function (k) { return sheet[k] ? sheet[k].r : 0; }).filter(Boolean).sort(function (a, b) { return b - a; });
       var updates = [], appends = [], localPuts = [], seen = {};
       ROWS.forEach(function (row) {
         var k = keyOf(row), s = sheet[k] || (row.sheetKey && sheet[row.sheetKey]) || null;
@@ -271,7 +273,7 @@ var Sync = (function () {
         }
       });
       Object.keys(sheet).forEach(function (k) {
-        if (seen[k] || ROWS.some(function (r) { return keyOf(r) === k; })) return;
+        if (seen[k] || tomb.indexOf(k) >= 0 || ROWS.some(function (r) { return keyOf(r) === k; })) return;
         var nr = sheet[k].rec; nr.id = uid(); nr.ts = Date.now(); nr.sheetKey = k; nr.sheetSer = sheet[k].ser; nr.dirty = false;
         localPuts.push(nr);
       });
@@ -279,7 +281,16 @@ var Sync = (function () {
       appends.forEach(function (v, j) { updates.push({ range: "'" + LOG_TAB + "'!A" + (lastRow + 1 + j), values: [v] }); });
       if (hdrChanged) updates.push({ range: "'" + LOG_TAB + "'!A1", values: [hdr] });
       var push = updates.length ? g(SHEETS + conf.sheetId + '/values:batchUpdate', { method: 'POST', json: { valueInputOption: 'USER_ENTERED', data: updates } }) : Promise.resolve();
-      return push.then(function () { return DB.putMany('wines', localPuts); }).then(loadRows).then(function () {
+      var drop = function () {
+        if (!dropRows.length) return Promise.resolve();
+        return g(SHEETS + conf.sheetId + '?fields=sheets.properties').then(function (meta) {
+          var tab = (meta.sheets || []).map(function (x) { return x.properties; }).filter(function (pr) { return pr.title === LOG_TAB; })[0];
+          if (!tab) return;
+          return g(SHEETS + conf.sheetId + ':batchUpdate', { method: 'POST', json: { requests: dropRows.map(function (r) {
+            return { deleteDimension: { range: { sheetId: tab.sheetId, dimension: 'ROWS', startIndex: r - 1, endIndex: r } } }; }) } });
+        });
+      };
+      return push.then(drop).then(function () { conf.tomb = []; write(CONF_KEY, conf); return DB.putMany('wines', localPuts); }).then(loadRows).then(function () {
         conf.lastSync = Date.now(); write(CONF_KEY, conf);
         var pulls = ROWS.filter(function (r) { return r.photoUrl && !r.hasPhoto; });
         return pulls.reduce(function (p, r) {
@@ -311,6 +322,7 @@ var Sync = (function () {
     config: function () { return conf; },
     connected: function () { return !!conf.sheetId; },
     signedIn: tokenOk,
-    createSheet: createSheet, pickSheet: pickSheet, disconnect: disconnect, sync: sync, soon: soon, signIn: signIn, preload: preload
+    createSheet: createSheet, pickSheet: pickSheet, disconnect: disconnect, sync: sync, soon: soon, signIn: signIn, preload: preload,
+    forget: function (key) { if (!conf.sheetId || !key) return; conf.tomb = (conf.tomb || []).filter(function (k) { return k !== key; }).concat([key]); write(CONF_KEY, conf); }
   };
 })();

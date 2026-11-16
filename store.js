@@ -96,6 +96,15 @@ var API = {
       if (window.Sync) Sync.soon();
       return { ok: true, label: wineLabel(rec.date, rec.wineNo), id: row.id, all: appAllSync() };
     });
+  },
+  appDelete: function (id) {
+    var row = ROWS.filter(function (x) { return x.id === id; })[0];
+    if (!row) return Promise.resolve({ all: appAllSync() });
+    if (window.Sync && row.sheetKey) Sync.forget(row.sheetKey);       // remove it from the Google Sheet on the next sync
+    return Promise.all([DB.del('wines', id), Photos.remove(id).catch(function () {})]).then(loadRows).then(function () {
+      if (window.Sync) Sync.soon();
+      return { ok: true, all: appAllSync() };
+    });
   }
 };
 

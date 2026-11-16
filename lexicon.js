@@ -44,3 +44,24 @@ RIPENESS.forEach(function (w) { WORDHOME[w.toLowerCase()] = { f: 'fruit', c: 'Fr
 var ALLWORDS = Object.keys(WORDHOME);
 function wordLabel(w) { var h = WORDHOME[String(w).toLowerCase()]; w = h ? h.w : w; return SHOWNAME[w] || w.charAt(0) + w.slice(1).toLowerCase(); }
 function photoOfSlug(s) { return 'aromas/' + s + '.webp'; }
+/* names suggested as you type a guess or the actual wine (your own past entries are added to these) */
+var WSET_LISTS = {
+  grape: ['Cabernet Sauvignon', 'Merlot', 'Cabernet Franc', 'Malbec', 'Petit Verdot', 'Carmenère', 'Pinot Noir', 'Gamay', 'Syrah', 'Shiraz', 'Grenache', 'Mourvèdre',
+    'Carignan', 'Cinsault', 'Tempranillo', 'Garnacha', 'Monastrell', 'Mencía', 'Graciano', 'Sangiovese', 'Nebbiolo', 'Barbera', 'Dolcetto', 'Montepulciano', 'Aglianico',
+    "Nero d'Avola", 'Primitivo', 'Negroamaro', 'Corvina', 'Nerello Mascalese', 'Sagrantino', 'Lambrusco', 'Touriga Nacional', 'Touriga Franca', 'Baga', 'Zinfandel',
+    'Pinotage', 'Tannat', 'Blaufränkisch', 'Zweigelt', 'Xinomavro', 'Agiorgitiko', 'Chardonnay', 'Sauvignon Blanc', 'Sémillon', 'Riesling', 'Chenin Blanc',
+    'Pinot Gris', 'Pinot Grigio', 'Pinot Blanc', 'Gewurztraminer', 'Muscat', 'Viognier', 'Marsanne', 'Roussanne', 'Grüner Veltliner', 'Albariño', 'Alvarinho',
+    'Verdejo', 'Godello', 'Viura', 'Garganega', 'Vermentino', 'Fiano', 'Greco', 'Falanghina', 'Trebbiano', 'Cortese', 'Arneis', 'Verdicchio', 'Assyrtiko',
+    'Furmint', 'Torrontés', 'Melon Blanc', 'Aligoté', 'Silvaner', 'Müller-Thurgau', 'Grenache Blanc', 'Picpoul', 'Loureiro', 'Encruzado', 'Palomino', 'Pedro Ximénez'],
+  country: ['France', 'Italy', 'Spain', 'Portugal', 'Germany', 'Austria', 'Hungary', 'Greece', 'USA', 'Canada', 'Chile', 'Argentina', 'Uruguay', 'Australia',
+    'New Zealand', 'South Africa', 'Lebanon', 'Israel', 'Georgia', 'England', 'Switzerland', 'Slovenia', 'Croatia', 'China', 'Japan', 'Brazil'],
+  region: ['Bordeaux', 'Médoc', 'Pauillac', 'Margaux', 'Saint-Julien', 'Saint-Estèphe', 'Saint-Émilion', 'Pomerol', 'Pessac-Léognan', 'Sauternes', 'Burgundy', 'Chablis',
+    'Côte de Nuits', 'Côte de Beaune', 'Mâconnais', 'Beaujolais', 'Champagne', 'Alsace', 'Loire Valley', 'Sancerre', 'Pouilly-Fumé', 'Vouvray', 'Savennières', 'Muscadet',
+    'Northern Rhône', 'Côte-Rôtie', 'Hermitage', 'Cornas', 'Southern Rhône', 'Châteauneuf-du-Pape', 'Languedoc', 'Roussillon', 'Provence', 'Piedmont', 'Barolo', 'Barbaresco',
+    'Tuscany', 'Chianti Classico', 'Brunello di Montalcino', 'Bolgheri', 'Veneto', 'Valpolicella', 'Amarone della Valpolicella', 'Soave', 'Sicily', 'Etna', 'Campania', 'Taurasi',
+    'Rioja', 'Ribera del Duero', 'Priorat', 'Rías Baixas', 'Rueda', 'Toro', 'Jerez', 'Douro', 'Dão', 'Vinho Verde', 'Alentejo', 'Mosel', 'Rheingau', 'Pfalz', 'Nahe',
+    'Wachau', 'Kamptal', 'Tokaj', 'Napa Valley', 'Sonoma', 'Willamette Valley', 'Columbia Valley', 'Finger Lakes', 'Paso Robles', 'Santa Barbara', 'Mendoza', 'Uco Valley',
+    'Maipo', 'Colchagua', 'Casablanca', 'Barossa Valley', 'McLaren Vale', 'Clare Valley', 'Eden Valley', 'Coonawarra', 'Margaret River', 'Hunter Valley', 'Yarra Valley',
+    'Tasmania', 'Marlborough', 'Central Otago', "Hawke's Bay", 'Martinborough', 'Stellenbosch', 'Swartland', 'Constantia', 'Walker Bay', 'Okanagan Valley', 'Niagara Peninsula',
+    'Bekaa Valley', 'Santorini', 'Naoussa', 'Nemea']
+};

@@ -1,5 +1,5 @@
 /* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.0.2';
+var VERSION_LABEL = 'v2.1';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -95,8 +95,9 @@ function renderTaste() {
   var h = '';
   STAGES().forEach(function (st, i) {
     var done = stageDone(st), n = st.need.filter(function (k) { return k === 'aromas' || k === 'flavors' ? toks(k).length : rec[k]; }).length;
-    h += '<section class="stage" id="st-' + i + '" data-i="' + i + '"><div class="sh"><h2>' + st.t + '</h2><small id="sum-' + i + '">' +
-      esc(done ? st.sum() : st.need.length ? n + ' of ' + st.need.length : '') + '</small></div>' + st.rows.map(rowHTML).join('') + '</section>';
+    var fold = done && FOLDED[i];
+    h += '<section class="stage' + (fold ? ' folded' : '') + (done ? ' done' : '') + '" id="st-' + i + '" data-i="' + i + '"><div class="sh" role="button" tabindex="0" aria-expanded="' + !fold + '"><h2>' + st.t + '</h2><small id="sum-' + i + '">' +
+      esc(done ? st.sum() : st.need.length ? n + ' of ' + st.need.length : '') + '</small><i class="chev" aria-hidden="true"></i></div><div class="sb">' + st.rows.map(rowHTML).join('') + '</div></section>';
   });
   $('taste').innerHTML = h;
   $$('#taste textarea').forEach(grow);
@@ -106,8 +107,25 @@ function rerow(k) {
   var el = $('f-' + k); if (!el) return;
   STAGES().forEach(function (st) { st.rows.forEach(function (r) { if (r[1] === k || (k === 'color' && r[0] === 'color')) el.outerHTML = rowHTML(r); }); });
 }
+var FOLDED = {}, PINNED = {};
+/* finished stages fold to their one-line summary once you move on to a later stage */
+function foldAbove(i, anchor) {
+  var y0 = anchor ? anchor.getBoundingClientRect().top : 0, changed = false;
+  STAGES().forEach(function (st, j) {
+    if (j >= i || PINNED[j] || FOLDED[j] || !stageDone(st)) return;
+    FOLDED[j] = 1; var el = $('st-' + j); if (el) { el.classList.add('folded'); el.querySelector('.sh').setAttribute('aria-expanded', 'false'); changed = true; }
+  });
+  if (changed && anchor) window.scrollBy(0, anchor.getBoundingClientRect().top - y0);
+}
+function setFold(i, fold) {
+  var el = $('st-' + i); if (!el) return;
+  FOLDED[i] = fold ? 1 : 0; PINNED[i] = fold ? 0 : 1;
+  el.classList.toggle('folded', !!fold); el.querySelector('.sh').setAttribute('aria-expanded', String(!fold));
+  $$('#st-' + i + ' textarea').forEach(grow);
+}
 function paintStages() {
   STAGES().forEach(function (st, i) {
+    var el0 = $('st-' + i); if (el0) el0.classList.toggle('done', stageDone(st));
     var done = stageDone(st), n = st.need.filter(function (k) { return k === 'aromas' || k === 'flavors' ? toks(k).length : rec[k]; }).length;
     var b = document.querySelector('#stages button[data-s="' + i + '"]'); if (b) b.classList.toggle('done', done);
     var s = $('sum-' + i); if (s) s.textContent = done ? st.sum() : st.need.length ? n + ' of ' + st.need.length : '';
@@ -123,7 +141,8 @@ function spy() {
 window.addEventListener('scroll', function () { if (view === 'taste') spy(); }, { passive: true });
 $('stages').addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
-  var s = $('st-' + b.getAttribute('data-s')), y = s.getBoundingClientRect().top + window.scrollY - $('stages').getBoundingClientRect().bottom + 1;
+  var si = +b.getAttribute('data-s'); if (FOLDED[si]) setFold(si, false);
+  var s = $('st-' + si), y = s.getBoundingClientRect().top + window.scrollY - $('stages').getBoundingClientRect().bottom + 1;
   window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
 });
 
@@ -147,7 +166,7 @@ function identityHTML() {
 function score() {
   if (rec.open) return null;
   var pairs = [['gGrape', 'aGrape'], ['gCountry', 'aCountry'], ['gRegion', 'aRegion'], ['gVintage', 'aVintage']], of = 0, hits = 0, per = [];
-  pairs.forEach(function (p) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var h = low(rec[p[0]]) === low(rec[p[1]]); if (h) hits++; per.push(h); });
+  pairs.forEach(function (p) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var h = sameAnswer(rec[p[0]], rec[p[1]]); if (h) hits++; per.push(h); });
   return of ? { hits: hits, per: per } : null;
 }
 function paintScore() {
@@ -262,7 +281,7 @@ document.addEventListener('click', function (e) {
 });
 /* identity row is rebuilt as a whole */
 var _rerow = rerow;
-rerow = function (k) { if (k === 'identity') { var st = $('st-4'); if (st) { var s = STAGES()[4]; st.innerHTML = '<div class="sh"><h2>Identity</h2><small id="sum-4"></small></div>' + identityHTML(); paintStages(); } return; } _rerow(k); };
+rerow = function (k) { if (k === 'identity') { var st = $('st-4'); if (st) { var s = STAGES()[4]; var sb = st.querySelector('.sb'); if (sb) sb.innerHTML = identityHTML(); paintStages(); } return; } _rerow(k); };
 
 /* ====================================================================== wine identity line and the Change sheet */
 function dateNice(d) { if (!d) return 'No date'; return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
@@ -276,7 +295,7 @@ function touch(quiet) { dirty = true; paintId(); if (!quiet) paintStages(); stor
 function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem('btn-entry-draft'); } catch (e) {} }
 function today() { return S.today || new Date().toISOString().slice(0, 10); }
 function nextNo(date) { var m = 0; WINES.forEach(function (w) { if (w.d === date) m = Math.max(m, w.n); }); return m + 1; }
-function show(r, o, isDirty) { rec = r; orig = o; dirty = !!isDirty; OPENED = {}; paintId(); renderTaste(); }
+function show(r, o, isDirty) { rec = r; orig = o; dirty = !!isDirty; OPENED = {}; PINNED = {}; FOLDED = {}; STAGES().forEach(function (st, i) { if (o && stageDone(st)) FOLDED[i] = 1; }); paintId(); renderTaste(); }
 $('idChange').onclick = function () { $('cDate').value = rec.date || ''; $('cNo').textContent = rec.wineNo || 1; $('cEvent').value = rec.event || ''; $('openQ').value = ''; paintOpen(); sheet('changeSheet'); };
 $('changeDone').onclick = function () { sheet('changeSheet', false); };
 $('cDate').addEventListener('change', function () { rec.date = this.value; if (!orig) { rec.wineNo = nextNo(rec.date); $('cNo').textContent = rec.wineNo; } touch(); });
@@ -393,4 +412,18 @@ $('lx').addEventListener('click', function (e) {
   var mo = t.closest('[data-more]'); if (mo) { LX.more[mo.getAttribute('data-more')] = 1; paintLxBody(); return; }
   var own = t.closest('[data-own]'); if (own) { addTyped(LX.k, own.getAttribute('data-own')); LX.q = ''; $('lxQ').value = ''; paintLx(); return; }
   if (t.closest('#lxSame')) { toggleSame(); return; }
+});
+
+/* taps on a stage header fold or open it; working in a stage folds the finished ones above */
+document.addEventListener('click', function (e) {
+  var sh = e.target.closest('#taste .sh'); if (!sh) return;
+  var st = sh.parentNode, i = +st.getAttribute('data-i');
+  if (st.classList.contains('folded')) setFold(i, false); else if (st.classList.contains('done')) setFold(i, true);
+});
+document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('#taste .sh')) { e.preventDefault(); e.target.click(); } });
+['click', 'focusin'].forEach(function (ev) {
+  document.addEventListener(ev, function (e) {
+    var st = e.target.closest && e.target.closest('#taste .stage'); if (!st || e.target.closest('.sh')) return;
+    foldAbove(+st.getAttribute('data-i'), e.target);
+  }, true);
 });

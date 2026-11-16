@@ -513,6 +513,35 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .prof .line i.fl{width:7px;height:7px;background:var(--sig)}
 .prof .line i.on{width:13px;height:13px;background:var(--sig)}
 #taste .f .rail,#taste .f.rw .rail{margin:0 34px}
+/* folding stages */
+.stage .sh{cursor:default;border-radius:10px;margin-left:-8px;margin-right:-8px;padding:4px 8px}
+.stage.done .sh{cursor:pointer}
+.stage .sh .chev{display:none;flex:none;width:10px;height:10px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(-135deg) translate(-2px,-2px);margin-left:2px;align-self:center}
+.stage.done .sh .chev{display:block}
+.stage.folded .sh .chev{transform:rotate(45deg) translate(-2px,-2px)}
+.stage .sh small{margin-left:auto}
+.stage.folded{padding:14px 0 12px;border-bottom:1px solid var(--line)}
+.stage.folded .sb{display:none}
+.stage.folded .sh h2{font-size:20px}
+.stage.folded .sh small{color:var(--ink-2);font-size:13.5px;font-weight:500;text-align:right;max-width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage.folded .sh:active{background:var(--seg)}
+.stage.folded+.stage{padding-top:22px}
+/* swipe actions on Notebook rows */
+.rw2{position:relative;overflow:hidden;border-top:1px solid var(--line)}
+.grp+.rw2{border-top:0}
+.rw2 .row{border-top:0;position:relative;z-index:1;background:var(--paper);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.rw2 .row.cur,.rw2 .row.sel{background:var(--sig-tint)}
+.ract{position:absolute;top:0;right:0;bottom:0;display:flex;visibility:hidden}
+.rw2.open .ract{visibility:visible}
+.ra{width:74px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff}
+.ra svg{width:18px;height:18px}
+.ra.edit{background:#7D7378}.ra.share{background:var(--gold)}.ra.del{background:#B3261E}
+:root[data-theme="dim"] .ra.edit{background:#5C5357}:root[data-theme="dim"] .ra.del{background:#9C2A24}
+.btn.danger{color:#B3261E;border-color:var(--line-2);margin-left:auto}
+:root[data-theme="dim"] .btn.danger{color:#F0A9AF}
+.welcome .steps li:before{content:counter(s, upper-alpha)}
+.welcome .steps svg{color:var(--ink-2)}
+.welcome .steps li svg:last-of-type{color:#0A7AFF}
 
 </style>
 </head>
@@ -620,7 +649,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.0.2. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.1. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -782,7 +811,7 @@ function paintInstall(){
   if (STANDALONE || INSTALLED) { $('wS2').classList.add('done'); b.innerHTML = '<div class="wok"><b>You\'re all set.</b><span>Tasting Notes is on your Home Screen and works offline.</span></div>'; return; }
   if (IOS) {
     b.innerHTML = '<ol class="steps">' +
-      '<li><span>In Safari, tap <b>Share</b> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13V2.5M6.5 6L10 2.5 13.5 6M5 9H4v8.5h12V9h-1"/></svg> (on iPhone it may be under the <b>•••</b> button)</span></li>' +
+      '<li><span>In Safari, tap the menu icon <span style="white-space:nowrap"><b>(three lines)</b> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg>,</span> then <b>Share</b> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13V2.5M6.5 6L10 2.5 13.5 6M5 9H4v8.5h12V9h-1"/></svg></span></li>' +
       '<li><span>Choose <b>Add to Home Screen</b>, then tap <b>Add</b></span></li>' +
       '<li><span>Open <b>Tasting Notes</b> from your Home Screen. It opens full-screen and works offline.</span></li></ol>' +
       '<p class="fine">Safari and the Home Screen app keep separate notebooks on your device.' +

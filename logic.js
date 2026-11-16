@@ -130,6 +130,24 @@ function canon(v, list) {                       // match a scale value regardles
   return hit || titleCase(s);
 }
 function norm(s) { return clean(s).toString().toLowerCase(); }
+const SYN = [
+  ['syrah', 'shiraz'], ['grenache', 'garnacha', 'garnacha tinta', 'cannonau'], ['mourvedre', 'monastrell', 'mataro'],
+  ['pinot gris', 'pinot grigio', 'grauburgunder'], ['pinot noir', 'spatburgunder', 'pinot nero', 'blauburgunder'], ['pinot blanc', 'pinot bianco', 'weissburgunder'],
+  ['zinfandel', 'primitivo'], ['malbec', 'cot'], ['tempranillo', 'tinto fino', 'tinta de toro', 'tinta roriz', 'aragonez', 'cencibel', 'tinto del pais'],
+  ['carignan', 'carinena', 'mazuelo', 'carignano'], ['albarino', 'alvarinho'], ['trebbiano', 'ugni blanc'], ['vermentino', 'rolle'],
+  ['muscat', 'moscato', 'moscatel'], ['chenin blanc', 'steen'], ['gewurztraminer', 'traminer'], ['cabernet sauvignon', 'cab sauv'],
+  ['sangiovese', 'brunello', 'prugnolo gentile', 'morellino'], ['nebbiolo', 'spanna', 'chiavennasca'], ['melon blanc', 'melon de bourgogne'],
+  ['usa', 'united states', 'us', 'united states of america', 'america'], ['england', 'uk', 'united kingdom'], ['new zealand', 'nz'], ['south africa', 'rsa'],
+  ['burgundy', 'bourgogne'], ['piedmont', 'piemonte'], ['tuscany', 'toscana'], ['sicily', 'sicilia'], ['rhone', 'rhone valley'], ['loire', 'loire valley'],
+  ['mosel', 'mosel saar ruwer'], ['jerez', 'sherry', 'jerez xeres sherry'], ['douro', 'douro valley'], ['napa', 'napa valley'], ['barossa', 'barossa valley']
+];
+const SYNMAP = {}; SYN.forEach(g => g.forEach(n => { SYNMAP[n] = g[0]; }));
+function answerKey(v) {
+  let s = clean(v).toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  s = s.replace(/[^a-z0-9 ]+/g, ' ').replace(/\b(docg|doc|doca|dop|do|aoc|aop|ava|igt|igp|gi|wo|vdp|appellation|controlee|grosse lage)\b/g, ' ').replace(/\s+/g, ' ').trim();
+  return SYNMAP[s] || s;
+}
+function sameAnswer(a, b) { return answerKey(a) !== '' && answerKey(a) === answerKey(b); }
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
 function dateLabel(d) {
   if (!(d instanceof Date) || isNaN(d)) return '';
@@ -168,7 +186,7 @@ function normalize(rows) {
     w.open = clean(r.open) !== '';
     w.mode = w.open ? 'Open' : 'Blind';
     if (w.open) { w.gGrape = w.gCountry = w.gRegion = w.gVintage = ''; }
-    w.hits = pairs.map(([g, a]) => (w.open || w[a] === '') ? null : norm(w[g]) === norm(w[a]));
+    w.hits = pairs.map(([g, a]) => (w.open || w[a] === '') ? null : sameAnswer(w[g], w[a]));
     const scored = w.hits.filter(h => h !== null);
     w.score = scored.length ? scored.filter(Boolean).length : '';
     w.scoreLabel = w.open ? 'Tasted open' : scored.length ? w.score + ' of ' + pairs.length : '';
