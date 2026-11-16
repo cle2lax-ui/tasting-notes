@@ -698,7 +698,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.12. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.13. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -734,13 +734,13 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.12';</script>
-<script src="logic.js?v=2.12"></script>
-<script src="store.js?v=2.12"></script>
-<script src="google.js?v=2.12"></script>
-<script src="lexicon.js?v=2.12"></script>
-<script src="app.js?v=2.12"></script>
-<script src="app2.js?v=2.12"></script>
+<script>var BUILD = 'v2.13';</script>
+<script src="logic.js?v=2.13"></script>
+<script src="store.js?v=2.13"></script>
+<script src="google.js?v=2.13"></script>
+<script src="lexicon.js?v=2.13"></script>
+<script src="app.js?v=2.13"></script>
+<script src="app2.js?v=2.13"></script>
 <script>
 function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
@@ -802,14 +802,25 @@ $('gsButtons').onclick = function(e){
 
 
 
-/* ---- self-heal: if a stale script came from an old cache, clear the caches and load fresh, once */
-if (typeof VERSION_LABEL !== 'undefined' && VERSION_LABEL !== BUILD && window.caches) {
-  var healed = ''; try { healed = sessionStorage.getItem('btn-healed'); } catch (e) {}
-  if (healed !== BUILD) { try { sessionStorage.setItem('btn-healed', BUILD); } catch (e) {}
-    caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })
-      .then(function () { return navigator.serviceWorker && navigator.serviceWorker.getRegistration(); }).then(function (r) { if (r) r.update().catch(function(){}); location.reload(); });
-  }
+/* ---- self-heal: every script carries the build it belongs to. If any came from an old cache, or start-up
+   hits a missing function, clear the caches and load fresh (at most once a minute, so it can never loop) */
+var SCRIPTS = ['logic', 'store', 'google', 'lexicon', 'app', 'app2'];
+function staleScripts() { var v = window.__V || {}; return SCRIPTS.filter(function (f) { return v[f] !== BUILD; }); }
+function healOnce() {
+  if (!window.caches) return false;
+  var last = null; try { last = JSON.parse(localStorage.getItem('btn-healed') || 'null'); } catch (e) {}
+  if (last && last.b === BUILD && Date.now() - last.t < 60000) return false;
+  try { localStorage.setItem('btn-healed', JSON.stringify({ b: BUILD, t: Date.now() })); } catch (e) {}
+  var q = '?v=' + BUILD.slice(1);
+  caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })
+    // fetch every script fresh so whichever service worker answers the reload has the current copies
+    .then(function () { return Promise.all(SCRIPTS.map(function (f) { return fetch(f + '.js' + q, { cache: 'reload' }).catch(function(){}); })); })
+    .then(function () { return navigator.serviceWorker && navigator.serviceWorker.getRegistration(); })
+    .then(function (r) { if (r) return r.update().catch(function(){}); }).catch(function(){})
+    .then(function () { setTimeout(function () { location.reload(); }, 300); });
+  return true;
 }
+var HEALING = staleScripts().length ? healOnce() : false;
 /* ---- offline app shell */
 if ('serviceWorker' in navigator) {
   var hadSW = !!navigator.serviceWorker.controller, swReloaded = false;
@@ -912,7 +923,8 @@ refreshPhotoIds().then(function(){ return api('appInit'); }).then(function(init)
   if (Sync.connected()) Sync.soon();
   maybeWelcome();
 }).catch(function(err){
-  var m = '<div class="loading">Could not open your tasting notebook. ' + esc(err && err.message || err) + '</div>';
+  var fixing = HEALING || ((err instanceof ReferenceError || staleScripts().length) && healOnce());
+  var m = '<div class="loading">' + (fixing ? 'Updating Tasting Notes…' : 'Could not open your tasting notebook. ' + esc(err && err.message || err) + ' Close the app and open it again.') + '</div>';
   $('taste').innerHTML = m; $('list').innerHTML = m;
 });
 
