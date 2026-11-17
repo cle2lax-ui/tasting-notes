@@ -583,14 +583,25 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
   .nb-split{grid-template-columns:minmax(0,1fr);max-width:980px}
   .nb-list{border-right:0}
   .nb-card{display:none}
-  .card-sheet{align-items:stretch;background:var(--paper)}
-  .card-sheet .panel{max-width:none;max-height:none;height:100%;border-radius:0;box-shadow:none;padding:0 0 calc(48px + var(--sab))}
-  .card-sheet .grab{display:none}
-  .card-sheet .ph{position:sticky;top:0;z-index:3;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(12px + var(--sat)) max(44px, calc((100% - 1100px) / 2 + 44px)) 12px;margin:0 0 30px}
-  #cardBody{max-width:1100px;margin:0 auto;padding:0 44px}
-  .card-sheet.show .panel{animation:fade .2s ease}
 }
 @media (min-width:900px){ .nb-tools .in{max-width:980px} }
+
+/* v2.17 iPad in either orientation: a wine opens full screen, sized to the screen, with Done */
+@media (min-width:700px){
+  .card-sheet{align-items:stretch;background:var(--paper)}
+  .card-sheet .panel{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;box-shadow:none;padding:0 0 calc(48px + var(--sab));overflow-x:hidden}
+  .card-sheet .grab{display:none}
+  .card-sheet .ph{position:sticky;top:0;z-index:3;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(12px + var(--sat)) max(32px, calc((100% - 1100px) / 2 + 44px)) 12px;margin:0 0 26px}
+  #cardBody{max-width:1100px;margin:0 auto;padding:0 32px}
+  .card-sheet.show .panel{animation:fade .2s ease}
+}
+@media (min-width:900px){ #cardBody{padding:0 44px} }
+/* nothing in a card may be wider than the screen */
+.card,.tc-head>div{min-width:0}
+.tc-head h2,.prose p{overflow-wrap:break-word}
+.tc-foot{flex-wrap:wrap;row-gap:8px}
+@media (max-width:350px){ .mast h1{font-size:17px} .tabs button{padding:7px 9px;font-size:13px} }
+html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms out to fit */
 
 </style>
 </head>
@@ -630,8 +641,8 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
   <div class="selbar" id="selbar"><div class="in">
     <span class="n" id="selN">0 selected</span>
     <button class="btn" id="selAll" type="button">All Shown</button>
-    <button class="btn" id="selPdf" type="button">Share PDF</button>
-    <button class="btn pri" id="selSend" type="button">Send to a Friend</button>
+    <button class="btn" id="selSend" type="button">Send to a Friend</button>
+    <button class="btn pri" id="selPdf" type="button">Share PDF</button>
     <button class="btn" id="selDone" type="button">Done</button>
   </div></div>
 </div>
@@ -698,7 +709,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.16. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.17. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -734,13 +745,13 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.16';</script>
-<script src="logic.js?v=2.16"></script>
-<script src="store.js?v=2.16"></script>
-<script src="google.js?v=2.16"></script>
-<script src="lexicon.js?v=2.16"></script>
-<script src="app.js?v=2.16"></script>
-<script src="app2.js?v=2.16"></script>
+<script>var BUILD = 'v2.17';</script>
+<script src="logic.js?v=2.17"></script>
+<script src="store.js?v=2.17"></script>
+<script src="google.js?v=2.17"></script>
+<script src="lexicon.js?v=2.17"></script>
+<script src="app.js?v=2.17"></script>
+<script src="app2.js?v=2.17"></script>
 <script>
 function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });

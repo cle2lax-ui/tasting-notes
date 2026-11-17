@@ -469,4 +469,4 @@ function dailyCheck(reg) {
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.14';
 
 document.addEventListener('click', function (e) { if (e.target.closest('[data-go="taste"]')) { setView('taste'); window.scrollTo(0, 0); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.16';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.17';
