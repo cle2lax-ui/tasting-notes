@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.19';
+var VERSION_LABEL = 'v2.20';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -27,7 +27,7 @@ function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch
 function recall(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
 function nice(v) { return NICE[v] || v; }
 function low(v) { return String(v || '').trim().toLowerCase(); }
-function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(function () { e.classList.remove('show'); }, 2600); }
+function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(function () { e.classList.remove('show'); }, Math.max(2600, String(t).length * 55)); }   // longer messages stay longer
 function ask(msg, yes, no, danger) {     // danger: the confirming button is red (deleting, clearing, discarding)
   return new Promise(function (res) {
     $('mMsg').textContent = msg; $('mYes').textContent = yes || 'OK'; $('mYes').classList.toggle('danger', !!danger); $('mNo').textContent = no || 'Cancel'; $('modal').classList.add('show');
@@ -198,8 +198,40 @@ function photoBox() {
   if (rec.hasPhoto && rec.id && !u) Photos.urls(rec.id).then(function (x) { if (x) { THUMBS[rec.id] = x; var b = $('phBox'); if (b) b.innerHTML = photoBox(); } });
   return (u && rec.hasPhoto ? '<img src="' + u.thumb + '" data-full="' + u.full + '" alt="Label">' : '') +
     '<label class="lnk">' + (rec.hasPhoto ? 'Replace' : 'Add photo') + '<input type="file" accept="image/*" id="phInput"></label>' +
-    (rec.hasPhoto ? '<button type="button" class="lnk" id="phRemove">Remove</button>' : '');
+    (rec.hasPhoto ? '<button type="button" class="lnk" id="phRemove">Remove</button>' : '') +
+    (!rec.hasPhoto && ORPHANS.length ? '<button type="button" class="lnk" id="phOrphans">Use a photo on this device (' + ORPHANS.length + ')</button>' : '');
 }
+/* ---- label photos saved on this device that no wine points to (left behind by an interrupted save) */
+var ORPHANS = [];
+function findOrphans() {
+  return DB.keys('photos').then(function (keys) {
+    var live = {}; ROWS.forEach(function (r) { live[r.id] = true; }); if (rec && rec.id) live[rec.id] = true;
+    ORPHANS = (keys || []).filter(function (k) { return !live[k]; });
+    var b = $('phBox'); if (b) b.innerHTML = photoBox();
+    return ORPHANS;
+  }).catch(function () { return ORPHANS = []; });
+}
+function openOrphans() {
+  $('orphGrid').innerHTML = '';
+  Promise.all(ORPHANS.map(function (id) { return Photos.urls(id).then(function (u) { return u && '<button type="button" data-orph="' + esc(id) + '"><img src="' + u.thumb + '" alt="Label photo"></button>'; }); }))
+    .then(function (h) { $('orphGrid').innerHTML = h.filter(Boolean).join(''); sheet('orphSheet'); });
+}
+function adoptOrphan(id) {
+  if (!rec.id) rec.id = uid();
+  var to = rec.id;
+  Photos.get(id).then(function (p) { if (!p) throw new Error('That photo is no longer on this device.'); p.id = to; p.driveId = ''; return DB.put('photos', p); })
+    .then(function () { return DB.del('photos', id); })
+    .then(function () { Photos.forget(id); Photos.forget(to); delete THUMBS[to]; rec.hasPhoto = true; rec.photoUrl = ''; touch(); sheet('orphSheet', false); return findOrphans(); })
+    .then(function () { toast('Photo attached. Tap Save to keep it'); })
+    .catch(fail);
+}
+$('orphClose').onclick = function () { sheet('orphSheet', false); };
+$('orphGrid').addEventListener('click', function (e) { var b = e.target.closest('[data-orph]'); if (b) adoptOrphan(b.getAttribute('data-orph')); });
+$('orphDel').onclick = function () {
+  ask('Delete the ' + ORPHANS.length + ' photo' + (ORPHANS.length === 1 ? '' : 's') + ' that aren\u2019t attached to any wine?', 'Delete', 'Keep', true).then(function (go) {
+    if (!go) return; Promise.all(ORPHANS.map(function (id) { return Photos.remove(id); })).then(findOrphans).then(function () { sheet('orphSheet', false); toast('Deleted'); });
+  });
+};
 /* A label photo takes a moment to prepare. The photo belongs to the wine it was added to, even if the taster
    saves or moves on before it's ready: Save waits for it, and a wine already saved is updated when it lands. */
 var PHOTO_BUSY = null;
@@ -299,6 +331,7 @@ document.addEventListener('click', function (e) {
   if (lx) { openLx(lx.getAttribute('data-lex')); return; }
   if (t.closest('#sameNose')) { toggleSame(); return; }
   if (t.closest('#openBtn')) { rec.open = !rec.open; rerow('identity'); renderTaste(); touch(); return; }
+  if (t.id === 'phOrphans') { openOrphans(); return; }
   if (t.id === 'phRemove') { ask('Remove the label photo from this wine?', 'Remove', 'Keep', true).then(function (go) { if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch(); }); return; }
   var im = t.closest('#phBox img'); if (im) { showPhoto(im.getAttribute('data-full')); return; }
 });
@@ -455,4 +488,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.19';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.20';
