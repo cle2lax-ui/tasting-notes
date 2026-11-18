@@ -48,13 +48,24 @@ function localToday() { var d = new Date(); return d.getFullYear() + '-' + pad2(
 function wineLabel(d, n) { var p = String(d).split('-'); return (+p[1]) + '/' + (+p[2]) + '/' + p[0].slice(2) + ', Wine #' + Number(n); }
 
 function loadRows() {
-  return DB.all('wines').then(function (list) {
-    ROWS = list || [];
-    // repair: strip web links that slipped into aromas or flavors; the fixed note is marked to sync back to the Sheet
-    var fixes = ROWS.filter(function (r) { var a = cleanDescs(r.aromas), f = cleanDescs(r.flavors); if (a === r.aromas && f === r.flavors) return false; r.aromas = a; r.flavors = f; r.dirty = true; return true; });
+  return Promise.all([DB.all('wines'), DB.keys('photos').catch(function () { return null; })]).then(function (got) {
+    ROWS = got[0] || [];
+    var hasBlob = {}, photosKnown = !!got[1]; (got[1] || []).forEach(function (id) { hasBlob[id] = true; });   // if the photo list can't be read, leave photo flags alone
+    var fixes = [];
+    ROWS.forEach(function (r) {
+      var changed = false;
+      // repair: strip web links that slipped into aromas or flavors; the fixed note syncs back to the Sheet
+      var a = cleanDescs(r.aromas), f = cleanDescs(r.flavors);
+      if (a !== r.aromas || f !== r.flavors) { r.aromas = a; r.flavors = f; r.dirty = true; loadRows.repaired = (loadRows.repaired || 0) + 1; changed = true; }
+      // repair: the photo is on this device but the note doesn't know it (a photo still being prepared when the
+      // wine was saved). Mark it so the next sync uploads it and adds its link to the Sheet.
+      if (photosKnown && hasBlob[r.id] && !r.hasPhoto) { r.hasPhoto = true; r.photoFix = true; changed = true; }
+      // the note says it has a photo that isn't on this device: clear the flag so a Sheet copy can be fetched again
+      if (photosKnown && !hasBlob[r.id] && r.hasPhoto) { r.hasPhoto = false; changed = true; }
+      if (changed) fixes.push(r);
+    });
     if (!fixes.length) return ROWS;
-    loadRows.repaired = (loadRows.repaired || 0) + fixes.length;
-    return Promise.all(fixes.map(function (r) { return DB.put('wines', r); })).then(function () { if (window.Sync) Sync.soon(); return ROWS; });
+    return DB.putMany('wines', fixes).then(function () { if (window.Sync) Sync.soon(); return ROWS; });
   });
 }
 
@@ -106,6 +117,12 @@ var API = {
       if (window.Sync) Sync.soon();
       return { ok: true, label: wineLabel(rec.date, rec.wineNo), id: row.id, all: appAllSync() };
     });
+  },
+  appMarkPhoto: function (id) {
+    var row = ROWS.filter(function (x) { return x.id === id; })[0];
+    if (!row) return Promise.resolve(null);
+    row.hasPhoto = true; row.photoUrl = ''; row.dirty = true; row.ts = Date.now();
+    return DB.put('wines', row).then(loadRows).then(function () { if (window.Sync) Sync.soon(); return { ok: true, all: appAllSync() }; });
   },
   appDelete: function (id) {
     var row = ROWS.filter(function (x) { return x.id === id; })[0];
@@ -235,4 +252,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.18';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.19';

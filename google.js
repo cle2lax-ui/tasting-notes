@@ -233,7 +233,7 @@ var Sync = (function () {
     running = token(!!interactive).then(function () {
       set('syncing');
       // 1) label photos first, so their links go into the Sheet
-      var needPhoto = ROWS.filter(function (r) { return r.dirty && r.hasPhoto; });
+      var needPhoto = ROWS.filter(function (r) { return (r.dirty || r.photoFix) && r.hasPhoto; });
       return needPhoto.reduce(function (p, r) {
         return p.then(function () { return uploadPhoto(r).then(function (id) { if (id) r.photoUrl = 'https://drive.google.com/file/d/' + id + '/view'; }); });
       }, Promise.resolve());
@@ -258,10 +258,14 @@ var Sync = (function () {
         var k = keyOf(row), s = sheet[k] || (row.sheetKey && sheet[row.sheetKey]) || null;
         if (s) seen[sheet[k] === s ? k : row.sheetKey] = true;
         if (!s) {                                                    // not in the Sheet yet
-          if (row.dirty || !row.sheetKey) { appends.push(recToSheetRow(hdr, null, row)); row.dirty = false; row.sheetKey = k; row.sheetSer = wallSerial(row.ts); localPuts.push(row); }
+          if (row.dirty || !row.sheetKey) { appends.push(recToSheetRow(hdr, null, row)); row.dirty = false; delete row.photoFix; row.sheetKey = k; row.sheetSer = wallSerial(row.ts); localPuts.push(row); }
           return;
         }
         var sheetChanged = row.sheetSer == null || Math.abs(s.ser - row.sheetSer) > 1.5 / 86400;
+        if (row.photoFix) {                                          // a recovered photo: keep any newer edits from the Sheet, add the photo link
+          if (sheetChanged && !row.dirty) { var keep = { id: row.id, hasPhoto: true, photoUrl: row.photoUrl }; for (var f in s.rec) row[f] = s.rec[f]; for (var kk in keep) row[kk] = keep[kk]; }
+          delete row.photoFix; row.dirty = true; row.ts = Date.now();
+        }
         if (row.dirty) {                                             // edited here: this note wins
           updates.push({ range: "'" + LOG_TAB + "'!A" + s.r, values: [recToSheetRow(hdr, s.raw, row)] });
           row.dirty = false; row.sheetKey = k; row.sheetSer = wallSerial(row.ts); localPuts.push(row);
@@ -325,4 +329,4 @@ var Sync = (function () {
     forget: function (key) { if (!conf.sheetId || !key) return; conf.tomb = (conf.tomb || []).filter(function (k) { return k !== key; }).concat([key]); write(CONF_KEY, conf); }
   };
 })();
-/*build*/(window.__V = window.__V || {})['google'] = 'v2.18';
+/*build*/(window.__V = window.__V || {})['google'] = 'v2.19';

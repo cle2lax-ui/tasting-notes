@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.18';
+var VERSION_LABEL = 'v2.19';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -200,13 +200,19 @@ function photoBox() {
     '<label class="lnk">' + (rec.hasPhoto ? 'Replace' : 'Add photo') + '<input type="file" accept="image/*" id="phInput"></label>' +
     (rec.hasPhoto ? '<button type="button" class="lnk" id="phRemove">Remove</button>' : '');
 }
+/* A label photo takes a moment to prepare. The photo belongs to the wine it was added to, even if the taster
+   saves or moves on before it's ready: Save waits for it, and a wine already saved is updated when it lands. */
+var PHOTO_BUSY = null;
 document.addEventListener('change', function (e) {
   if (e.target.id !== 'phInput' || !e.target.files || !e.target.files[0]) return;
-  if (!rec.id) rec.id = uid();
+  var target = rec, id = rec.id || (rec.id = uid());
   toast('Adding photo…');
-  Photos.add(rec.id, e.target.files[0]).then(function () { delete THUMBS[rec.id]; rec.hasPhoto = true; rec.photoUrl = ''; touch(); return Photos.urls(rec.id); })
-    .then(function (x) { THUMBS[rec.id] = x; $('phBox').innerHTML = photoBox(); toast('Photo added. Tap Save to keep it'); })
-    .catch(function (err) { toast(err.message || 'Could not add that photo'); });
+  var job = PHOTO_BUSY = Photos.add(id, e.target.files[0]).then(function () {
+    delete THUMBS[id];
+    if (rec === target) { rec.hasPhoto = true; rec.photoUrl = ''; touch(); return Photos.urls(id).then(function (x) { THUMBS[id] = x; var b = $('phBox'); if (b) b.innerHTML = photoBox(); toast('Photo added. Tap Save to keep it'); }); }
+    return api('appMarkPhoto', id).then(function (r) { if (r) { setData(r.all); toast('Photo added to ' + (target.producer || 'Wine ' + target.wineNo)); } else Photos.remove(id); });
+  }).catch(function (err) { toast(err.message || 'Could not add that photo'); })
+    .then(function () { if (PHOTO_BUSY === job) PHOTO_BUSY = null; });
 });
 function showPhoto(url) { $('lbImg').src = url; $('lightbox').classList.add('show'); }
 $('lightbox').onclick = function () { this.classList.remove('show'); };
@@ -346,6 +352,8 @@ function openWine(d, n) {
   }).catch(fail);
 }
 function save(force, next) {
+  if (PHOTO_BUSY) { var bb = next ? $('nextBtn') : $('saveBtn'); bb.disabled = true; bb.textContent = 'Adding photo…'; var lbl = next ? 'Save & Next Wine' : 'Save';
+    PHOTO_BUSY.then(function () { bb.disabled = false; bb.textContent = lbl; save(force, next); }); return; }   // wait for the photo, then save it with the wine
   if (!rec.date) { toast('Choose a date first'); return; }
   if (!rec.wineNo) { toast('Set the wine number'); return; }
   var b = next ? $('nextBtn') : $('saveBtn'), was = b.textContent; b.disabled = true; b.textContent = 'Saving…';
@@ -447,4 +455,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.18';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.19';
