@@ -478,4 +478,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.24';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.25';

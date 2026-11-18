@@ -2,6 +2,9 @@
 "use strict";
 
 var DB = (function () {
+  /* One connection is reused, but the system can close it under us: iOS does when the app goes to the background
+     (as it does while Google's sign-in window is open), and another copy of the app can ask it to close for an
+     upgrade. A closed connection is dropped and reopened, and the step that hit it is tried once more. */
   var NAME = 'blind-tasting-notes', VER = 1, dbp = null;
   function open() {
     if (dbp) return dbp;
@@ -12,20 +15,35 @@ var DB = (function () {
         if (!db.objectStoreNames.contains('wines')) db.createObjectStore('wines', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', { keyPath: 'id' });
       };
-      r.onsuccess = function () { res(r.result); };
-      r.onerror = function () { rej(r.error); };
+      r.onsuccess = function () {
+        var db = r.result;
+        db.onclose = function () { dbp = null; };                                   // closed by the system
+        db.onversionchange = function () { db.close(); dbp = null; };               // another copy needs it
+        res(db);
+      };
+      r.onerror = function () { dbp = null; rej(r.error); };                        // let the next call try again
+      r.onblocked = function () { dbp = null; rej(new Error('Close the other copy of Tasting Notes (another tab or window), then try again.')); };
     });
     return dbp;
   }
-  function tx(store, mode, fn) {
+  function lost(err) { return err && (err.name === 'InvalidStateError' || err.name === 'UnknownError' || /closing|closed|connection/i.test(err.message || '')); }
+  function run(store, mode, fn) {
     return open().then(function (db) {
       return new Promise(function (res, rej) {
-        var t = db.transaction(store, mode), s = t.objectStore(store), out;
-        var q = fn(s);
+        var t, out;
+        try { t = db.transaction(store, mode); } catch (e) { rej(e); return; }        // "The database connection is closing"
+        var q = fn(t.objectStore(store));
         if (q) q.onsuccess = function () { out = q.result; };
         t.oncomplete = function () { res(out); };
-        t.onerror = t.onabort = function () { rej(t.error); };
+        t.onerror = t.onabort = function () { rej(t.error || new Error('The notebook could not be saved on this device.')); };
       });
+    });
+  }
+  function tx(store, mode, fn) {
+    return run(store, mode, fn).catch(function (err) {
+      if (!lost(err)) throw err;
+      try { dbp && dbp.then(function (db) { try { db.close(); } catch (e) {} }); } catch (e) {}
+      dbp = null; return run(store, mode, fn);                                      // reopen once and repeat the step
     });
   }
   return {
@@ -252,4 +270,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.24';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.25';
