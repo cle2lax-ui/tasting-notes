@@ -628,6 +628,22 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 /* v2.22 the score is the blind-tasting guess, not a quality rating */
 .score span{max-width:92px;text-align:center;line-height:1.35}
 
+/* v2.24 detail page: the header is just the wine (wider, less wrapping) and stays pinned while the note scrolls;
+   the blind-tasting guess moves to the end */
+.card .tc-head{grid-template-columns:auto minmax(0,1fr)}
+.card-sheet .panel{--cpad:20px}
+.card-sheet .ph{position:sticky;top:0;z-index:4;background:var(--paper)}
+.card-sheet .tc-head{position:sticky;top:var(--phh,0px);z-index:3;background:var(--paper);padding:6px 0 14px;border-bottom:1px solid var(--line)}
+.card-sheet .tc-body{margin-top:22px}
+.tc-guess{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.tc-guess span{font:600 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tc-guess b{font:700 32px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.tc-guess b small{font:500 14px var(--sans);color:var(--muted)}
+.tc-guess b.op{font:600 14px/1.3 var(--sans);color:var(--muted)}
+.tc-guess+.tc-foot{margin-top:18px}
+@media (min-width:700px){ .card-sheet .panel{--cpad:32px} .card-sheet .tc-head{padding-top:14px} .card-sheet .ph{margin-bottom:0} }
+@media (min-width:900px){ .card-sheet .panel{--cpad:44px} }
+
 </style>
 </head>
 <body data-view="notebook">
@@ -740,7 +756,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.23. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.24. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -776,13 +792,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.23';</script>
-<script src="logic.js?v=2.23"></script>
-<script src="store.js?v=2.23"></script>
-<script src="google.js?v=2.23"></script>
-<script src="lexicon.js?v=2.23"></script>
-<script src="app.js?v=2.23"></script>
-<script src="app2.js?v=2.23"></script>
+<script>var BUILD = 'v2.24';</script>
+<script src="logic.js?v=2.24"></script>
+<script src="store.js?v=2.24"></script>
+<script src="google.js?v=2.24"></script>
+<script src="lexicon.js?v=2.24"></script>
+<script src="app.js?v=2.24"></script>
+<script src="app2.js?v=2.24"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });

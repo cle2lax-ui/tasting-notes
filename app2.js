@@ -86,7 +86,8 @@ $('list').addEventListener('click', function (e) {
   if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-  $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); $('cardSheet').querySelector('.panel').scrollTop = 0;   // each wine opens at its top
+  $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
+  pn.style.setProperty('--phh', pn.querySelector('.ph').offsetHeight + 'px');                     // the wine's name and photo stay pinned just under Done
 });
 $('cardClose').onclick = function () { sheet('cardSheet', false); };
 document.addEventListener('click', function (e) {
@@ -216,8 +217,7 @@ var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'fiv
 function cardHTML(w) {
   var pr = prose(w), when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   var h = '<article class="card"><header class="tc-head">' + labHTML(w, 'big') + '<div><div class="k">' + esc([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join(' · ')) + '</div>' +
-    '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + '</div>' +
-    '<div class="score">' + (w.open ? '<span class="op">Tasted open</span>' : '<b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b><span>Blind Tasting Guess</span>') + '</div></header>';
+    '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + '</div></header>';
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
     return '<p><b>' + p.h + '</b>' + (p.q ? '<strong class="q">' + esc(p.q) + '</strong>' : '') + esc(p.m) + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
@@ -229,7 +229,10 @@ function cardHTML(w) {
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') + '</div></div>';
-  h += '</div></div><footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button><button type="button" class="btn danger" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></footer></article>';
+  h += '</div></div>';
+  // the blind-tasting result sits at the end, after the note it grew out of
+  h += '<div class="tc-guess">' + (w.open ? '<span>Tasted open</span><b class="op">Not scored</b>' : '<span>Blind Tasting Guess</span><b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b>') + '</div>';
+  h += '<footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button><button type="button" class="btn danger" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></footer></article>';
   return h;
 }
 function flightTitle(list) {
@@ -475,4 +478,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.23';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.24';
