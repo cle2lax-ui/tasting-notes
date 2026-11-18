@@ -190,7 +190,6 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .grp span{font-size:12.5px;color:var(--muted);text-align:right}
 .row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:12px 18px}
 .row:not(:has(.pick)){grid-template-columns:auto minmax(0,1fr) auto}
-.row.cur{background:var(--sig-tint)}
 .row.sel{background:var(--sig-tint)}
 .pick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:grid;place-items:center;font-size:12px;color:var(--on-sig)}
 .row.sel .pick{background:var(--sig);border-color:var(--sig)}
@@ -212,19 +211,17 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .empty{padding:50px 18px;text-align:center}
 .empty h3{font:700 20px var(--serif);margin:0 0 6px}
 .empty p{color:var(--muted);margin:0}
-.nb-card{display:none}
 #nbView{padding-bottom:110px}
 .selbar{position:fixed;left:0;right:0;bottom:0;z-index:26;background:var(--card);border-top:1px solid var(--line);padding:10px 0 calc(10px + var(--sab));transform:translateY(110%);transition:transform .25s}
 .selbar.show{transform:none}
 .selbar .in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .selbar .n{font-weight:600;margin-right:auto}
 .selbar .btn{min-height:40px;padding:0 12px;font-size:14px}
+/* iPad and wider: one centered list that scrolls with the page */
 @media (min-width:900px){
-  #nbView{padding-bottom:0}
-  .nb-split{display:grid;grid-template-columns:400px minmax(0,1fr);max-width:1400px;margin:0 auto;height:calc(100vh - 56px - 63px - var(--sat))}
-  .nb-list{overflow:auto;border-right:1px solid var(--line)}
-  .nb-card{display:block;overflow:auto;background:var(--card);padding:34px 44px 60px}
-  .nb-tools .in{max-width:1400px}
+  #nbView{padding-bottom:40px}
+  .nb-split{max-width:980px;margin:0 auto}
+  .nb-tools .in{max-width:980px}
 }
 
 /* ---------------- tasting card */
@@ -461,7 +458,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .row:active{background:var(--seg)}
 .row+.grp{margin-top:6px}
 .grp+.row{border-top:0}
-@media (min-width:900px){ .nb-title{display:none} .grp{top:0} .nb-split{height:calc(100vh - 56px - 62px - var(--sat))} }
+@media (min-width:900px){ .nb-title{display:none} }
 .hbtn{display:inline-flex;align-items:center;gap:6px}.hbtn svg{width:14px;height:14px}
 /* taste details */
 .chip{min-height:38px}
@@ -530,7 +527,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .rw2{position:relative;overflow:hidden;border-top:1px solid var(--line)}
 .grp+.rw2{border-top:0}
 .rw2 .row{border-top:0;position:relative;z-index:1;background:var(--paper);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
-.rw2 .row.cur,.rw2 .row.sel{background:var(--sig-tint)}
+.rw2 .row.sel{background:var(--sig-tint)}
 .ract{position:absolute;top:0;right:0;bottom:0;display:flex;visibility:hidden}
 .rw2.open .ract{visibility:visible}
 .ra{width:74px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff}
@@ -544,10 +541,6 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .welcome .steps li svg:last-of-type{color:#0A7AFF}
 
 /* v2.2 Clear selections */
-.clearsel{display:grid;justify-items:center;gap:8px;margin:34px 0 6px;padding-top:26px;border-top:1px solid var(--line)}
-.clearsel .btn{color:#B3261E;min-width:200px}
-.clearsel small{color:var(--muted);font-size:13px;text-align:center}
-:root[data-theme="dim"] .clearsel .btn{color:#F0A9AF}
 
 /* v2.3 smaller selected dot */
 .rail button.on:before{width:24px;height:24px;margin-top:5px;box-shadow:0 0 0 4px var(--sig-tint)}
@@ -578,13 +571,7 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .dbtn.same{border-color:var(--line-2);color:var(--ink)}
 .dbtn.same.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
 
-/* v2.12 iPad and wider: the Notebook is one list; a wine opens full screen with Done */
-@media (min-width:900px){
-  .nb-split{grid-template-columns:minmax(0,1fr);max-width:980px}
-  .nb-list{border-right:0}
-  .nb-card{display:none}
-}
-@media (min-width:900px){ .nb-tools .in{max-width:980px} }
+
 
 /* v2.17 iPad in either orientation: a wine opens full screen, sized to the screen, with Done */
 @media (min-width:700px){
@@ -602,6 +589,19 @@ body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:bl
 .tc-foot{flex-wrap:wrap;row-gap:8px}
 @media (max-width:350px){ .mast h1{font-size:17px} .tabs button{padding:7px 9px;font-size:13px} }
 html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms out to fit */
+
+/* v2.18 long notebooks: rows off screen aren't laid out until scrolled near */
+.rw2{content-visibility:auto;contain-intrinsic-size:auto 82px}
+/* selection bar on phones: count, All and Done on one line; the two ways to share below, PDF in front */
+@media (max-width:599px){
+  .selbar .in{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+  .selbar #selSend,.selbar #selPdf{grid-row:2}
+  .selbar #selSend{grid-column:1 / 2}
+  .selbar #selPdf{grid-column:2 / 4}
+}
+/* destructive confirmations */
+.modal .btn.pri.danger{background:#B3261E;border-color:#B3261E;color:#fff}
+:root[data-theme="dim"] .modal .btn.pri.danger{background:#C9463E;border-color:#C9463E}
 
 </style>
 </head>
@@ -636,7 +636,6 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
   </div></div>
   <div class="nb-split">
     <div class="nb-list"><div class="showing" id="showing"></div><div id="list"><div class="loading">Opening your tasting notebook…</div></div></div>
-    <div class="nb-card" id="cardPane"></div>
   </div>
   <div class="selbar" id="selbar"><div class="in">
     <span class="n" id="selN">0 selected</span>
@@ -709,7 +708,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.17. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.18. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -745,15 +744,15 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.17';</script>
-<script src="logic.js?v=2.17"></script>
-<script src="store.js?v=2.17"></script>
-<script src="google.js?v=2.17"></script>
-<script src="lexicon.js?v=2.17"></script>
-<script src="app.js?v=2.17"></script>
-<script src="app2.js?v=2.17"></script>
+<script>var BUILD = 'v2.18';</script>
+<script src="logic.js?v=2.18"></script>
+<script src="store.js?v=2.18"></script>
+<script src="google.js?v=2.18"></script>
+<script src="lexicon.js?v=2.18"></script>
+<script src="app.js?v=2.18"></script>
+<script src="app2.js?v=2.18"></script>
 <script>
-function openSettings(){ paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
+function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
 $('gear').onclick = openSettings;
 $('setClose').onclick = function(){ $('settings').classList.remove('show'); };
@@ -772,14 +771,14 @@ if (DARKQ) { if (DARKQ.addEventListener) DARKQ.addEventListener('change', applyT
 $('bkMake').onclick = function(){
   var withPh = $('bkPhotos').checked, d = new Date(), stamp = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   Backup.make(null, withPh, 'Backup').then(function(file){
-    return shareFile(new Blob([JSON.stringify(file)], { type: 'application/json' }), 'Blind Tasting Notes backup ' + stamp + '.json', 'Blind Tasting Notes backup');
+    return shareFile(new Blob([JSON.stringify(file)], { type: 'application/json' }), 'Tasting Notes backup ' + stamp + '.json', 'Tasting Notes backup');
   }).catch(function(err){ toast(err.message || 'Could not make the backup'); });
 };
-$('bkCsv').onclick = function(){ shareFile(Backup.csv(), 'Blind Tasting Notes.csv', 'Blind Tasting Notes'); };
+$('bkCsv').onclick = function(){ shareFile(Backup.csv(), 'Tasting Notes.csv', 'Tasting Notes'); };
 $('bkRestore').onclick = function(){ $('bkFile').value = ''; $('bkFile').click(); };
 $('bkFile').onchange = function(){
   var f = this.files && this.files[0]; if (!f) return;
-  f.text().then(function(t){ var j; try { j = JSON.parse(t); } catch (e) { throw new Error("That file isn't a Blind Tasting Notes backup."); } return Backup.restore(j); })
+  f.text().then(function(t){ var j; try { j = JSON.parse(t); } catch (e) { throw new Error("That file isn't a Tasting Notes backup."); } return Backup.restore(j); })
     .then(function(r){ return refreshPhotoIds().then(function(){ setData(appAllSync()); toast('Added ' + r.added + ' wine' + (r.added === 1 ? '' : 's') + (r.updated ? ', updated ' + r.updated : '')); }); })
     .catch(function(err){ toast(err.message || 'Could not read that file'); });
 };
@@ -807,7 +806,7 @@ $('gsButtons').onclick = function(e){
   if (b.id === 'gsCreate') { busy('Creating…'); Sync.createSheet().then(function(){ done('Your Google Sheet is ready'); }, oops); }
   if (b.id === 'gsPick') { busy('Opening Google Drive…'); Sync.pickSheet().then(function(){ done('Connected to your Sheet'); }, oops); }
   if (b.id === 'gsSync') { busy('Syncing…'); Sync.sync(true).then(function(){ done('Synced'); }, oops); }
-  if (b.id === 'gsOff') ask('Disconnect the Google Sheet? Your notes stay on this device and in the Sheet; they just stop syncing.', 'Disconnect', 'Cancel')
+  if (b.id === 'gsOff') ask('Disconnect the Google Sheet? Your notes stay on this device and in the Sheet; they just stop syncing.', 'Disconnect', 'Cancel', true)
     .then(function(go){ if (go) { Sync.disconnect(); paintGoogle(); } });
 };
 
@@ -928,7 +927,7 @@ $('wFinish').onclick = function(){
 };
 
 
-Sync.preload();                                       // so Google's sign-in window can open the moment it's tapped
+if (Sync.connected() || recall('btn-welcome') !== 'done') Sync.preload();   // so Google's sign-in window can open the moment it's tapped
 refreshPhotoIds().then(function(){ return api('appInit'); }).then(function(init){
   start(init);
   if (Sync.connected()) Sync.soon();

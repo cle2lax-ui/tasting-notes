@@ -1,4 +1,4 @@
-/* Blind Tasting Notes — on-device notebook (IndexedDB) and the same API the Google edition's server offered. */
+/* Tasting Notes — on-device notebook (IndexedDB) and the same API the Google edition's server offered. */
 "use strict";
 
 var DB = (function () {
@@ -119,16 +119,25 @@ var API = {
 };
 
 /* ---------------------------------------------------------------- label photos (kept on the device) */
-function shrinkImage(file, maxSide, quality) {
+/* The photo is decoded once; the full copy and the thumbnail are both drawn from it, and the canvases are
+   released straight away (phones have little memory for big camera images). */
+function shrinkImage(file, sizes) {             // sizes: [[maxSide, quality], ...] → one JPEG per size
   return new Promise(function (res, rej) {
     var url = URL.createObjectURL(file), img = new Image();
     img.onload = function () {
-      var s = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
-      var c = document.createElement('canvas');
-      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
-      c.toBlob(function (b) { b ? res(b) : rej(new Error('Could not read that photo.')); }, 'image/jpeg', quality);
+      var src = img, out = [];
+      (function next(i) {
+        if (i === sizes.length) { if (src !== img) src.width = src.height = 0; res(out); return; }
+        var s = Math.min(1, sizes[i][0] / Math.max(src.width || src.naturalWidth, src.height || src.naturalHeight));
+        var w = src.width || src.naturalWidth, h = src.height || src.naturalHeight;
+        var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+        c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+        c.toBlob(function (b) {
+          if (!b) { rej(new Error('Could not read that photo.')); return; }
+          out.push(b); if (src !== img) { src.width = src.height = 0; } src = c; next(i + 1);   // the next size is drawn from this one
+        }, 'image/jpeg', sizes[i][1]);
+      })(0);
     };
     img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('Could not read that photo.')); };
     img.src = url;
@@ -137,7 +146,7 @@ function shrinkImage(file, maxSide, quality) {
 var Photos = {
   cache: {},
   add: function (wineId, file) {
-    return Promise.all([shrinkImage(file, 1600, 0.82), shrinkImage(file, 360, 0.8)]).then(function (b) {
+    return shrinkImage(file, [[1600, 0.82], [360, 0.8]]).then(function (b) {
       var rec = { id: wineId, full: b[0], thumb: b[1], driveId: '', ts: Date.now() };
       return DB.put('photos', rec).then(function () { Photos.forget(wineId); return rec; });
     });
@@ -172,7 +181,7 @@ var Backup = {
   },
   /** Adds wines from a backup or a shared flight. Same date + wine # → the newer note wins. */
   restore: function (file) {
-    if (!file || file.app !== 'Blind Tasting Notes' || !Array.isArray(file.wines)) return Promise.reject(new Error("That file isn't a Blind Tasting Notes backup."));
+    if (!file || file.app !== 'Blind Tasting Notes' || !Array.isArray(file.wines)) return Promise.reject(new Error("That file isn't a Tasting Notes backup."));
     var added = 0, updated = 0, puts = [], photoJobs = [];
     file.wines.forEach(function (w) {
       if (!w || !/^\d{4}-\d{2}-\d{2}$/.test(w.date || '')) return;
@@ -226,4 +235,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.17';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.18';

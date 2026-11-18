@@ -1,5 +1,5 @@
-/* Blind Tasting Notes 2.0 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.17';
+/* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
+var VERSION_LABEL = 'v2.18';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -28,9 +28,9 @@ function recall(k) { try { return JSON.parse(localStorage.getItem(k) || 'null');
 function nice(v) { return NICE[v] || v; }
 function low(v) { return String(v || '').trim().toLowerCase(); }
 function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(function () { e.classList.remove('show'); }, 2600); }
-function ask(msg, yes, no) {
+function ask(msg, yes, no, danger) {     // danger: the confirming button is red (deleting, clearing, discarding)
   return new Promise(function (res) {
-    $('mMsg').textContent = msg; $('mYes').textContent = yes || 'OK'; $('mNo').textContent = no || 'Cancel'; $('modal').classList.add('show');
+    $('mMsg').textContent = msg; $('mYes').textContent = yes || 'OK'; $('mYes').classList.toggle('danger', !!danger); $('mNo').textContent = no || 'Cancel'; $('modal').classList.add('show');
     $('mYes').onclick = function () { $('modal').classList.remove('show'); res(true); };
     $('mNo').onclick = function () { $('modal').classList.remove('show'); res(false); };
   });
@@ -115,7 +115,7 @@ function answerKeys() { var ks = ID_KEYS.slice(); STAGES().forEach(function (st)
 function clearSelections() {
   var ks = answerKeys(), any = ks.some(function (k) { var v = rec[k]; return Array.isArray(v) ? v.length : !!(v && String(v).trim()); });
   if (!any) { toast('Nothing to clear yet'); return; }
-  ask('Are you sure? This clears every selection, descriptor, note and guess for Wine ' + (rec.wineNo || '') + '. The date, wine number, event and label photo stay.' + (orig ? ' The saved copy changes only if you tap Save.' : ''), 'Clear', 'Cancel').then(function (go) {
+  ask('Are you sure? This clears every selection, descriptor, note and guess for Wine ' + (rec.wineNo || '') + '. The date, wine number, event and label photo stay.' + (orig ? ' The saved copy changes only if you tap Save.' : ''), 'Clear', 'Cancel', true).then(function (go) {
     if (!go) return;
     ks.forEach(function (k) { delete rec[k]; });
     FOLDED = {}; PINNED = {}; OPENED = {};
@@ -155,7 +155,7 @@ function spy() {
   if (spy.cur !== cur) { spy.cur = cur; var on = document.querySelector('#stages button.on'), row = on && on.parentNode;   // keep the current stage's tab in view
     if (row && row.scrollWidth > row.clientWidth) { var x = on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2; row.scrollTo({ left: Math.max(0, x), behavior: 'smooth' }); } }
 }
-window.addEventListener('scroll', function () { if (view === 'taste') spy(); }, { passive: true });
+window.addEventListener('scroll', function () { if (view === 'taste' && !spy.f) spy.f = requestAnimationFrame(function () { spy.f = 0; spy(); }); }, { passive: true });   // at most once a frame
 $('stages').addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
   var si = +b.getAttribute('data-s'); if (FOLDED[si]) setFold(si, false);
@@ -293,7 +293,7 @@ document.addEventListener('click', function (e) {
   if (lx) { openLx(lx.getAttribute('data-lex')); return; }
   if (t.closest('#sameNose')) { toggleSame(); return; }
   if (t.closest('#openBtn')) { rec.open = !rec.open; rerow('identity'); renderTaste(); touch(); return; }
-  if (t.id === 'phRemove') { ask('Remove the label photo from this wine?', 'Remove', 'Keep').then(function (go) { if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch(); }); return; }
+  if (t.id === 'phRemove') { ask('Remove the label photo from this wine?', 'Remove', 'Keep', true).then(function (go) { if (!go) return; Photos.remove(rec.id); delete THUMBS[rec.id]; rec.hasPhoto = false; rec.photoUrl = ''; $('phBox').innerHTML = photoBox(); touch(); }); return; }
   var im = t.closest('#phBox img'); if (im) { showPhoto(im.getAttribute('data-full')); return; }
 });
 /* identity row is rebuilt as a whole */
@@ -308,8 +308,11 @@ function paintId() {
   $('idSub').textContent = [dateNice(rec.date), rec.event].filter(Boolean).join(' · ');
   var st = $('state'); st.className = 'state' + (dirty ? ' dirty' : ''); st.textContent = dirty ? 'Unsaved' : orig ? 'Saved' : 'New'; $('saveBtn').classList.toggle('quiet', !dirty);
 }
-function touch(quiet) { dirty = true; paintId(); if (!quiet) paintStages(); store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
-function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem('btn-entry-draft'); } catch (e) {} }
+function touch(quiet) { dirty = true; paintId(); if (!quiet) paintStages(); clearTimeout(touch.t); touch.t = setTimeout(keepDraft, 300); }   // the draft is written once typing pauses
+function keepDraft() { clearTimeout(touch.t); touch.t = 0; if (dirty) store(DRAFT_KEY, { rec: rec, orig: orig, t: Date.now() }); }
+window.addEventListener('pagehide', keepDraft);
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') keepDraft(); });
+function clearDraft() { clearTimeout(touch.t); try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem('btn-entry-draft'); } catch (e) {} }
 function today() { return S.today || new Date().toISOString().slice(0, 10); }
 function nextNo(date) { var m = 0; WINES.forEach(function (w) { if (w.d === date) m = Math.max(m, w.n); }); return m + 1; }
 function show(r, o, isDirty) { rec = r; orig = o; dirty = !!isDirty; OPENED = {}; PINNED = {}; FOLDED = {}; STAGES().forEach(function (st, i) { if (o && stageDone(st)) FOLDED[i] = 1; }); paintId(); renderTaste(); }
@@ -335,7 +338,7 @@ $('openList').addEventListener('click', function (e) {
   var b = e.target.closest('.orow'); if (!b) return;
   guard('Open another wine?').then(function (go) { if (!go) return; sheet('changeSheet', false); openWine(b.getAttribute('data-d'), +b.getAttribute('data-n')); });
 });
-function guard(q) { if (!dirty) return Promise.resolve(true); return ask('You have unsaved changes to ' + label() + '. ' + q + ' Those changes will be lost.', 'Discard changes', 'Keep editing'); }
+function guard(q) { if (!dirty) return Promise.resolve(true); return ask('You have unsaved changes to ' + label() + '. ' + q + ' Those changes will be lost.', 'Discard changes', 'Keep editing', true); }
 function openWine(d, n) {
   return api('appLoad', d, n).then(function (r) {
     if (!r) { toast('That wine was not found'); return; }
@@ -444,4 +447,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.17';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.18';

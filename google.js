@@ -98,7 +98,6 @@ var Sync = (function () {
 
   /* ---------------- connect */
   function headerTitles() { return ['Timestamp'].concat(QS.map(function (q) { return q.title; })); }
-  function colLetter(n) { var s = ''; n++; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
   function remember(id, url, name) { conf.sheetId = id; conf.sheetUrl = url; conf.sheetName = name; conf.lastSync = 0; write(CONF_KEY, conf); }
 
   function createSheet() {
@@ -326,4 +325,4 @@ var Sync = (function () {
     forget: function (key) { if (!conf.sheetId || !key) return; conf.tomb = (conf.tomb || []).filter(function (k) { return k !== key; }).concat([key]); write(CONF_KEY, conf); }
   };
 })();
-/*build*/(window.__V = window.__V || {})['google'] = 'v2.17';
+/*build*/(window.__V = window.__V || {})['google'] = 'v2.18';

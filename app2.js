@@ -1,7 +1,6 @@
-/* Blind Tasting Notes 2.0 — Notebook, tasting card, PDF, sync status, start-up. */
-var NB = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: true, q: '', cur: '' };
+/* Tasting Notes 2 — Notebook, tasting card, PDF, sync status, start-up. */
+var NB = { field: '(no filter)', value: '(all)', sort: 'Date & Wine #', desc: true, q: '' };
 var SEL = {}, selecting = false;
-var WIDEQ = { matches: false };   // v2.12: no side-by-side card on iPad; a wine opens full screen instead
 
 function setView(v) {
   view = v; document.body.setAttribute('data-view', v);
@@ -33,7 +32,7 @@ function refreshPhotoIds() { return DB.keys('photos').then(function (k) { PHOTO_
 function fillThumbs(wines) {
   var need = wines.filter(function (w) { return PHOTO_IDS[w.id] && !THUMBS[w.id]; });
   if (!need.length) return;
-  Promise.all(need.map(function (w) { return Photos.urls(w.id).then(function (x) { if (x) THUMBS[w.id] = x; }); })).then(function () { if (view === 'notebook') renderNotebook(true); });
+  Promise.all(need.map(function (w) { return Photos.urls(w.id).then(function (x) { if (x) THUMBS[w.id] = x; }); })).then(function () { if (view === 'notebook') renderNotebook(); });
 }
 
 /* ====================================================================== Notebook list */
@@ -52,11 +51,11 @@ function dotsHTML(w) { if (w.open || !w.hits) return ''; return '<span class="do
 function rowHTMLnb(w) {
   var title = w.producer || w.aGrape || 'Not yet revealed', sub = w.producer ? idLine(w) : !w.aGrape && w.gGrape ? 'My guess: ' + [w.gGrape, w.gRegion].filter(Boolean).join(' · ') : idLine(w);
   var acts = selecting || !w.ymd ? '' : '<div class="ract" aria-hidden="true"><button type="button" class="ra edit" tabindex="-1" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button><button type="button" class="ra share" tabindex="-1" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>PDF</button><button type="button" class="ra del" tabindex="-1" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></div>';
-  return '<div class="rw2">' + acts + '<button type="button" class="row' + (NB.cur === w.id && WIDEQ.matches ? ' cur' : '') + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '">' + (selecting ? '<span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' : '') + labHTML(w) +
+  return '<div class="rw2">' + acts + '<button type="button" class="row' + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '">' + (selecting ? '<span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' : '') + labHTML(w) +
     '<span class="w"><b' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '<small>' + esc(['Wine ' + w.wineNo, w.quality].filter(Boolean).join(' · ')) + '</small></span>' +
     '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + w.score + '<small>/4</small></b>') + dotsHTML(w) + '</span></button></div>';
 }
-function renderNotebook(keepScroll) {
+function renderNotebook() {
   var wines = shownWines(), byGroup = NB.sort === 'Date & Wine #' || NB.sort === 'Tasting / Event', html = '', last = null;
   var filtered = NB.field !== '(no filter)' && NB.value !== '(all)';
   $('showing').innerHTML = !ALL.length ? '' : (filtered ? esc(NB.field) + ': <b>' + esc(NB.value) + '</b> · ' : '') + wines.length + ' of ' + ALL.length + ' wine' + (ALL.length === 1 ? '' : 's') +
@@ -78,19 +77,16 @@ function renderNotebook(keepScroll) {
     : '<div class="empty first"><h3>Your notebook is empty</h3><p>Click <button type="button" class="lnk" data-go="taste">Tasting</button> above to start a new tasting note</p></div>');
   $('nbView').classList.toggle('selecting', selecting);
   fillThumbs(wines);
-  if (WIDEQ.matches) { var cur = wines.filter(function (w) { return w.id === NB.cur; })[0] || wines[0]; NB.cur = cur ? cur.id : ''; $('cardPane').innerHTML = cur ? cardHTML(cur) : ''; if (!keepScroll) $('cardPane').scrollTop = 0; }
 }
-$('q').addEventListener('input', function () { NB.q = this.value; renderNotebook(); });
+$('q').addEventListener('input', function () { NB.q = this.value; clearTimeout(this.t); this.t = setTimeout(renderNotebook, 120); });   // redraw once typing pauses
 $('list').addEventListener('click', function (e) {
   if (e.target.closest('.ract')) return;
   var r = e.target.closest('.row'); if (!r) return; var id = r.getAttribute('data-id');
   if (SWIPE.justMoved) { SWIPE.justMoved = false; return; }
   if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
-  NB.cur = id;
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-  if (WIDEQ.matches) { $$('#list .row').forEach(function (x) { x.classList.toggle('cur', x === r); }); $('cardPane').innerHTML = cardHTML(w); $('cardPane').scrollTop = 0; }
-  else { $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); $('cardBody').scrollTop = 0; }
+  $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); $('cardSheet').querySelector('.panel').scrollTop = 0;   // each wine opens at its top
 });
 $('cardClose').onclick = function () { sheet('cardSheet', false); };
 document.addEventListener('click', function (e) {
@@ -122,11 +118,11 @@ $('selBtn').onclick = function () { setSelecting(!selecting); };
 $('pdfBtn').onclick = function () { var f = NB.field !== '(no filter)' && NB.value !== '(all)'; sharePdf(shownWines(), f ? NB.value : ''); };
 
 /* ---- select → Share PDF / Send to a Friend */
-function setSelecting(on) { selecting = on; if (!on) SEL = {}; $('selbar').classList.toggle('show', on); $('selBtn').textContent = on ? 'Cancel' : 'Select'; renderNotebook(true); paintSel(); }
+function setSelecting(on) { selecting = on; if (!on) SEL = {}; $('selbar').classList.toggle('show', on); $('selBtn').textContent = on ? 'Cancel' : 'Select'; renderNotebook(); paintSel(); }
 function paintSel() { var n = Object.keys(SEL).length; $('selN').textContent = n + ' selected'; $('selPdf').disabled = $('selSend').disabled = !n; }
 function selectedWines() { return shownWines().filter(function (w) { return SEL[w.id]; }); }
 $('selDone').onclick = function () { setSelecting(false); };
-$('selAll').onclick = function () { shownWines().forEach(function (w) { SEL[w.id] = true; }); renderNotebook(true); paintSel(); };
+$('selAll').onclick = function () { shownWines().forEach(function (w) { SEL[w.id] = true; }); renderNotebook(); paintSel(); };
 $('selPdf').onclick = function () { var l = selectedWines(); sharePdf(l, flightTitle(l)); };
 $('selSend').onclick = function () {
   var list = selectedWines(), title = flightTitle(list); toast('Preparing the file…');
@@ -340,7 +336,7 @@ function makePdf(list, title) {
     items.forEach(function (it) { if (!cur || cur.items.length >= 3 || cur.h + it.h > AV) { cur = { items: [], h: 0 }; pages.push(cur); } cur.items.push(it); cur.h += it.h + GAP; });
     pages.forEach(function (pg, pi) {
       if (pi) D.addPage('letter', 'portrait');
-      D.setFont('Playfair', 'bold'); D.setFontSize(18); D.setTextColor(PC.sig); D.text('Blind Tasting Notes', M, 42);
+      D.setFont('Playfair', 'bold'); D.setFontSize(18); D.setTextColor(PC.sig); D.text('Tasting Notes', M, 42);
       D.setFont('Archivo', 'normal'); D.setFontSize(7.4); D.setTextColor(PC.muted); D.text(pdfText(meta + '  ·  page ' + (pi + 1) + ' of ' + pages.length), PW - M, 42, { align: 'right' });
       D.setDrawColor(PC.gold); D.setLineWidth(.7); D.line(M, 50, PW - M, 50);
       var y = TOP; pg.items.forEach(function (it, ii) {
@@ -352,7 +348,7 @@ function makePdf(list, title) {
 }
 function sharePdf(list, title) {
   makePdf(list, title).then(function (blob) {
-    readyToShare(blob, fileSafe(title || 'Blind Tasting Notes') + '.pdf', title || 'Blind Tasting Notes',
+    readyToShare(blob, fileSafe(title || 'Tasting Notes') + '.pdf', title || 'Tasting Notes',
       'Your PDF of ' + list.length + ' wine' + (list.length === 1 ? '' : 's') + ' is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 }
@@ -362,7 +358,6 @@ Sync.on(function (s, detail) { $('gear').setAttribute('data-s', s); $('gear').ti
   if (s === 'error' && detail && detail.message) console.warn(detail.message); if ($('settings').classList.contains('show')) paintGoogle(); });
 var lastSeen = Date.now();
 document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'visible') { lastSeen = Date.now(); return; } if (Date.now() - lastSeen > 5 * 60 * 1000 && Sync.connected()) Sync.soon(); lastSeen = Date.now(); });
-false && WIDEQ.addEventListener('change', function () { if (view === 'notebook') renderNotebook(); });
 
 /* ====================================================================== start */
 function start(init) {
@@ -407,11 +402,11 @@ document.addEventListener('click', function (e) {
   var d = e.target.closest('[data-del]'); if (!d) return;
   var id = d.getAttribute('data-del'), w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
   var name = (w.producer || w.aGrape || 'this wine') + ' (' + (w.dateLabel || '') + ', Wine ' + w.wineNo + ')';
-  ask('Delete ' + name + '? ' + (Sync.connected() ? 'It will also be removed from your Google Sheet. ' : '') + 'This can’t be undone.', 'Delete', 'Cancel').then(function (go) {
+  ask('Delete ' + name + '? ' + (Sync.connected() ? 'It will also be removed from your Google Sheet. ' : '') + 'This can’t be undone.', 'Delete', 'Cancel', true).then(function (go) {
     if (!go) { closeSwipe(); return; }
     api('appDelete', id).then(function (r) {
       if (rec.id === id) { clearDraft(); var dd = today(); show({ date: dd, wineNo: 1 }, null, false); }
-      sheet('cardSheet', false); closeSwipe(); if (NB.cur === id) NB.cur = '';
+      sheet('cardSheet', false); closeSwipe();
       setData(r.all); if (rec.id !== id && !orig) { rec.wineNo = rec.wineNo || nextNo(rec.date); paintId(); }
       toast('Deleted');
     }).catch(fail);
@@ -469,4 +464,4 @@ function dailyCheck(reg) {
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.14';
 
 document.addEventListener('click', function (e) { if (e.target.closest('[data-go="taste"]')) { setView('taste'); window.scrollTo(0, 0); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.17';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.18';
