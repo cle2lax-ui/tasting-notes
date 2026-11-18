@@ -217,7 +217,7 @@ function cardHTML(w) {
   var pr = prose(w), when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   var h = '<article class="card"><header class="tc-head">' + labHTML(w, 'big') + '<div><div class="k">' + esc([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join(' · ')) + '</div>' +
     '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + '</div>' +
-    '<div class="score">' + (w.open ? '<span class="op">Tasted open</span>' : '<b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b><span>Score</span>') + '</div></header>';
+    '<div class="score">' + (w.open ? '<span class="op">Tasted open</span>' : '<b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b><span>Blind Tasting Guess</span>') + '</div></header>';
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
     return '<p><b>' + p.h + '</b>' + (p.q ? '<strong class="q">' + esc(p.q) + '</strong>' : '') + esc(p.m) + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
@@ -276,11 +276,11 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   if (img) { var ip = D.getImageProperties(img), ih = 40 * K, iw = Math.min(ih * 1.2, ih * ip.width / ip.height); if (draw) { D.addImage(img, 'JPEG', x, y + 2, iw, ih, undefined, 'MEDIUM'); D.setDrawColor(PC.line); D.setLineWidth(.5); D.rect(x, y + 2, iw, ih); } hx = x + iw + 12 * K; }
   var right = x + W;
   font('Playfair', 'bold', 18, PC.gold); var sc = w.open ? '' : w.score === '' ? '–' : w.score + '/4';
-  if (w.open) { font('Archivo', 'bold', 7.5, PC.muted); txt('TASTED OPEN', right, y + 14 * K, { align: 'right' }); } else { txt(sc, right, y + 18 * K, { align: 'right' }); font('Archivo', 'bold', 5.6, PC.muted); txt('SCORE', right, y + 27 * K, { align: 'right', charSpace: .8 }); }
+  if (w.open) { font('Archivo', 'bold', 7.5, PC.muted); txt('TASTED OPEN', right, y + 14 * K, { align: 'right' }); } else { txt(sc, right, y + 18 * K, { align: 'right' }); font('Archivo', 'bold', 5.6, PC.muted); txt('BLIND TASTING GUESS', right, y + 27 * K, { align: 'right', charSpace: .8 }); }
   font('Archivo', 'bold', 6.4, PC.gold); txt([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join('  ·  ').toUpperCase(), hx, y + 9 * K, { charSpace: .9 });
   font('Playfair', 'bold', 15, (w.producer || w.aGrape) ? PC.ink : PC.muted);
-  var title = D.splitTextToSize(pdfText(w.producer || w.aGrape || 'Not yet revealed'), right - hx - 50 * K)[0]; txt(title, hx, y + 25 * K);
-  if (w.producer && idLine(w)) { font('Archivo', 'bold', 8.4, PC.sig); txt(D.splitTextToSize(pdfText(idLine(w)), right - hx - 50 * K)[0], hx, y + 37 * K); }
+  var title = D.splitTextToSize(pdfText(w.producer || w.aGrape || 'Not yet revealed'), right - hx - 92 * K)[0]; txt(title, hx, y + 25 * K);
+  if (w.producer && idLine(w)) { font('Archivo', 'bold', 8.4, PC.sig); txt(D.splitTextToSize(pdfText(idLine(w)), right - hx - 92 * K)[0], hx, y + 37 * K); }
   var top = y + Math.max(48 * K, img ? 48 * K : 0);
   // left: the written note
   var LW = W * 0.6, ly = top + 10 * K;
@@ -476,4 +476,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.21';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.22';
