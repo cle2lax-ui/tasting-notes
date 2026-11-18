@@ -272,4 +272,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.22';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.23';

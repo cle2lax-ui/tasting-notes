@@ -368,12 +368,11 @@ function start(init) {
   setData(init.all);
   var draft = recall(DRAFT_KEY) || recall('btn-entry-draft'), d = today();     // also picks up an unsaved draft from 1.x
   if (draft && draft.rec) { draft.rec.aromas = cleanDescs(draft.rec.aromas); draft.rec.flavors = cleanDescs(draft.rec.flavors); }
-  if (draft) { show(draft.rec, draft.orig, true); toast('Restored your unsaved draft'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
+  if (draft) { show(draft.rec, draft.orig, true); toast('Your unsaved note for ' + label() + ' is waiting in Tasting'); } else show({ date: d, wineNo: nextNo(d) }, null, false);
   findOrphans().then(function (o) { if (o.length && !loadRows.repaired) setTimeout(function () { toast(o.length + ' label photo' + (o.length === 1 ? ' isn\u2019t' : 's aren\u2019t') + ' attached to a wine. Open the wine, then tap Use a photo on this device.'); }, 1800); });
   if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
   var back = ''; try { back = sessionStorage.getItem('btn-view') || ''; sessionStorage.removeItem('btn-view'); } catch (e) {}
-  // opens on the Notebook; Tasting when coming back to an unsaved note, or when asked for
-  var want = new URLSearchParams(location.search).get('view') || back || (draft ? 'taste' : 'notebook');
+  var want = new URLSearchParams(location.search).get('view') || back || 'notebook';   // always the Notebook; an unsaved note waits in Tasting (back = the view kept across an update reload)
   setView(want === 'taste' ? 'taste' : 'notebook');
   spy();
 }
@@ -476,4 +475,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.22';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.23';
