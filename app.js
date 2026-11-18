@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.20';
+var VERSION_LABEL = 'v2.21';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -36,7 +36,7 @@ function ask(msg, yes, no, danger) {     // danger: the confirming button is red
   });
 }
 function fail(err) { toast('Something went wrong: ' + (err && err.message ? err.message : err)); }
-function sheet(id, on) { $(id).classList.toggle('show', on !== false); document.body.classList.toggle('locked', !!document.querySelector('.sheet.show, .lx.show, .welcome.show')); }
+function sheet(id, on) { $(id).classList.toggle('show', on !== false); document.body.classList.toggle('locked', !!document.querySelector('.sheet.show, .lx.show, .welcome.show, .lightbox.show')); }
 
 /* ====================================================================== Taste: structure */
 function STAGES() { return [
@@ -246,8 +246,23 @@ document.addEventListener('change', function (e) {
   }).catch(function (err) { toast(err.message || 'Could not add that photo'); })
     .then(function () { if (PHOTO_BUSY === job) PHOTO_BUSY = null; });
 });
-function showPhoto(url) { $('lbImg').src = url; $('lightbox').classList.add('show'); }
-$('lightbox').onclick = function () { this.classList.remove('show'); };
+/* ---- the photo viewer: Done (or a tap outside the photo, or a swipe down) closes it; the page underneath stays put */
+function showPhoto(url) { var im = $('lbImg'); im.style.transform = ''; im.style.opacity = ''; im.src = url; $('lightbox').classList.add('show'); document.body.classList.add('locked'); }
+function closePhoto() { $('lightbox').classList.remove('show'); document.body.classList.toggle('locked', !!document.querySelector('.sheet.show, .lx.show, .welcome.show, .lightbox.show')); }
+$('lbDone').onclick = function (e) { e.stopPropagation(); closePhoto(); };
+$('lightbox').addEventListener('click', function (e) { if (e.target !== $('lbImg') && !LB.moved) closePhoto(); LB.moved = false; });
+var LB = { y: null, dy: 0, moved: false };
+$('lightbox').addEventListener('touchstart', function (e) { if (e.touches.length !== 1 || e.target.closest('.lb-done')) return; LB.y = e.touches[0].clientY; LB.dy = 0; LB.moved = false; $('lbImg').classList.add('drag'); }, { passive: true });
+$('lightbox').addEventListener('touchmove', function (e) {
+  e.preventDefault();                                                       // nothing behind the viewer scrolls
+  if (LB.y == null) return; LB.dy = Math.max(0, e.touches[0].clientY - LB.y); if (LB.dy > 6) LB.moved = true;
+  var im = $('lbImg'); im.style.transform = 'translateY(' + LB.dy + 'px)'; im.style.opacity = String(Math.max(0.35, 1 - LB.dy / 400));
+}, { passive: false });
+$('lightbox').addEventListener('touchend', function () {
+  if (LB.y == null) return; var im = $('lbImg'); im.classList.remove('drag'); LB.y = null;
+  if (LB.dy > 90) { closePhoto(); } else { im.style.transform = ''; im.style.opacity = ''; }
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('lightbox').classList.contains('show')) closePhoto(); });
 
 /* ---- descriptors (aromas / flavors) */
 function toks(k) { return String(rec[k] || '').split(/\s*,\s*/).map(function (t) { return t.trim(); }).filter(Boolean); }
@@ -488,4 +503,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.20';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.21';

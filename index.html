@@ -617,6 +617,15 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 .orph-del{margin-top:18px;color:#B3261E;font-size:14px}
 :root[data-theme="dim"] .orph-del{color:#F0A9AF}
 
+/* v2.21 photo viewer: a clear Done, swipe down to close, nothing underneath moves */
+.lightbox{flex-direction:column;padding:0;background:#0B0709;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.lb-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:flex-end;padding:calc(10px + var(--sat)) max(16px, env(safe-area-inset-right, 0px)) 10px 16px;z-index:2}
+.lb-done{border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:600 16px/1 var(--sans);padding:11px 20px;min-height:44px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lb-done:active{background:rgba(255,255,255,.28)}
+.lightbox img{max-width:calc(100% - 32px);max-height:calc(100% - 150px - var(--sat) - var(--sab));border-radius:8px;-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;transition:transform .2s ease,opacity .2s ease}
+.lightbox img.drag{transition:none}
+.lb-hint{position:absolute;bottom:calc(18px + var(--sab));left:0;right:0;margin:0;text-align:center;color:rgba(255,255,255,.55);font-size:13px}
+
 </style>
 </head>
 <body data-view="notebook">
@@ -729,7 +738,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.20. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.21. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -761,17 +770,17 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="modal" id="modal"><div class="box"><p id="mMsg"></p><div class="acts">
   <button class="btn" id="mNo" type="button">Cancel</button><button class="btn pri" id="mYes" type="button">OK</button></div></div></div>
 
-<div class="lightbox" id="lightbox"><img id="lbImg" alt="Label photo"></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Label photo"><div class="lb-bar"><button type="button" class="lb-done" id="lbDone">Done</button></div><img id="lbImg" alt="Label photo" draggable="false"><p class="lb-hint">Tap Done or swipe down to close</p></div>
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.20';</script>
-<script src="logic.js?v=2.20"></script>
-<script src="store.js?v=2.20"></script>
-<script src="google.js?v=2.20"></script>
-<script src="lexicon.js?v=2.20"></script>
-<script src="app.js?v=2.20"></script>
-<script src="app2.js?v=2.20"></script>
+<script>var BUILD = 'v2.21';</script>
+<script src="logic.js?v=2.21"></script>
+<script src="store.js?v=2.21"></script>
+<script src="google.js?v=2.21"></script>
+<script src="lexicon.js?v=2.21"></script>
+<script src="app.js?v=2.21"></script>
+<script src="app2.js?v=2.21"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
