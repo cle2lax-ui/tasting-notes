@@ -471,11 +471,23 @@ document.addEventListener('click', function (e) { if (e.target.closest('[data-go
 
 /* ---- sync on open: Google's sign-in lasts about an hour and can only be renewed from a tap, so when it has
    lapsed the app asks once, in plain view, instead of leaving it to Settings */
-Sync.on(function (st) { $('syncNote').hidden = st !== 'signin'; });
+var AUTOTAP = { tried: false };
+Sync.on(function (st) { $('syncNote').hidden = st !== 'signin'; if (st !== 'signin') AUTOTAP.tried = false; });
+/* Renew on the first tap: when Google's hour has run out, the first button, tab, row or rating tapped also renews
+   it (Safari only lets Google's window open from a tap). Typing, the photo picker and the Sync now button itself are
+   left alone; one try per lapse, and the Sync now bar stays as the fallback. */
+document.addEventListener('click', function (e) {
+  if (AUTOTAP.tried || !Sync.connected() || Sync.state() !== 'signin' || !navigator.onLine) return;
+  var t = e.target;
+  if (!t.closest || t.closest('input, textarea, select, label, #syncNow, #phInput, .lightbox, .modal')) return;
+  if (!t.closest('button, a, [role="button"], [role="tab"], .row')) return;
+  AUTOTAP.tried = true;
+  Sync.sync(true).then(function (ok) { if (ok && window.afterSync) afterSync(); }).catch(function () { $('syncNote').hidden = false; });   // the bar stays as the fallback
+}, true);
 $('syncNow').onclick = function () {
   var b = this; b.disabled = true; b.textContent = 'Syncing…';
   Sync.sync(true).then(function () { if (window.afterSync) afterSync(); toast('Synced with your Google Sheet'); })
-    .catch(function (err) { toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
+    .catch(function (err) { $('syncNote').hidden = false; toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.25';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.26';
