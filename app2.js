@@ -145,46 +145,106 @@ function andList(a) { a = a.filter(Boolean); return a.length < 2 ? (a[0] || '') 
 function term(v) { return nice(v); }                                   // SAT terms keep their capitals: Pale, Medium (+), Off-Dry
 var RIPE = { 'unripe fruit': 'Unripe', 'ripe fruit': 'Ripe', 'dried fruit': 'Dried', 'cooked fruit': 'Cooked' };
 var ORIGIN_WORD = { p: 'primary', s: 'secondary', t: 'tertiary' };
-function descSentences(raw, noun) {                                    // noun: 'aromas' or 'flavors'
-  var toksIn = String(raw || '').split(/\s*,\s*/).map(function (t) { return t.trim().replace(/[.;:]+$/, ''); }).filter(Boolean);
-  var g = { p: [], s: [], t: [] }, own = [], ripe = [];
+/* ---- the written note, following the WSET L4 Tasting Guidance (Issue 1.4, 2023):
+   - every structural component is named with its single SAT level ("The acidity is Medium (+).")
+   - clarity and condition carry no marks (exam wines are clear and clean), so they are only written when they point to a fault
+   - aromas and flavors follow the Lexicon: specific descriptors introduced by their cluster and grouped by type
+     ("primary aromas of black fruit (blackcurrant, black cherry) and herbal (mint); secondary aromas of oak (vanilla)"),
+     "simple" is stated when chosen, and fruit character (ripe, cooked…) follows
+   - order follows the SAT: Nose = intensity, aromas, development; Palate = sweetness … flavor intensity, flavors, other
+     observations, finish
+   - Quality states the level, then specific reasons drawn from the note; Bottle aging uses the SAT wording and gives reasons */
+var CLUSTER_NAME = { 'Red fruit': 'red fruit', 'Black fruit': 'black fruit', 'Citrus fruit': 'citrus fruit', 'Green fruit': 'green fruit',
+  'Stone fruit': 'stone fruit', 'Tropical fruit': 'tropical fruit', 'Dried and cooked fruit': 'dried fruit', 'Flowers': 'floral',
+  'Herbaceous': 'herbaceous', 'Herbal': 'herbal', 'Pepper and licorice': 'spice', 'Sweet spice': 'sweet spice', 'Oak': 'oak',
+  'Lees and autolysis': 'autolysis', 'Malolactic': 'malolactic', 'Earth and savory': 'bottle age', 'Nut, honey and caramel': 'nut and honey',
+  'Mineral': 'mineral', 'Flor': 'flor', 'Fruit style': '' };
+var CLUSTER_ORDER = []; LEXFAM.forEach(function (f) { f.clusters.forEach(function (c) { CLUSTER_ORDER.push(c[0]); }); });
+function descParts(raw, noun) {                                        // noun: 'aromas' or 'flavors'
+  var seen = {}, toksIn = String(raw || '').split(/\s*,\s*/).map(function (t) { return t.trim().replace(/[.;:]+$/, ''); }).filter(function (t) { var k = t.toLowerCase(); if (!t || seen[k]) return false; seen[k] = 1; return true; });
+  var byType = { p: {}, s: {}, t: {} }, own = [], ripe = [], simple = false, words = { p: [], s: [], t: [] };
   toksIn.forEach(function (t) {
     var k = t.toLowerCase();
+    if (k === 'simple') { simple = true; return; }
     if (RIPE[k]) { ripe.push(RIPE[k]); return; }
     var h = WORDHOME[k]; if (!h) { own.push(t.charAt(0) === t.charAt(0).toUpperCase() && t.slice(1) === t.slice(1).toLowerCase() ? t.toLowerCase() : t); return; }
-    var lab = wordLabel(h.w); g[h.t].push(lab.toLowerCase());
+    var lab = wordLabel(h.w).toLowerCase(); (byType[h.t][h.c] = byType[h.t][h.c] || []).push(lab); words[h.t].push(lab);
   });
-  var out = [], used = ['p', 's', 't'].filter(function (o) { return g[o].length; });
+  var used = ['p', 's', 't'].filter(function (o) { return Object.keys(byType[o]).length; });
+  var groups = used.map(function (o) {
+    var cl = Object.keys(byType[o]).sort(function (a, b) { return CLUSTER_ORDER.indexOf(a) - CLUSTER_ORDER.indexOf(b); });
+    return cl.map(function (c) { var n = CLUSTER_NAME[c] != null ? CLUSTER_NAME[c] : c.toLowerCase(); return n ? n + ' (' + byType[o][c].join(', ') + ')' : byType[o][c].join(', '); });
+  });
+  var list = '';
   if (used.length > 1 || (used.length === 1 && used[0] !== 'p')) {
-    var parts = used.map(function (o) { return ORIGIN_WORD[o] + ' ' + noun + ' of ' + andList(g[o]); });
-    // groups are separated clearly: "primary aromas of a and b, and secondary aromas of c" / three groups take semicolons
-    var joined = parts.length === 1 ? parts[0] : parts.length === 2 ? parts[0] + ', and ' + parts[1] : parts.slice(0, -1).join('; ') + '; and ' + parts[parts.length - 1];
-    out.push('The wine has ' + joined + '.');
-    if (own.length) out.push('There are also notes of ' + andList(own) + '.');
-  } else if (used.length || own.length) {
-    out.push('The wine has ' + noun + ' of ' + andList(g.p.concat(own)) + '.');
-  }
-  if (ripe.length) out.push('The fruit character is ' + andList(ripe) + '.');
+    var parts = used.map(function (o, i) { return ORIGIN_WORD[o] + ' ' + noun + ' of ' + andList(groups[i]); });
+    list = parts.length === 1 ? parts[0] : parts.slice(0, -1).join('; ') + '; and ' + parts[parts.length - 1];
+  } else if (used.length) list = noun + ' of ' + andList(groups[0]);
+  if (simple && list) list = 'simple ' + list;
+  return { list: list, own: own, ripe: ripe, simple: simple && !list, words: words, types: used };
+}
+function descSentences(raw, noun) {
+  var d = descParts(raw, noun), out = [];
+  if (d.list) out.push('It shows ' + d.list + '.');
+  else if (d.simple) out.push('The ' + noun + ' are simple.');
+  if (d.own.length) out.push((d.list ? 'There are also notes of ' : 'It shows ' + noun + ' of ') + andList(d.own) + '.');
+  if (d.ripe.length) out.push('The fruit character is ' + andList(d.ripe) + '.');
   return out.join(' ');
 }
+function rank(v, list) { return (S[list] || []).indexOf(v); }
+function low1(v) { return term(v); }
+function qualityReasons(w) {                                           // specific evidence for each reason the taster ticked
+  var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); }), R = [];
+  var a = descParts(w.aromas, 'aromas'), f = descParts(String(w.flavors || '').split(/\s*,\s*/).filter(function (x) { return !isSame(x); }).join(', '), 'flavors');
+  var fruitInt = w.flavInt || w.noseInt;
+  if (bl.indexOf('balance') >= 0) {
+    var struct = [w.acidity && term(w.acidity) + ' acidity', w.tannin && term(w.tannin) + ' tannins'].filter(Boolean);
+    if (w.sweetness && rank(w.sweetness, 'sweetness') >= 3 && w.acidity) R.push('The sweetness is balanced by ' + term(w.acidity) + ' acidity.');
+    else if (struct.length && fruitInt) R.push('The ' + andList(struct) + ' ' + (struct.length > 1 ? 'are' : 'is') + ' balanced by ' + term(fruitInt) + ' fruit intensity.');
+    else R.push('The structure and fruit are in balance.');
+    if (w.alcohol === 'High') R.push('The High alcohol is integrated rather than hot.');
+  }
+  if (bl.indexOf('intensity') >= 0 && fruitInt) R.push('The ' + term(fruitInt) + ' intensity gives concentrated, well-defined flavors.');
+  if (bl.indexOf('length') >= 0 && w.finish) R.push('The ' + term(w.finish) + ' finish lifts the quality.');
+  if (bl.indexOf('complexity') >= 0) {
+    var types = ['p', 's', 't'].filter(function (o) { return a.words[o].length || f.words[o].length; });
+    var eg = types.map(function (o) { return (a.words[o].concat(f.words[o]))[0]; });
+    if (types.length > 1) R.push('Complexity comes from ' + andList(types.map(function (o) { return ORIGIN_WORD[o]; })) + ' characters (' + eg.join(', ') + ').');
+    else { var pw = a.words.p.concat(f.words.p).filter(function (x, i, all) { return all.indexOf(x) === i; }).slice(0, 3); R.push('Complexity comes from a range of primary characters' + (pw.length ? ' (' + pw.join(', ') + ')' : '') + '.'); }
+  }
+  return R;
+}
+function agingReasons(w) {                                              // used only when the taster hasn't written their own
+  var a = descParts(w.aromas, 'aromas'), R = [], ok = w.aging === 'Suitable';
+  if (ok) {
+    var st = [w.flavInt && term(w.flavInt) + ' flavor intensity', w.acidity && term(w.acidity) + ' acidity', w.tannin && term(w.tannin) + ' tannins'].filter(Boolean);
+    if (st.length) R.push('It has the concentration and structure to improve, with ' + andList(st) + '.');
+    if (a.words.t.length) R.push('Tertiary characters are starting to show and should develop further.');
+    else if (st.length) R.push('Its primary fruit should develop tertiary complexity with time.');
+  } else {
+    if (/fully/i.test(w.development || '')) R.push('It is Fully Developed and will keep but not improve.');
+    else if ((w.flavInt && rank(w.flavInt, 'intensity') <= 1) || a.simple || /^simple /.test(a.list)) R.push('It lacks the concentration to improve in bottle, and its primary fruit will fade.');
+  }
+  return R;
+}
 function prose(w) {
-  var out = [], S1 = [];
-  // Appearance
-  if (w.clarity) S1.push('The wine is ' + term(w.clarity) + (/hazy/i.test(w.clarity) ? ', which may indicate a fault.' : '.'));
-  if (w.appInt && w.color) S1.push('The color is ' + term(w.appInt) + ' ' + term(w.color) + '.');
-  else if (w.color) S1.push('The color is ' + term(w.color) + '.');
-  else if (w.appInt) S1.push('The color intensity is ' + term(w.appInt) + '.');
-  if (w.appNotes) S1.push(sent(w.appNotes));
-  if (S1.length) out.push({ h: 'Appearance', m: S1.join(' ') });
-  // Nose
+  var out = [], A = [];
+  // Appearance: intensity and color (clarity only when it points to a fault), then other observations
+  if (/hazy/i.test(w.clarity || '')) A.push('The wine is Hazy, which may indicate a fault.');
+  if (w.appInt && w.color) A.push('The color intensity is ' + term(w.appInt) + ' and the color is ' + term(w.color) + '.');
+  else if (w.color) A.push('The color is ' + term(w.color) + '.');
+  else if (w.appInt) A.push('The color intensity is ' + term(w.appInt) + '.');
+  if (w.appNotes) A.push(sent(w.appNotes));
+  if (A.length) out.push({ h: 'Appearance', m: A.join(' ') });
+  // Nose: intensity, aroma characteristics, development (condition only when unclean)
   var N = [];
-  if (w.condition) N.push('The nose is ' + term(w.condition) + (/unclean/i.test(w.condition) ? ', which may indicate a fault.' : '.'));
-  if (w.noseInt) N.push('The aromatic intensity is ' + term(w.noseInt) + '.');
-  if (w.development) N.push('The wine is ' + term(w.development) + '.');
+  if (/unclean/i.test(w.condition || '')) N.push('The nose is Unclean, which may indicate a fault.');
+  if (w.noseInt) N.push('The aroma intensity is ' + term(w.noseInt) + '.');
   var ar = descSentences(w.aromas, 'aromas'); if (ar) N.push(ar);
+  if (w.development) N.push('The wine is ' + term(w.development) + '.');
   if (w.noseNotes) N.push(sent(w.noseNotes));
   if (N.length) out.push({ h: 'Nose', m: N.join(' ') });
-  // Palate
+  // Palate: sweetness, acidity, tannin, alcohol, body, flavor intensity, flavor characteristics, other observations, finish
   var P = [];
   if (w.sweetness) P.push('The wine is ' + term(w.sweetness) + '.');
   if (w.acidity) P.push('The acidity is ' + term(w.acidity) + '.');
@@ -197,20 +257,23 @@ function prose(w) {
   if (w.body) P.push('The body is ' + term(w.body) + '.');
   if (w.flavInt) P.push('The flavor intensity is ' + term(w.flavInt) + '.');
   var fl = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), same = fl.some(isSame), more = fl.filter(function (x) { return !isSame(x); }).join(', ');
-  if (same) { var extra = descSentences(more, 'flavors').replace(/^The wine has /, '').replace(/\.$/, '');
-    P.push(SAME + (extra ? ', with additional ' + extra.replace(/^There are also notes of /, 'notes of ') : '') + '.'); }
-  else { var fs = descSentences(more, 'flavors'); if (fs) P.push(fs); }
+  if (same) {                                                           // the taster's phrase, then the flavors written out (marks go to named flavors)
+    var d = descParts([String(w.aromas || ''), more].filter(Boolean).join(', '), 'flavors');
+    P.push(SAME + (d.list ? ': ' + d.list : '') + '.');
+    if (d.own.length) P.push('There are also notes of ' + andList(d.own) + '.');
+  } else { var fs = descSentences(more, 'flavors'); if (fs) P.push(fs); }
+  if (w.palate) P.push(sent(w.palate));                                 // other observations (texture, pétillance…)
   if (w.finish) P.push('The finish is ' + term(w.finish) + '.');
-  if (w.palate) P.push(sent(w.palate));
   if (P.length) out.push({ h: 'Palate', m: P.join(' ') });
-  // Conclusions: the rating stands alone (bold, larger); the reasons follow as sentences
-  var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); });
-  var C = [];
-  if (bl.length) C.push('The wine shows ' + andList(bl) + '.');
-  if (w.qReason) C.push(sent(w.qReason));
-  if (w.aging) C.push(w.aging === 'Suitable' ? 'The wine is suitable for further aging.' : 'The wine is not suitable for further aging.');
-  if (w.aReason) C.push(sent(w.aReason));
-  if (w.quality || C.length) out.push({ h: 'Conclusions', q: w.quality ? term(w.quality) : '', m: C.join(' ') });
+  // Quality: the level stands alone (bold, larger); then reasons specific to this wine
+  var Q = qualityReasons(w); if (w.qReason) Q.push(sent(w.qReason));
+  if (w.quality || Q.length) out.push({ h: 'Quality', q: w.quality ? term(w.quality) : '', m: Q.join(' ') });
+  // Suitability for bottle aging, in the SAT's wording, with reasons
+  if (w.aging) {
+    var B = [w.aging === 'Suitable' ? 'The wine is suitable for bottle aging.' : 'The wine is not suitable for bottle aging.'];
+    B = B.concat(w.aReason ? [sent(w.aReason)] : agingReasons(w));
+    out.push({ h: 'Bottle aging', m: B.join(' ') });
+  } else if (w.aReason) out.push({ h: 'Bottle aging', m: sent(w.aReason) });
   return out;
 }
 var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'five'], ['Tannin', 'tannin', 'five'], ['Alcohol', 'alcohol', 'alcohol'], ['Body', 'body', 'body'], ['Flavor int.', 'flavInt', 'intensity'], ['Finish', 'finish', 'finish']];
@@ -490,4 +553,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { $('syncNote').hidden = false; toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.28';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.29';
