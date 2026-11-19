@@ -270,4 +270,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.26';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.27';
