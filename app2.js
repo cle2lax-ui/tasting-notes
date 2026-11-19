@@ -145,114 +145,70 @@ function andList(a) { a = a.filter(Boolean); return a.length < 2 ? (a[0] || '') 
 function term(v) { return nice(v); }                                   // SAT terms keep their capitals: Pale, Medium (+), Off-Dry
 var RIPE = { 'unripe fruit': 'Unripe', 'ripe fruit': 'Ripe', 'dried fruit': 'Dried', 'cooked fruit': 'Cooked' };
 var ORIGIN_WORD = { p: 'primary', s: 'secondary', t: 'tertiary' };
-/* ---- descriptors, grouped by where they come from (primary, secondary, tertiary) using the Lexicon */
-function descParts(raw, noun) {                                        // noun: 'aromas' or 'flavors'
+function descSentences(raw, noun) {                                    // noun: 'aromas' or 'flavors'
   var toksIn = String(raw || '').split(/\s*,\s*/).map(function (t) { return t.trim().replace(/[.;:]+$/, ''); }).filter(Boolean);
   var g = { p: [], s: [], t: [] }, own = [], ripe = [];
   toksIn.forEach(function (t) {
     var k = t.toLowerCase();
     if (RIPE[k]) { ripe.push(RIPE[k]); return; }
     var h = WORDHOME[k]; if (!h) { own.push(t.charAt(0) === t.charAt(0).toUpperCase() && t.slice(1) === t.slice(1).toLowerCase() ? t.toLowerCase() : t); return; }
-    g[h.t].push(wordLabel(h.w).toLowerCase());
+    var lab = wordLabel(h.w); g[h.t].push(lab.toLowerCase());
   });
-  var used = ['p', 's', 't'].filter(function (o) { return g[o].length; }), list = '';
+  var out = [], used = ['p', 's', 't'].filter(function (o) { return g[o].length; });
   if (used.length > 1 || (used.length === 1 && used[0] !== 'p')) {
     var parts = used.map(function (o) { return ORIGIN_WORD[o] + ' ' + noun + ' of ' + andList(g[o]); });
     // groups are separated clearly: "primary aromas of a and b, and secondary aromas of c" / three groups take semicolons
-    list = parts.length === 1 ? parts[0] : parts.length === 2 ? parts[0] + ', and ' + parts[1] : parts.slice(0, -1).join('; ') + '; and ' + parts[parts.length - 1];
-  } else if (used.length || own.length) { list = noun + ' of ' + andList(g.p.concat(own)); own = []; }
-  return { list: list, own: own, ripe: ripe };
-}
-
-/* ---- the written note, in the full sentences of the WSET Systematic Approach.
-   Each assessed term is stated in a sentence with the SAT term capitalized ("The acidity is Medium (+).").
-   When several wines share a date and event, each one is written in a different voice so a flight reads
-   less like a form: the first wine uses the plain wording, the next ones rotate through other phrasings
-   (after four wines the phrasings recombine, so neighbours never read alike). A wine on its own is plain. */
-var VOICE = {
-  clarity:  [function (x) { return 'The wine is ' + x; }, function (x) { return 'The wine appears ' + x; }, function (x) { return 'In the glass, the wine is ' + x; }, function (x) { return 'The wine looks ' + x; }],
-  color:    [function (x) { return 'The color is ' + x + '.'; }, function (x) { return 'It shows a ' + x + ' color.'; }, function (x) { return 'The color is a ' + x + '.'; }, function (x) { return 'It has a ' + x + ' hue.'; }],
-  cond:     [function (x) { return 'The nose is ' + x; }, function (x) { return 'On the nose, the wine is ' + x; }, function (x) { return 'The nose comes across as ' + x; }, function (x) { return 'The wine smells ' + x; }],
-  noseInt:  [function (x) { return 'The aromatic intensity is ' + x + '.'; }, function (x) { return 'The aromas are of ' + x + ' intensity.'; }, function (x) { return 'The aromas show ' + x + ' intensity.'; }, function (x) { return 'Aromatic intensity is ' + x + '.'; }],
-  dev:      [function (x) { return 'The wine is ' + x + '.'; }, function (x) { return 'It is a ' + x + ' wine.'; }, function (x) { return 'The wine is at a ' + x + ' stage.'; }, function (x) { return 'This is a ' + x + ' wine.'; }],
-  lead:     [function (l, n) { return 'The wine has ' + l + '.'; }, function (l, n) { return 'It offers ' + l + '.'; }, function (l, n) { return (n === 'aromas' ? 'The nose shows ' : 'The palate shows ') + l + '.'; }, function (l, n) { return cap(l) + ' come through.'; }],
-  own:      [function (x) { return 'There are also notes of ' + x + '.'; }, function (x) { return 'Notes of ' + x + ' round it out.'; }, function (x) { return 'Hints of ' + x + ' appear as well.'; }, function (x) { return 'There is a touch of ' + x + ' too.'; }],
-  ripe:     [function (x) { return 'The fruit character is ' + x + '.'; }, function (x) { return 'The fruit is ' + x + '.'; }, function (x) { return 'The fruit comes across as ' + x + '.'; }, function (x) { return 'The fruit reads as ' + x + '.'; }],
-  sweet:    [function (x) { return 'The wine is ' + x + '.'; }, function (x) { return 'On the palate, the wine is ' + x + '.'; }, function (x) { return 'The palate is ' + x + '.'; }, function (x) { return 'It tastes ' + x + '.'; }],
-  acid:     [function (x) { return 'The acidity is ' + x + '.'; }, function (x) { return 'It has ' + x + ' acidity.'; }, function (x) { return 'Acidity is ' + x + '.'; }, function (x) { return 'The acidity sits at ' + x + '.'; }],
-  tannin:   [function (t, n) { return 'The tannins are ' + t + (n ? ' and ' + n : '') + '.'; }, function (t, n) { return 'It has ' + t + (n ? ', ' + n : '') + ' tannins.'; }, function (t, n) { return 'Tannins are ' + t + (n ? ' and ' + n : '') + '.'; }, function (t, n) { return 'The tannin level is ' + t + (n ? ', with a ' + n + ' texture' : '') + '.'; }],
-  alcohol:  [function (x) { return 'The alcohol is ' + x + '.'; }, function (x) { return 'It carries ' + x + ' alcohol.'; }, function (x) { return 'The alcohol level is ' + x + '.'; }, function (x) { return 'Alcohol is ' + x + '.'; }],
-  body:     [function (x) { return 'The body is ' + x + '.'; }, function (x) { return 'It is ' + x + ' in body.'; }, function (x) { return 'The wine has ' + x + ' body.'; }, function (x) { return 'Body is ' + x + '.'; }],
-  flavInt:  [function (x) { return 'The flavor intensity is ' + x + '.'; }, function (x) { return 'The flavors are of ' + x + ' intensity.'; }, function (x) { return 'The flavors show ' + x + ' intensity.'; }, function (x) { return 'Flavor intensity is ' + x + '.'; }],
-  finish:   [function (x) { return 'The finish is ' + x + '.'; }, function (x) { return 'It has a ' + x + ' finish.'; }, function (x) { return 'On the finish, it is ' + x + '.'; }, function (x) { return 'It finishes ' + x + '.'; }],
-  blic:     [function (x) { return 'The wine shows ' + x + '.'; }, function (x) { return 'It shows ' + x + '.'; }, function (x) { return 'Its quality rests on ' + x + '.'; }, function (x) { return 'It displays ' + x + '.'; }],
-  aging:    [function (ok) { return ok ? 'The wine is suitable for further aging.' : 'The wine is not suitable for further aging.'; },
-             function (ok) { return ok ? 'It has the potential for further aging.' : 'It is not one for further aging.'; },
-             function (ok) { return ok ? 'It is suitable for further aging.' : 'It is best enjoyed now rather than aged further.'; },
-             function (ok) { return ok ? 'It will reward further aging.' : 'It is not suitable for further aging.'; }]
-};
-var SLOTS = Object.keys(VOICE);
-function flightPlace(w) {                                               // this wine's place among the wines sharing its date and event
-  var same = ALL.filter(function (x) { return x.ymd === w.ymd && (x.event || '') === (w.event || ''); }).sort(function (a, b) { return a.wineNo - b.wineNo; });
-  if (same.length < 2) return 0;
-  var i = 0; same.forEach(function (x, j) { if (x.id === w.id) i = j; }); return i;
-}
-function voice(w) {
-  var i = flightPlace(w), round = Math.floor(i / 4);
-  return function (slot, a, b) { var k = SLOTS.indexOf(slot), v = (i + round * k) % 4; return VOICE[slot][v](a, b); };
-}
-function descSentences(raw, noun, say) {
-  var d = descParts(raw, noun), out = [];
-  if (d.list) out.push(say('lead', d.list, noun));
-  if (d.own.length) out.push(say('own', andList(d.own)));
-  if (d.ripe.length) out.push(say('ripe', andList(d.ripe)));
+    var joined = parts.length === 1 ? parts[0] : parts.length === 2 ? parts[0] + ', and ' + parts[1] : parts.slice(0, -1).join('; ') + '; and ' + parts[parts.length - 1];
+    out.push('The wine has ' + joined + '.');
+    if (own.length) out.push('There are also notes of ' + andList(own) + '.');
+  } else if (used.length || own.length) {
+    out.push('The wine has ' + noun + ' of ' + andList(g.p.concat(own)) + '.');
+  }
+  if (ripe.length) out.push('The fruit character is ' + andList(ripe) + '.');
   return out.join(' ');
 }
 function prose(w) {
-  var out = [], S1 = [], say = voice(w);
+  var out = [], S1 = [];
   // Appearance
-  if (w.clarity) S1.push(say('clarity', term(w.clarity)) + (/hazy/i.test(w.clarity) ? ', which may indicate a fault.' : '.'));
-  if (w.appInt && w.color) S1.push(say('color', term(w.appInt) + ' ' + term(w.color)));
-  else if (w.color) S1.push(say('color', term(w.color)));
+  if (w.clarity) S1.push('The wine is ' + term(w.clarity) + (/hazy/i.test(w.clarity) ? ', which may indicate a fault.' : '.'));
+  if (w.appInt && w.color) S1.push('The color is ' + term(w.appInt) + ' ' + term(w.color) + '.');
+  else if (w.color) S1.push('The color is ' + term(w.color) + '.');
   else if (w.appInt) S1.push('The color intensity is ' + term(w.appInt) + '.');
   if (w.appNotes) S1.push(sent(w.appNotes));
   if (S1.length) out.push({ h: 'Appearance', m: S1.join(' ') });
   // Nose
   var N = [];
-  if (w.condition) N.push(say('cond', term(w.condition)) + (/unclean/i.test(w.condition) ? ', which may indicate a fault.' : '.'));
-  if (w.noseInt) N.push(say('noseInt', term(w.noseInt)));
-  if (w.development) N.push(say('dev', term(w.development)));
-  var ar = descSentences(w.aromas, 'aromas', say); if (ar) N.push(ar);
+  if (w.condition) N.push('The nose is ' + term(w.condition) + (/unclean/i.test(w.condition) ? ', which may indicate a fault.' : '.'));
+  if (w.noseInt) N.push('The aromatic intensity is ' + term(w.noseInt) + '.');
+  if (w.development) N.push('The wine is ' + term(w.development) + '.');
+  var ar = descSentences(w.aromas, 'aromas'); if (ar) N.push(ar);
   if (w.noseNotes) N.push(sent(w.noseNotes));
   if (N.length) out.push({ h: 'Nose', m: N.join(' ') });
   // Palate
   var P = [];
-  if (w.sweetness) P.push(say('sweet', term(w.sweetness)));
-  if (w.acidity) P.push(say('acid', term(w.acidity)));
+  if (w.sweetness) P.push('The wine is ' + term(w.sweetness) + '.');
+  if (w.acidity) P.push('The acidity is ' + term(w.acidity) + '.');
   if (w.tannin) {
     var tn = String(w.tanNature || '').trim().replace(/\.$/, ''), short = tn && tn.split(/\s+/).length <= 4 && !/[.;!?]/.test(tn);
-    P.push(say('tannin', term(w.tannin), short ? tn.charAt(0).toLowerCase() + tn.slice(1) : ''));
+    P.push('The tannins are ' + term(w.tannin) + (short ? ' and ' + tn.charAt(0).toLowerCase() + tn.slice(1) : '') + '.');
     if (tn && !short) P.push(sent(tn));
   } else if (w.tanNature) P.push(sent(w.tanNature));
-  if (w.alcohol) P.push(say('alcohol', term(w.alcohol)));
-  if (w.body) P.push(say('body', term(w.body)));
-  if (w.flavInt) P.push(say('flavInt', term(w.flavInt)));
+  if (w.alcohol) P.push('The alcohol is ' + term(w.alcohol) + '.');
+  if (w.body) P.push('The body is ' + term(w.body) + '.');
+  if (w.flavInt) P.push('The flavor intensity is ' + term(w.flavInt) + '.');
   var fl = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), same = fl.some(isSame), more = fl.filter(function (x) { return !isSame(x); }).join(', ');
-  if (same) {                                                           // the taster's own wording, kept as asked
-    var d = descParts(more, 'flavors');
-    P.push(SAME + (d.list ? ', with additional ' + d.list : '') + '.');
-    if (d.own.length) P.push(say('own', andList(d.own)));
-    if (d.ripe.length) P.push(say('ripe', andList(d.ripe)));
-  } else { var fs = descSentences(more, 'flavors', say); if (fs) P.push(fs); }
-  if (w.finish) P.push(say('finish', term(w.finish)));
+  if (same) { var extra = descSentences(more, 'flavors').replace(/^The wine has /, '').replace(/\.$/, '');
+    P.push(SAME + (extra ? ', with additional ' + extra.replace(/^There are also notes of /, 'notes of ') : '') + '.'); }
+  else { var fs = descSentences(more, 'flavors'); if (fs) P.push(fs); }
+  if (w.finish) P.push('The finish is ' + term(w.finish) + '.');
   if (w.palate) P.push(sent(w.palate));
   if (P.length) out.push({ h: 'Palate', m: P.join(' ') });
   // Conclusions: the rating stands alone (bold, larger); the reasons follow as sentences
   var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); });
   var C = [];
-  if (bl.length) C.push(say('blic', andList(bl)));
+  if (bl.length) C.push('The wine shows ' + andList(bl) + '.');
   if (w.qReason) C.push(sent(w.qReason));
-  if (w.aging) C.push(say('aging', w.aging === 'Suitable'));
+  if (w.aging) C.push(w.aging === 'Suitable' ? 'The wine is suitable for further aging.' : 'The wine is not suitable for further aging.');
   if (w.aReason) C.push(sent(w.aReason));
   if (w.quality || C.length) out.push({ h: 'Conclusions', q: w.quality ? term(w.quality) : '', m: C.join(' ') });
   return out;
@@ -534,4 +490,4 @@ $('syncNow').onclick = function () {
     .catch(function (err) { $('syncNote').hidden = false; toast(err && err.message === 'signin' ? 'Google sign-in was cancelled' : (err && err.message) || 'Could not sync'); })
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.27';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.28';
