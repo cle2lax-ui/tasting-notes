@@ -136,6 +136,12 @@ var API = {
       return { ok: true, label: wineLabel(rec.date, rec.wineNo), id: row.id, all: appAllSync() };
     });
   },
+  appSetReviews: function (id, text) {                       // reviews found online, kept with the wine and synced
+    var row = ROWS.filter(function (x) { return x.id === id; })[0];
+    if (!row) return Promise.resolve(null);
+    row.reviews = text; row.dirty = true;
+    return DB.put('wines', row).then(loadRows).then(function () { if (window.Sync) Sync.soon(); return { ok: true, all: appAllSync() }; });
+  },
   appSetPrice: function (id, price, src) {                    // an automatically found price, kept with the wine and synced
     var row = ROWS.filter(function (x) { return x.id === id; })[0];
     if (!row || (row.price && !/^(auto|none):/.test(row.priceSrc || ''))) return Promise.resolve(null);   // never over a price the taster typed
@@ -276,4 +282,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.32';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.33';

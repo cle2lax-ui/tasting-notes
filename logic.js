@@ -77,6 +77,7 @@ const Q = [
   { key: 'aVintage', title: 'Vintage — Actual', kind: 'vintage' },
   { key: 'price', title: 'Approx. Retail Price', kind: 'text', help: 'Found automatically for revealed wines, or type your own' },
   { key: 'priceSrc', title: 'Price Source', kind: 'text' },
+  { key: 'reviews', title: 'Professional Reviews', kind: 'para', help: 'Found online for revealed wines: critic | score | vintage | excerpt | link' },
 ];
 const QS = Q.filter(q => q.key);
 const SCALES = {
@@ -181,7 +182,7 @@ function normalize(rows) {
       gGrape: clean(r.gGrape), gCountry: clean(r.gCountry), gRegion: clean(r.gRegion), gVintage: clean(r.gVintage),
       producer: clean(r.producer), aGrape: clean(r.aGrape), aCountry: clean(r.aCountry), aRegion: clean(r.aRegion),
       aVintage: clean(r.aVintage), editLink: clean(r.editLink), event: clean(r.event), photo: clean(r.photo),
-      id: r.id || '', ts: r.ts || 0, price: clean(r.price), priceSrc: clean(r.priceSrc),
+      id: r.id || '', ts: r.ts || 0, price: clean(r.price), priceSrc: clean(r.priceSrc), reviews: r.reviews || '',
     };
     const pairs = [['gGrape', 'aGrape'], ['gCountry', 'aCountry'], ['gRegion', 'aRegion'], ['gVintage', 'aVintage']];
     w.open = clean(r.open) !== '';
@@ -274,4 +275,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.32';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.33';

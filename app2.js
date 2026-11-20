@@ -86,7 +86,7 @@ $('list').addEventListener('click', function (e) {
   if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-  findPrice(w); $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
+  findPrice(w); findReviews(w); $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
   pn.style.setProperty('--phh', pn.querySelector('.ph').offsetHeight + 'px');                     // the wine's name and photo stay pinned just under Done
 });
 $('cardClose').onclick = function () { sheet('cardSheet', false); };
@@ -291,7 +291,8 @@ function cardHTML(w) {
   var rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
-      return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') + '</div></div>';
+      return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') +
+    (w.price ? '<span class="l">Approx. price</span>' + (w.open ? '' : '<span class="g"></span>') + '<span class="a">' + esc(priceText(w.price)) + '</span>' : '') + '</div></div>';
   h += reviewsHTML(w);
   h += '</div></div>';
   // the blind-tasting result sits at the end, after the note it grew out of
@@ -351,7 +352,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   var top = y + Math.max(48 * K, img ? 48 * K : 0);
   // left: the written note
   var LW = W * 0.6, ly = top + 10 * K;
-  prose(w).forEach(function (p) {
+  prose(w).concat(reviewsProse(w)).forEach(function (p) {
     font('Archivo', 'bold', 6, PC.sig); txt(p.h.toUpperCase(), x, ly, { charSpace: 1 }); ly += 9.5 * K;
     if (p.q) { font('Archivo', 'bold', 9.4, PC.ink); D.splitTextToSize(pdfText(p.q), LW).forEach(function (line) { txt(line, x, ly + 1 * K); ly += 12.4 * K; }); ly += 1 * K; }
     if (p.m) { font('Archivo', 'normal', 8, PC.ink); D.splitTextToSize(pdfText(p.m), LW).forEach(function (line) { txt(line, x, ly); ly += 10.4 * K; }); }
@@ -556,21 +557,124 @@ $('syncNow').onclick = function () {
 };
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.29';
 
-/* ====================================================================== professional reviews: two search links
-   Once a wine is revealed (producer filled in), two links open searches already filled in with the wine:
-   Wine-Searcher (gathers critics' scores across publications) and a Google search for reviews (finds Decanter,
-   James Suckling, Vinous and others). Nothing is fetched or stored by the app. */
+/* ====================================================================== professional reviews
+   Once a wine is revealed, the app runs the same keyless Tavily search used for prices ("<wine> <vintage> review")
+   and reads critics' scores from the results: from the critics' own sites (with a short excerpt of the page's text,
+   attributed and linked) and from retailer pages that quote a critic's score. Only pages naming this wine count.
+   Kept with the wine as text (readable in the Sheet): "Searched <date> for: <query>", then
+   "Critic | score | vintage | excerpt | link" per review. Two search links stay underneath. */
+var RV_BUSY = {}, RV_TRIED = {};
+var RV_SITES = { 'decanter.com': 'Decanter', 'jamessuckling.com': 'James Suckling', 'winespectator.com': 'Wine Spectator', 'wineenthusiast.com': 'Wine Enthusiast',
+  'winemag.com': 'Wine Enthusiast', 'vinous.com': 'Vinous', 'jancisrobinson.com': 'Jancis Robinson', 'robertparker.com': 'Wine Advocate', 'jebdunnuck.com': 'Jeb Dunnuck',
+  'timatkin.com': 'Tim Atkin', 'falstaff.com': 'Falstaff', 'gamberorosso.it': 'Gambero Rosso', 'winecompanion.com.au': 'Halliday', 'thewinefront.com.au': 'The Wine Front' };
+var RV_NAMES = ['James Suckling', 'Wine Spectator', 'Wine Advocate', 'Robert Parker', 'Vinous', 'Antonio Galloni', 'Decanter', 'Wine Enthusiast', 'Jeb Dunnuck', 'Jancis Robinson',
+  'Tim Atkin', 'Falstaff', 'Wine & Spirits', 'Burghound', 'Halliday', 'Wine Front', 'Vinum', 'Gambero Rosso'];
+var RV_ALIAS = { 'Robert Parker': 'Wine Advocate', 'Antonio Galloni': 'Vinous', 'Wine Front': 'The Wine Front' };
 function rvQuery(w) { return [String(w.producer || '').trim(), String(w.aVintage || '').trim()].filter(Boolean).join(' '); }
+function rvParse(text) {
+  var out = { query: '', items: [] };
+  String(text || '').split(/\n+/).forEach(function (l) {
+    var m = l.match(/^Searched (.+?) for: (.*)$/); if (m) { out.query = m[2].trim(); return; }
+    var f = l.split(' | '); if (f.length >= 5) out.items.push({ critic: f[0], score: f[1], vintage: f[2], text: f.slice(3, -1).join(' | '), url: f[f.length - 1] });
+  });
+  return out;
+}
+function rvFormat(q, items) {
+  var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return ['Searched ' + d + ' for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+}
+function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
+function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
+function rvExcerpt(text, w) {                                            // one or two sentences of the critic's page, about 30 words
+  var t = String(text || '').replace(/\[\.\.\.\]|#+|\*+|\|/g, ' ').replace(/\s+/g, ' ').trim();
+  var low = t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), key = prKey(w), at = key ? low.indexOf(key) : -1;
+  if (at > 0) { var dot = t.lastIndexOf('. ', at); t = t.slice(dot >= 0 ? dot + 2 : at); }
+  var sents = t.match(/[^.!?]+[.!?]+/g) || [t], ex = '';
+  for (var i = 0; i < sents.length && ex.split(' ').length < 22; i++) {
+    var sn = sents[i].trim();
+    if (/cookie|subscribe|sign in|log in|newsletter|javascript|all rights reserved|privacy/i.test(sn) || sn.length < 20) continue;
+    ex += (ex ? ' ' : '') + sn;
+  }
+  var words = ex.split(' '); if (words.length > 32) ex = words.slice(0, 30).join(' ').replace(/[,;:]$/, '') + '\u2026';
+  return ex;
+}
+function rvScore(text) {
+  var m = String(text).match(/\b(\d{2})(?:\+)?\s?(?:pts|points|\/100|-point)\b/i) || String(text).match(/\bscore[d:]?\s*(\d{2})\b/i);
+  if (m && +m[1] >= 80 && +m[1] <= 100) return m[1] + '/100';
+  var t = String(text).match(/\b(1\d(?:\.5)?|20)\s?\/\s?20\b/); if (t) return t[1] + '/20';
+  return '';
+}
+function rvPick(w, results) {
+  var toks = prToks(w), need = toks.length >= 4 ? toks.length - 1 : toks.length, vin = String(w.aVintage || '').trim(), got = {};
+  (results || []).forEach(function (r) {
+    if (!r || PR_SKIP.test(r.url || '')) return;
+    var text = String(r.content || ''), hay = prNorm((r.title || '') + ' ' + text + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' '));
+    if (!toks.length || toks.filter(function (t) { return hay.indexOf(t) >= 0; }).length < need) return;    // a page about a different wine
+    var vm = hay.match(/\b(19[5-9]\d|20[0-4]\d)\b/), rv = vin && hay.indexOf(vin) >= 0 ? vin : (vm ? vm[1] : '');
+    var site = rvSite(r.url);
+    if (site) {                                                         // the critic's own page
+      var sc = rvScore((r.title || '') + ' ' + text), ex = rvExcerpt(text, w);
+      if (!sc && !ex) return;
+      var item = { critic: site, score: sc, vintage: rv, text: ex, url: r.url };
+      if (!got[site] || (vin && rv === vin && got[site].vintage !== vin)) got[site] = item;
+      return;
+    }
+    // a retailer quoting critics: "94 James Suckling", "James Suckling 94 pts", "90 Antonio Galloni - Vinous"
+    RV_NAMES.forEach(function (n) {
+      var e = n.replace(/&/g, '&'), re1 = new RegExp('\\b(\\d{2})\\s*(?:pts|points|\\+)?\\s*[-\u2013:]?\\s*' + e, 'i'), re2 = new RegExp(e + '\\s*[-\u2013:]?\\s*(\\d{2})\\s*(?:pts|points|\\/100)?\\b', 'i');
+      var m = text.match(re1) || text.match(re2); if (!m || +m[1] < 80 || +m[1] > 100) return;
+      var c = RV_ALIAS[n] || n; if (got[c]) return;
+      got[c] = { critic: c, score: m[1] + '/100', vintage: rv, text: '', url: r.url };
+    });
+  });
+  var list = Object.keys(got).map(function (k) { return got[k]; });
+  if (vin && list.some(function (x) { return x.vintage === vin; })) list = list.filter(function (x) { return x.vintage === vin || !x.vintage; });
+  return list.sort(function (a, b) { return (b.text ? 1 : 0) - (a.text ? 1 : 0) || (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0); }).slice(0, 5);
+}
+function findReviews(w, force) {
+  if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
+  var q = rvQuery(w), r = rvParse(w.reviews);
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase()) return;   // already searched for this wine
+  if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
+  RV_BUSY[w.id] = 1; repaintReviews(w.id);
+  fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
+    body: JSON.stringify({ query: q.replace(/[\u2018\u2019'`]/g, '') + ' wine review score', max_results: 10, search_depth: 'basic' }) })
+    .then(function (res) { if (!res.ok) throw new Error('search ' + res.status); return res.json(); })
+    .then(function (j) { return api('appSetReviews', w.id, rvFormat(q, rvPick(w, j.results))).then(function (x) { if (x) setData(x.all); }); })
+    .catch(function () { delete RV_TRIED[w.id + q]; if (force) toast('Couldn\u2019t search for reviews right now'); })
+    .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
+}
+function repaintReviews(id) {
+  if (!$('cardSheet').classList.contains('show')) return;
+  var w = ALL.filter(function (x) { return x.id === id; })[0], box = $('cardBody').querySelector('.revs');
+  if (w && box && $('cardBody').querySelector('[data-del="' + id + '"]')) box.outerHTML = reviewsHTML(w);
+}
 function reviewsHTML(w) {
   var h = '<div class="revs"><h6>Professional reviews</h6>';
-  if (!String(w.producer || '').trim()) return h + '<div class="rv-lock">Review links appear once you fill in the producer and wine name, so they can’t spoil a blind tasting.</div></div>';
-  var q = rvQuery(w), s = q.replace(/[\u2018\u2019'`]/g, '');   // search sites match "Presquile" better than a curly apostrophe
+  if (!String(w.producer || '').trim()) return h + '<div class="rv-lock">Reviews appear once you fill in the producer and wine name, so they can\u2019t spoil a blind tasting.</div></div>';
+  var q = rvQuery(w), s = q.replace(/[\u2018\u2019'`]/g, ''), r = rvParse(w.reviews), fresh = r.query && r.query.toLowerCase() === q.toLowerCase();
+  if (fresh && r.items.length) {
+    h += '<div class="rv-found">' + r.items.map(function (x) {
+      var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim();
+      return '<a class="rvi" href="' + esc(x.url) + '" target="_blank" rel="noopener"><div class="rvi-h"><b>' + esc(x.critic) + '</b>' + (x.score ? '<em>' + esc(x.score) + '</em>' : '') + '</div>' +
+        (x.text ? '<p>\u201c' + esc(x.text) + '\u201d</p>' : '') +
+        '<small>' + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span> \u00b7 ' : x.vintage ? esc(x.vintage) + ' \u00b7 ' : '') + (rvSite(x.url) ? '' : 'via ') + esc(rvHost(x.url)) + ' \u203a</small></a>';
+    }).join('') + '</div><p class="rv-note">Found online; excerpts are from the linked pages. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
+  } else if (RV_BUSY[w.id]) h += '<p class="rv-state"><i class="rv-spin"></i>Looking for professional reviews\u2026</p>';
+  else if (fresh) h += '<p class="rv-state">No critics\u2019 reviews found online for this wine. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
   return h + '<div class="rv-links two">' +
-    '<a class="rvl" href="https://www.wine-searcher.com/find/' + esc(encodeURIComponent(s).replace(/%20/g, '+')) + '" target="_blank" rel="noopener"><b>Wine-Searcher</b><small>Critics’ scores in one place</small></a>' +
+    '<a class="rvl" href="https://www.wine-searcher.com/find/' + esc(encodeURIComponent(s).replace(/%20/g, '+')) + '" target="_blank" rel="noopener"><b>Wine-Searcher</b><small>Critics\u2019 scores in one place</small></a>' +
     '<a class="rvl" href="https://www.google.com/search?q=' + esc(encodeURIComponent(s + ' wine review')) + '" target="_blank" rel="noopener"><b>Google</b><small>Decanter, Suckling and more</small></a>' +
-    '</div><p class="rv-q">Searches for <b>' + esc(q) + '</b></p></div>';
+    '</div></div>';
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.31';
+function reviewsProse(w) {                                              // the PDF's Professional reviews section
+  var r = rvParse(w.reviews); if (!r.items.length || !String(w.producer || '').trim() || r.query.toLowerCase() !== rvQuery(w).toLowerCase()) return [];
+  return [{ h: 'Professional reviews', m: r.items.map(function (x) { return x.critic + (x.score ? ' ' + x.score : '') + (x.vintage && x.vintage !== String(w.aVintage || '').trim() ? ' (' + x.vintage + ' vintage)' : '') + (x.text ? ': \u201c' + x.text.replace(/[.\s]+$/, '') + '.\u201d' : '.'); }).join(' ') }];
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-rvagain]'); if (!b) return;
+  var w = ALL.filter(function (x) { return x.id === b.getAttribute('data-rvagain'); })[0]; if (w) findReviews(w, true);
+});
 
 /* ====================================================================== approximate retail price
    Once a wine is revealed, the app asks Tavily's keyless web search (no account, no key) for "<wine> <vintage> price"
@@ -592,6 +696,8 @@ function priceHTML(w) {
     (src ? ' <a href="' + esc(src) + '" target="_blank" rel="noopener">' + esc(rvHostP(src)) + ' ›</a>' : ' <span>your price</span>') + '</div>';
 }
 function rvHostP(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
+function prToks(w) { var all = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; }); var t = all.filter(function (x) { return !PR_GRAPE[x]; }); return t.length ? t : all; }
+function prKey(w) { return prToks(w).slice().sort(function (a, b) { return b.length - a.length; })[0] || ''; }
 function prPick(w, results) {                                           // the price, read from the search results
   // the words that tell this wine apart (producer, cuvée, site); grape names alone would match the producer's other wines
   var all = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; });
@@ -655,4 +761,4 @@ function repaintPrice(id) {
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.32';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.33';
