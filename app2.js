@@ -352,7 +352,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   var top = y + Math.max(48 * K, img ? 48 * K : 0);
   // left: the written note
   var LW = W * 0.6, ly = top + 10 * K;
-  prose(w).concat(reviewsProse(w)).forEach(function (p) {
+  prose(w).forEach(function (p) {
     font('Archivo', 'bold', 6, PC.sig); txt(p.h.toUpperCase(), x, ly, { charSpace: 1 }); ly += 9.5 * K;
     if (p.q) { font('Archivo', 'bold', 9.4, PC.ink); D.splitTextToSize(pdfText(p.q), LW).forEach(function (line) { txt(line, x, ly + 1 * K); ly += 12.4 * K; }); ly += 1 * K; }
     if (p.m) { font('Archivo', 'normal', 8, PC.ink); D.splitTextToSize(pdfText(p.m), LW).forEach(function (line) { txt(line, x, ly); ly += 10.4 * K; }); }
@@ -384,6 +384,18 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
         else { D.line(mx - 1.8 * K, my - 1.8 * K, mx + 1.8 * K, my + 1.8 * K); D.line(mx + 1.8 * K, my - 1.8 * K, mx - 1.8 * K, my + 1.8 * K); } } }
     font('Archivo', 'bold', 7, PC.sig); txt(D.splitTextToSize(pdfText(w[r[2]] || '–'), cw)[0], c3, gy); gy += 10 * K;
   });
+  // right, below guess and actual: professional reviews
+  var rv = reviewsPdf(w);
+  if (rv.length) {
+    gy += 7 * K; font('Archivo', 'bold', 5.4, PC.muted); txt('PROFESSIONAL REVIEWS', c1, gy, { charSpace: .6 }); gy += 9.5 * K;
+    rv.forEach(function (x) {
+      font('Archivo', 'bold', 7, PC.ink); txt(D.splitTextToSize(pdfText(x.critic), RW - 40 * K)[0], c1, gy);
+      if (x.score) { font('Playfair', 'bold', 8, PC.gold); txt(pdfText(x.score), right, gy, { align: 'right' }); }
+      gy += 8.6 * K;
+      if (x.text) { font('Archivo', 'normal', 6.6, PC.ink2); D.splitTextToSize(pdfText('\u201c' + x.text.replace(/[.\s]+$/, '') + '.\u201d'), RW).forEach(function (line) { txt(line, c1, gy); gy += 8.4 * K; }); }
+      font('Archivo', 'normal', 5.8, x.other ? PC.no : PC.muted); txt(pdfText((x.other ? x.vintage + ' vintage  \u00b7  ' : '') + (rvSite(x.url) ? '' : 'via ') + rvHost(x.url)), c1, gy); gy += 10 * K;
+    });
+  }
   return Math.max(ly, gy) - y + 4 * K;
 }
 function makePdf(list, title) {
@@ -706,9 +718,10 @@ function reviewsHTML(w) {
     '<a class="rvl" href="https://www.google.com/search?q=' + esc(encodeURIComponent(s + ' wine review')) + '" target="_blank" rel="noopener"><b>Google</b><small>Decanter, Suckling and more</small></a>' +
     '</div></div>';
 }
-function reviewsProse(w) {                                              // the PDF's Professional reviews section
+function reviewsPdf(w) {                                                // the PDF's review list, beside the structure and guess
   var r = rvParse(w.reviews); if (!r.items.length || !String(w.producer || '').trim() || r.query.toLowerCase() !== rvQuery(w).toLowerCase()) return [];
-  return [{ h: 'Professional reviews', m: r.items.map(function (x) { return x.critic + (x.score ? ' ' + x.score : '') + (x.vintage && x.vintage !== String(w.aVintage || '').trim() ? ' (' + x.vintage + ' vintage)' : '') + (x.text ? ': \u201c' + x.text.replace(/[.\s]+$/, '') + '.\u201d' : '.'); }).join(' ') }];
+  var v = String(w.aVintage || '').trim();
+  return r.items.map(function (x) { return { critic: x.critic, score: x.score, text: x.text, url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v) }; });
 }
 document.addEventListener('click', function (e) {
   var b = e.target.closest('[data-rvagain]'); if (!b) return;
@@ -830,4 +843,4 @@ function repaintPrice(id) {
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.35';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.36';
