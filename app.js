@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.30';
+var VERSION_LABEL = 'v2.31';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -110,7 +110,7 @@ function rerow(k) {
 var FOLDED = {}, PINNED = {};
 $('clearSel').onclick = function () { clearSelections(); };
 /* ---- Clear selections: wipes every answer and note on this wine, after an Are you sure? step */
-var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer', 'reviews'];
+var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer'];
 function answerKeys() { var ks = ID_KEYS.slice(); STAGES().forEach(function (st) { st.rows.forEach(function (r) { ks.push(r[0] === 'color' ? 'color' : r[1]); }); }); return ks.filter(Boolean); }
 function clearSelections() {
   var ks = answerKeys(), any = ks.some(function (k) { var v = rec[k]; return Array.isArray(v) ? v.length : !!(v && String(v).trim()); });
@@ -409,7 +409,6 @@ function save(force, next) {
     b.disabled = false; b.textContent = was;
     if (r.conflict) return ask(r.conflict + ' Replace it with this note?', 'Replace', 'Cancel').then(function (go) { if (go) save(true, next); });
     rec.id = r.id; setData(r.all); orig = { date: rec.date, wineNo: rec.wineNo }; dirty = false; clearDraft(); paintId();
-    var sw = ALL.filter(function (x) { return x.id === r.id; })[0]; if (sw && window.findReviews) findReviews(sw);   // look up critics' reviews once the wine is revealed
     if (next) { var d = rec.date, ev = rec.event || '', saved = label(); show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0); toast('Saved ' + saved + ' · now Wine ' + rec.wineNo); }
     else toast('Saved ' + label());
   }).catch(function (err) { b.disabled = false; b.textContent = was; fail(err); });
@@ -504,4 +503,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.30';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.31';

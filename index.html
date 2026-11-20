@@ -644,29 +644,18 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 @media (min-width:700px){ .card-sheet .panel{--cpad:32px} .card-sheet .tc-head{padding-top:14px} .card-sheet .ph{margin-bottom:0} }
 @media (min-width:900px){ .card-sheet .panel{--cpad:44px} }
 
-/* v2.30 professional reviews on the wine's page */
+/* professional reviews: search links on the wine's page */
 .revs .rv-lock{padding:12px 14px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:13.5px}
-.rv-found{display:grid;gap:10px}
-.rvi{display:block;padding:12px 14px;border:1px solid var(--line-2);border-radius:12px;background:var(--card);color:var(--ink);text-decoration:none}
-.rvi-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.rvi-h b{font-weight:700;font-size:14.5px}
-.rvi-h em{font-style:normal;font:700 17px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums;white-space:nowrap}
-.rvi p{margin:5px 0 6px;font-size:14px;line-height:1.45;color:var(--ink-2)}
-.rvi small{font-size:12px;color:var(--sig);font-weight:600}
-.rv-warn{color:#B3261E}
-.rv-note,.rv-state{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.45}
-.rv-note .lnk,.rv-state .lnk{font-size:inherit}
-.rv-state .lnk{font-size:14px}
-.rv-spin{display:inline-block;width:12px;height:12px;margin-right:8px;vertical-align:-1px;border:2px solid var(--line-2);border-top-color:var(--sig);border-radius:50%;animation:rvspin .8s linear infinite}
-@keyframes rvspin{to{transform:rotate(360deg)}}
 .rv-q{font-size:12.5px;color:var(--muted);margin:14px 0 8px}
 .rv-q b{color:var(--ink-2);font-weight:600}
 .rv-links{display:flex;flex-wrap:wrap;gap:8px}
 .rvl{display:grid;gap:1px;padding:8px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--card);text-decoration:none;color:var(--ink);min-width:0}
 .rvl b{font-size:13.5px;font-weight:600}
 .rvl small{font-size:11px;color:var(--muted)}
-.rv-input{width:100%;min-height:44px;border:1px solid var(--line-2);border-radius:12px;padding:0 12px;font:inherit;font-size:15px;background:var(--card);color:var(--ink);margin:4px 0 10px}
-:root[data-theme="dim"] .rv-warn{color:#F0A9AF}
+/* v2.31 two review links */
+.rv-links.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rv-links.two .rvl{padding:11px 14px}
+.rv-links.two+.rv-q{margin:8px 0 0}
 
 </style>
 </head>
@@ -766,13 +755,6 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <div class="row2" id="gsButtons"></div>
   </section>
   <section>
-    <h3 class="eyebrow">Professional Reviews</h3>
-    <p>Finds critics’ reviews of each revealed wine with Google’s free Gemini AI, through a small script in your own Google account. <a href="reviews-setup.html" target="_blank" rel="noopener">Set-up guide</a></p>
-    <input type="url" id="rvUrl" class="rv-input" placeholder="Paste your review finder link" autocomplete="off" autocapitalize="none" spellcheck="false">
-    <div class="row2"><button class="btn" id="rvSave" type="button">Save and Test</button><button class="btn" id="rvOff" type="button">Remove</button></div>
-    <p class="gs" id="rvStatus"></p>
-  </section>
-  <section>
     <h3 class="eyebrow">Backup &amp; Files</h3>
     <p>Your notes live on this device. Keep a backup in iCloud Drive or email it to yourself; Restore also opens flights friends send you.</p>
     <label class="chk"><input type="checkbox" id="bkPhotos" checked> Include label photos</label>
@@ -787,7 +769,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.30. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.31. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -823,13 +805,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.30';</script>
-<script src="logic.js?v=2.30"></script>
-<script src="store.js?v=2.30"></script>
-<script src="google.js?v=2.30"></script>
-<script src="lexicon.js?v=2.30"></script>
-<script src="app.js?v=2.30"></script>
-<script src="app2.js?v=2.30"></script>
+<script>var BUILD = 'v2.31';</script>
+<script src="logic.js?v=2.31"></script>
+<script src="store.js?v=2.31"></script>
+<script src="google.js?v=2.31"></script>
+<script src="lexicon.js?v=2.31"></script>
+<script src="app.js?v=2.31"></script>
+<script src="app2.js?v=2.31"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
