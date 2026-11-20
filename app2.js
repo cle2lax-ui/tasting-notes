@@ -86,7 +86,7 @@ $('list').addEventListener('click', function (e) {
   if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-  $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
+  findReviews(w); $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
   pn.style.setProperty('--phh', pn.querySelector('.ph').offsetHeight + 'px');                     // the wine's name and photo stay pinned just under Done
 });
 $('cardClose').onclick = function () { sheet('cardSheet', false); };
@@ -292,6 +292,7 @@ function cardHTML(w) {
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') + '</div></div>';
+  h += reviewsHTML(w);
   h += '</div></div>';
   // the blind-tasting result sits at the end, after the note it grew out of
   h += '<div class="tc-guess">' + (w.open ? '<span>Tasted open</span><b class="op">Not scored</b>' : '<span>Blind Tasting Guess</span><b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b>') + '</div>';
@@ -350,7 +351,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   var top = y + Math.max(48 * K, img ? 48 * K : 0);
   // left: the written note
   var LW = W * 0.6, ly = top + 10 * K;
-  prose(w).forEach(function (p) {
+  prose(w).concat(reviewsProse(w)).forEach(function (p) {
     font('Archivo', 'bold', 6, PC.sig); txt(p.h.toUpperCase(), x, ly, { charSpace: 1 }); ly += 9.5 * K;
     if (p.q) { font('Archivo', 'bold', 9.4, PC.ink); D.splitTextToSize(pdfText(p.q), LW).forEach(function (line) { txt(line, x, ly + 1 * K); ly += 12.4 * K; }); ly += 1 * K; }
     if (p.m) { font('Archivo', 'normal', 8, PC.ink); D.splitTextToSize(pdfText(p.m), LW).forEach(function (line) { txt(line, x, ly); ly += 10.4 * K; }); }
@@ -554,3 +555,98 @@ $('syncNow').onclick = function () {
     .then(function () { b.disabled = false; b.textContent = 'Sync now'; });
 };
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.29';
+
+/* ====================================================================== professional reviews
+   Once a wine is revealed (producer filled in), the review finder (a free Google Apps Script in the owner's account,
+   using Gemini with Google Search) is asked once for critics' reviews. The result is kept with the wine as plain text
+   (readable in the Sheet):  first line  "Searched <date> for: <query>",  then one line per review
+   "Critic | score | vintage | summary | link". If the producer or vintage changes, the search runs again. */
+var RV_KEY = 'btn-reviews-url', RV_BUSY = {}, RV_TRIED = {};
+function rvUrl() { var u = recall(RV_KEY) || ''; return /^https:\/\/script\.google(usercontent)?\.com\//.test(u) ? u : ''; }
+function rvQuery(w) { return [String(w.producer || '').trim(), String(w.aVintage || '').trim()].filter(Boolean).join(' '); }
+function rvParse(text) {
+  var lines = String(text || '').split(/\n+/), out = { query: '', date: '', items: [] };
+  lines.forEach(function (l) {
+    var m = l.match(/^Searched (.+?) for: (.*)$/); if (m) { out.date = m[1]; out.query = m[2].trim(); return; }
+    var f = l.split(' | '); if (f.length >= 5) out.items.push({ critic: f[0], score: f[1], vintage: f[2], summary: f.slice(3, -1).join(' | '), url: f[f.length - 1] });
+  });
+  return out;
+}
+function rvFormat(query, items) {
+  var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return ['Searched ' + d + ' for: ' + query].concat(items.map(function (r) { return [r.critic, r.score || '', r.vintage || '', r.summary, r.url].join(' | '); })).join('\n');
+}
+function rvSites(q) {
+  var e = encodeURIComponent(q), g = function (site) { return 'https://www.google.com/search?q=' + encodeURIComponent('site:' + site + ' ' + q); };
+  return [['Wine-Searcher', 'Critic scores and prices', 'https://www.wine-searcher.com/find/' + q.replace(/\s+/g, '+')],
+    ['Decanter', 'Decanter reviews', g('decanter.com')], ['James Suckling', 'Suckling scores and notes', g('jamessuckling.com')],
+    ['CellarTracker', 'Community tasting notes', 'https://www.cellartracker.com/list.asp?Table=List&szSearch=' + e],
+    ['Vivino', 'Ratings and reviews', 'https://www.vivino.com/search/wines?q=' + e],
+    ['Search the web', 'Critic reviews, producer notes', 'https://www.google.com/search?q=' + encodeURIComponent(q + ' wine review')]];
+}
+function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
+function reviewsHTML(w) {
+  var h = '<div class="revs"><h6>Professional reviews</h6>';
+  if (!String(w.producer || '').trim()) return h + '<div class="rv-lock">Reviews appear once you fill in the producer and wine name, so they can’t spoil a blind tasting.</div></div>';
+  var q = rvQuery(w), r = rvParse(w.reviews), fresh = r.query && r.query.toLowerCase() === q.toLowerCase();
+  if (fresh && r.items.length) {
+    h += '<div class="rv-found">' + r.items.map(function (x) {
+      var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim();
+      return '<a class="rvi" href="' + esc(x.url) + '" target="_blank" rel="noopener"><div class="rvi-h"><b>' + esc(x.critic) + '</b>' + (x.score ? '<em>' + esc(x.score) + '</em>' : '') + '</div>' +
+        '<p>' + esc(x.summary) + '</p><small>' + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span> · ' : x.vintage ? esc(x.vintage) + ' · ' : '') + esc(rvHost(x.url)) + ' ›</small></a>';
+    }).join('') + '</div><p class="rv-note">AI summaries of public pages, in Gemini’s words. Tap one to read the source. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
+  } else if (RV_BUSY[w.id]) h += '<p class="rv-state"><i class="rv-spin"></i>Looking for professional reviews…</p>';
+  else if (fresh) h += '<p class="rv-state">No professional reviews found online for this wine. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
+  else if (rvUrl()) h += '<p class="rv-state"><button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Find professional reviews</button></p>';
+  else h += '<p class="rv-state">Set up the review finder in Settings to see critics’ reviews here automatically.</p>';
+  h += '<p class="rv-q">Or search for <b>' + esc(q) + '</b>:</p><div class="rv-links">' + rvSites(q).map(function (s) {
+    return '<a class="rvl" href="' + esc(s[2]) + '" target="_blank" rel="noopener"><b>' + esc(s[0]) + '</b><small>' + esc(s[1]) + '</small></a>'; }).join('') + '</div>';
+  return h + '</div>';
+}
+function reviewsProse(w) {                                              // the PDF's Professional reviews section
+  var r = rvParse(w.reviews); if (!r.items.length || !String(w.producer || '').trim() || r.query.toLowerCase() !== rvQuery(w).toLowerCase()) return [];
+  return [{ h: 'Professional reviews', m: r.items.map(function (x) { return x.critic + (x.score ? ' (' + x.score + (x.vintage && x.vintage !== String(w.aVintage || '').trim() ? ', ' + x.vintage + ' vintage' : '') + ')' : '') + ': ' + x.summary.replace(/\.?$/, '.'); }).join(' ') + ' (AI summaries of public pages.)' }];
+}
+function findReviews(w, force) {
+  var url = rvUrl(), q = rvQuery(w); if (!url || !w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id]) return;
+  var r = rvParse(w.reviews); if (!force && r.query && r.query.toLowerCase() === q.toLowerCase()) return;   // already searched for this wine
+  if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
+  if (!navigator.onLine) return;
+  RV_BUSY[w.id] = 1; repaintCard(w.id);
+  fetch(url, { method: 'POST', body: JSON.stringify({ wine: String(w.producer).trim(), vintage: w.aVintage || '', grape: w.aGrape || '', region: w.aRegion || '', country: w.aCountry || '' }) })
+    .then(function (res) { return res.json(); })
+    .then(function (o) {
+      if (!o || !o.ok) throw new Error(o && o.error || 'The review finder didn’t answer.');
+      return api('appSetReviews', w.id, rvFormat(q, o.reviews || [])).then(function (x) { if (x) setData(x.all); });
+    })
+    .catch(function (err) { if (force) toast(err.message || 'Could not reach the review finder'); })
+    .then(function () { delete RV_BUSY[w.id]; repaintCard(w.id); });
+}
+function repaintCard(id) {
+  var cs = $('cardSheet'); if (!cs.classList.contains('show')) return;
+  var w = ALL.filter(function (x) { return x.id === id; })[0], box = $('cardBody').querySelector('.revs');
+  if (w && box && $('cardBody').querySelector('[data-del="' + id + '"]')) box.outerHTML = reviewsHTML(w);
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-rvagain]'); if (!b) return;
+  var w = ALL.filter(function (x) { return x.id === b.getAttribute('data-rvagain'); })[0]; if (w) findReviews(w, true);
+});
+/* ---- Settings › Professional Reviews: the review finder's link, tested before it's kept */
+(function () {
+  var inp = $('rvUrl'); if (!inp) return;
+  var paint = function (msg) { var u = rvUrl(); inp.value = u; $('rvOff').hidden = !u; $('rvStatus').textContent = msg || (u ? 'Connected. Revealed wines show critics’ reviews.' : 'Not set up. Follow the set-up guide, then paste the link here.'); };
+  paint();
+  $('rvSave').onclick = function () {
+    var u = inp.value.trim(), b = this;
+    if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(u)) { $('rvStatus').textContent = 'That doesn’t look like a Google Apps Script link. It starts with https://script.google.com/'; return; }
+    b.disabled = true; b.textContent = 'Testing…';
+    fetch(u).then(function (r) { return r.json(); }).then(function (o) {
+      if (!o || !o.ok) throw new Error('bad');
+      store(RV_KEY, u); RV_TRIED = {};
+      paint(o.ready ? 'Connected. Revealed wines show critics’ reviews.' : 'Connected, but the script has no Gemini key yet. Add GEMINI_KEY in the script’s Project Settings.');
+    }).catch(function () { $('rvStatus').textContent = 'Couldn’t reach the script. Check the link, and that it was deployed with access for Anyone.'; })
+      .then(function () { b.disabled = false; b.textContent = 'Save and Test'; });
+  };
+  $('rvOff').onclick = function () { store(RV_KEY, null); paint(); };
+})();
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.30';

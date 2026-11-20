@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Finder Set-up · Tasting Notes</title>
+<link rel="icon" href="icons/icon-192.png">
+<style>
+@font-face{font-family:'Archivo';font-weight:400;src:url(fonts/archivo-400.woff2) format('woff2')}
+@font-face{font-family:'Archivo';font-weight:600;src:url(fonts/archivo-600.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-weight:700;src:url(fonts/playfair-700.woff2) format('woff2')}
+:root{--sig:#6D1A36;--gold:#9A7438;--ink:#1F1A1D;--ink2:#4A4146;--paper:#F8F5EF;--line:#ECE5DA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 'Archivo',-apple-system,Helvetica,Arial,sans-serif}
+header{background:linear-gradient(160deg,#741D3B,#4A0E22);color:#fff;padding:28px 20px 22px}
+header .e{font:600 10px/1 'Archivo',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#C9A35E}
+header h1{margin:8px 0 0;font:700 28px/1.1 'Playfair Display',Georgia,serif}
+main{max-width:720px;margin:0 auto;padding:24px 20px 48px}
+h2{font:600 11px/1 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--sig);margin:28px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+p,li{color:var(--ink2)}
+ul{padding-left:20px}
+a{color:var(--sig)}
+.updated{font-size:13px;color:#83777C}
+
+ol{padding-left:22px}ol li{margin:0 0 14px}
+b{color:var(--ink)}
+code{font:14px/1.4 ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink)}
+.btn{display:inline-block;border:0;border-radius:12px;background:var(--sig);color:#fff;font:600 15px/1 'Archivo',sans-serif;padding:13px 18px;margin:6px 0;cursor:pointer;text-decoration:none}
+.note{background:#F4ECDD;border-radius:12px;padding:12px 14px;font-size:14.5px}
+textarea{width:100%;height:150px;font:12px/1.4 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+</style>
+</head>
+<body>
+<header><div class="e">Tasting Notes</div><h1>Set Up the Review Finder</h1></header>
+<main>
+<p>The review finder looks up professional critics’ reviews for each wine you reveal (Decanter, James Suckling, Wine Enthusiast and others) and shows the critic, score and a one-line summary on the wine’s page. It runs free in your own Google account using Google’s Gemini AI with Google Search. Set-up takes about ten minutes on a computer, and you only do it once.</p>
+<p class="note">Friends who use the app don’t need to repeat this: send them the link you get in step 4, and they paste it into their Settings.</p>
+
+<h2>1. Get a free Gemini key</h2>
+<ol>
+<li>Go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with your Google account.</li>
+<li>Tap <b>Create API key</b>. If asked, let it create a new project.</li>
+<li>Copy the key (a long code starting with <code>AIza</code>). No billing or card is needed.</li>
+</ol>
+
+<h2>2. Create the script</h2>
+<ol>
+<li>Go to <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com</a>. A new project opens with a file called <b>Code.gs</b>.</li>
+<li>Delete what’s in it, then paste the review finder script:<br>
+<button class="btn" id="copy" type="button">Copy the script</button> <span id="copied"></span>
+<textarea id="code" readonly>Loading…</textarea></li>
+<li>Click the project name (“Untitled project”) and name it <b>Tasting Notes Reviews</b>. Click the save icon.</li>
+</ol>
+
+<h2>3. Add your key</h2>
+<ol>
+<li>In the left sidebar, click the gear (<b>Project Settings</b>).</li>
+<li>Scroll to <b>Script Properties</b>, click <b>Add script property</b>.</li>
+<li>Property: <code>GEMINI_KEY</code>. Value: the key from step 1. Click <b>Save script properties</b>.</li>
+</ol>
+
+<h2>4. Deploy it</h2>
+<ol>
+<li>Click <b>Deploy</b> (top right), then <b>New deployment</b>.</li>
+<li>Click the gear next to “Select type” and choose <b>Web app</b>.</li>
+<li>Set <b>Execute as</b> to <b>Me</b> and <b>Who has access</b> to <b>Anyone</b>. Click <b>Deploy</b>.</li>
+<li>Google asks you to authorize: choose your account. If you see “Google hasn’t verified this app,” click <b>Advanced</b>, then <b>Go to Tasting Notes Reviews</b>, then <b>Allow</b>. (It’s your own script; the warning appears for every personal script.)</li>
+<li>Copy the <b>Web app URL</b> (it starts with <code>https://script.google.com/macros/s/</code>).</li>
+</ol>
+
+<h2>5. Connect the app</h2>
+<ol>
+<li>In Tasting Notes, open <b>Settings</b> › <b>Professional Reviews</b>.</li>
+<li>Paste the link and tap <b>Save and Test</b>. It should say “Connected.”</li>
+<li>Open any revealed wine in the Notebook. Reviews appear under <b>Professional reviews</b> after a few seconds and are saved with the wine.</li>
+</ol>
+
+<h2>Good to know</h2>
+<ul>
+<li><b>What’s sent:</b> only the wine’s producer and name, vintage, grape, region and country, from the app to your script and on to Google’s Gemini. Nothing else from your notes.</li>
+<li><b>Accuracy:</b> a review is shown only if Gemini found its web page in a Google search. Summaries are written by Gemini, not quoted, and each links to its source. A review for a different vintage is marked.</li>
+<li><b>Paywalls:</b> for subscriber-only reviews (James Suckling, Decanter Premium and others) usually only the score and a line are public, so those summaries are short.</li>
+<li><b>Free limits:</b> the script stops after 150 searches a day, well within Google’s free allowance. Each wine is searched once; tap <b>Search again</b> on a wine to refresh it.</li>
+<li><b>Google’s terms:</b> on the free plan, Google may use requests to improve its products. Only wine names are sent.</li>
+<li><b>Turning it off:</b> remove the link in Settings, or delete the script at script.google.com.</li>
+</ul>
+<p><a href="./">← Back to Tasting Notes</a></p>
+</main>
+<script>
+fetch('reviews/Code.gs').then(function (r) { return r.text(); }).then(function (t) { document.getElementById('code').value = t; });
+document.getElementById('copy').onclick = function () {
+  var t = document.getElementById('code'); t.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).catch(function () { document.execCommand('copy'); })
+    .then(function () { document.getElementById('copied').textContent = 'Copied'; });
+};
+</script>
+</body>
+</html>
