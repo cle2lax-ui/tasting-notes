@@ -292,7 +292,7 @@ function cardHTML(w) {
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
     rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') +
-    (w.price ? '<span class="l">Approx. price</span>' + (w.open ? '' : '<span class="g"></span>') + '<span class="a">' + esc(priceText(w.price)) + '</span>' : '') + '</div></div>';
+    (String(w.producer || '').trim() ? '<span class="l">Approx. price</span>' + (w.open ? '' : '<span class="g"></span>') + '<span class="a" data-prc="' + esc(w.id) + '">' + priceCell(w) + '</span>' : '') + '</div></div>';
   h += reviewsHTML(w);
   h += '</div></div>';
   // the blind-tasting result sits at the end, after the note it grew out of
@@ -637,9 +637,7 @@ function findReviews(w, force) {
   if (!force && r.query && r.query.toLowerCase() === q.toLowerCase()) return;   // already searched for this wine
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
-  fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
-    body: JSON.stringify({ query: q.replace(/[\u2018\u2019'`]/g, '') + ' wine review score', max_results: 10, search_depth: 'basic' }) })
-    .then(function (res) { if (!res.ok) throw new Error('search ' + res.status); return res.json(); })
+  tavily(q.replace(/[\u2018\u2019'`]/g, '') + ' wine review score')
     .then(function (j) { return api('appSetReviews', w.id, rvFormat(q, rvPick(w, j.results))).then(function (x) { if (x) setData(x.all); }); })
     .catch(function () { delete RV_TRIED[w.id + q]; if (force) toast('Couldn\u2019t search for reviews right now'); })
     .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
@@ -682,6 +680,20 @@ document.addEventListener('click', function (e) {
    prices on retailer pages that name this wine (and its vintage when known), standard 750 ml bottles only.
    The price and its source page are saved with the wine; a price the taster types is never replaced.
    priceSrc: "auto:<url>" found online · "none:<query>" searched, nothing found · "" typed by the taster */
+var TV_Q = Promise.resolve();                                           // one keyless search at a time; a busy answer gets one retry
+function tavily(query) {
+  function go() { return fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
+    body: JSON.stringify({ query: query, max_results: 10, search_depth: 'basic' }) }).then(function (r) { if (!r.ok) { var e = new Error('search ' + r.status); e.status = r.status; throw e; } return r.json(); }); }
+  var run = TV_Q.then(function () { return go().catch(function (e) {
+    if (e.status && e.status !== 429 && e.status < 500) throw e;
+    return new Promise(function (ok) { setTimeout(ok, 2500); }).then(go); }); });
+  TV_Q = run.catch(function () {}).then(function () { return new Promise(function (ok) { setTimeout(ok, 400); }); });
+  return run;
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-pragain]'); if (!b) return;
+  var w = ALL.filter(function (x) { return x.id === b.getAttribute('data-pragain'); })[0]; if (w) findPrice(w, true);
+});
 var PR_BUSY = {}, PR_TRIED = {}, PR_SKIP = /rocketreach|tracxn|mapquest|tavily\.com|cbinsights|linkedin|zoominfo|crunchbase|facebook|instagram|untappd|yelp|youtube|reddit|pinterest|tiktok|wikipedia/;
 var PR_GRAPE = {}; WSET_LISTS.grape.concat(['blanc', 'noir', 'rouge', 'red', 'white', 'rose', 'sec', 'brut', 'grigio', 'gris']).forEach(function (g) { prNorm(g).split(' ').forEach(function (t) { if (t.length > 2) PR_GRAPE[t] = 1; }); });
 var PR_STOP = { domaine: 1, dom: 1, chateau: 1, ch: 1, the: 1, and: 1, de: 1, la: 1, le: 1, les: 1, du: 1, des: 1, di: 1, del: 1, della: 1, wine: 1, wines: 1, winery: 1, estate: 1, vineyards: 1, vineyard: 1, cellars: 1, bodega: 1, bodegas: 1, weingut: 1, tenuta: 1, cantina: 1 };
@@ -694,6 +706,12 @@ function priceHTML(w) {
   var src = /^auto:/.test(w.priceSrc || '') ? String(w.priceSrc).slice(5) : '';
   return '<div class="pr" data-pr="' + esc(w.id) + '">Approx. retail <b>' + esc(priceText(w.price)) + '</b>' +
     (src ? ' <a href="' + esc(src) + '" target="_blank" rel="noopener">' + esc(rvHostP(src)) + ' ›</a>' : ' <span>your price</span>') + '</div>';
+}
+function priceCell(w) {                                                 // the Actual column's price: found, typed, searching, or not found
+  if (w.price) return esc(priceText(w.price));
+  if (PR_BUSY[w.id]) return '<span class="prc-s">Searching…</span>';
+  if (/^none:/.test(w.priceSrc || '')) return '<span class="prc-s">Not found</span> <button type="button" class="prc-again" data-pragain="' + esc(w.id) + '">Search again</button>';
+  return '–';
 }
 function rvHostP(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function prToks(w) { var all = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; }); var t = all.filter(function (x) { return !PR_GRAPE[x]; }); return t.length ? t : all; }
@@ -740,9 +758,7 @@ function findPrice(w, force) {
   if (!force && (/^auto:/.test(src) && w.price || src === 'none:' + q)) return;   // already found, or already searched for this wine
   if (!force && PR_TRIED[w.id + q]) return; PR_TRIED[w.id + q] = 1;
   PR_BUSY[w.id] = 1; repaintPrice(w.id);
-  fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
-    body: JSON.stringify({ query: q.replace(/[‘’'`]/g, '') + ' price 750ml', max_results: 10, search_depth: 'basic' }) })
-    .then(function (r) { if (!r.ok) throw new Error('search ' + r.status); return r.json(); })
+  tavily(q.replace(/[‘’'`]/g, '') + ' price 750ml')
     .then(function (j) {
       var got = prPick(w, j.results);
       var price = got ? String(got.price) : '', src = got ? 'auto:' + got.url : 'none:' + q;
@@ -751,14 +767,15 @@ function findPrice(w, force) {
         if (rec.id === w.id && !rec.price) { rec.price = price; rec.priceSrc = src; rerow('identity'); }   // the wine open in Tasting shows it too
       });
     })
-    .catch(function () { delete PR_TRIED[w.id + q]; })                  // offline or the search was busy: try again another time
+    .catch(function () { delete PR_TRIED[w.id + q]; if (force) toast('Couldn\u2019t search for a price right now'); })                  // offline or the search was busy: try again another time
     .then(function () { delete PR_BUSY[w.id]; repaintPrice(w.id); });
 }
 function repaintPrice(id) {
   if (!$('cardSheet').classList.contains('show')) return;
   var w = ALL.filter(function (x) { return x.id === id; })[0], head = $('cardBody').querySelector('.tc-head > div');
   if (!w || !head || !$('cardBody').querySelector('[data-del="' + id + '"]')) return;
+  var cell = $('cardBody').querySelector('[data-prc="' + id + '"]'); if (cell) cell.innerHTML = priceCell(w);
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.33';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.34';
