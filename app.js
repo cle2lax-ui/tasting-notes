@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.31';
+var VERSION_LABEL = 'v2.32';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -110,7 +110,7 @@ function rerow(k) {
 var FOLDED = {}, PINNED = {};
 $('clearSel').onclick = function () { clearSelections(); };
 /* ---- Clear selections: wipes every answer and note on this wine, after an Are you sure? step */
-var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer'];
+var ID_KEYS = ['open', 'gGrape', 'aGrape', 'gCountry', 'aCountry', 'gRegion', 'aRegion', 'gVintage', 'aVintage', 'producer', 'price', 'priceSrc'];
 function answerKeys() { var ks = ID_KEYS.slice(); STAGES().forEach(function (st) { st.rows.forEach(function (r) { ks.push(r[0] === 'color' ? 'color' : r[1]); }); }); return ks.filter(Boolean); }
 function clearSelections() {
   var ks = answerKeys(), any = ks.some(function (k) { var v = rec[k]; return Array.isArray(v) ? v.length : !!(v && String(v).trim()); });
@@ -176,6 +176,9 @@ function identityHTML() {
       '<input type="text" data-k="' + r[2] + '" value="' + esc(rec[r[2]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">';
   });
   h += '</div><div class="f full"><label>Producer and wine</label><input type="text" data-k="producer" value="' + esc(rec.producer) + '" placeholder="' + (open ? 'Producer and wine' : 'After the reveal') + '" autocapitalize="words"></div>';
+  var autoP = /^auto:/.test(rec.priceSrc || '');
+  h += '<div class="f full"><label>Approx. retail price<small class="mu">' + (rec.price ? (autoP ? 'Found online \u00b7 ' + esc(String(rec.priceSrc).replace(/^auto:https?:\/\/(www\.)?/, '').split(/[\/?#]/)[0]) : 'Your price') : 'Found online after the reveal, or type your own') + '</small></label>' +
+    '<input type="text" data-k="price" inputmode="decimal" autocomplete="off" placeholder="$" value="' + esc(rec.price) + '"></div>';
   h += '<div class="f" id="f-photo"><label>Label photo</label><div class="phbox" id="phBox">' + photoBox() + '</div></div>';
   h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Score</span><b id="score">' + (s ? s.hits + '<small>/4</small>' : '–') + '</b>') + '</div>';
   return h;
@@ -309,7 +312,8 @@ document.addEventListener('input', function (e) {
     return;
   }
   var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return;
-  rec[k] = e.target.value; if (e.target.tagName === 'TEXTAREA') grow(e.target);
+  rec[k] = e.target.value; if (k === 'price') rec.priceSrc = '';   // a typed price is the taster's own
+  if (e.target.tagName === 'TEXTAREA') grow(e.target);
   if (/^[ga](Grape|Country|Region|Vintage)$/.test(k)) paintScore();
   if (k === 'producer' || /^[ga]Grape$/.test(k)) paintStages();
   touch(true);
@@ -409,6 +413,7 @@ function save(force, next) {
     b.disabled = false; b.textContent = was;
     if (r.conflict) return ask(r.conflict + ' Replace it with this note?', 'Replace', 'Cancel').then(function (go) { if (go) save(true, next); });
     rec.id = r.id; setData(r.all); orig = { date: rec.date, wineNo: rec.wineNo }; dirty = false; clearDraft(); paintId();
+    var sw = ALL.filter(function (x) { return x.id === r.id; })[0]; if (sw && window.findPrice) findPrice(sw);   // look up a retail price once the wine is revealed
     if (next) { var d = rec.date, ev = rec.event || '', saved = label(); show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0); toast('Saved ' + saved + ' · now Wine ' + rec.wineNo); }
     else toast('Saved ' + label());
   }).catch(function (err) { b.disabled = false; b.textContent = was; fail(err); });
@@ -503,4 +508,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.31';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.32';

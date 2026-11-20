@@ -86,7 +86,7 @@ $('list').addEventListener('click', function (e) {
   if (SWIPE.open) { closeSwipe(); return; }
   if (selecting) { if (SEL[id]) delete SEL[id]; else SEL[id] = true; paintSel(); r.classList.toggle('sel', !!SEL[id]); r.querySelector('.pick').textContent = SEL[id] ? '✓' : ''; return; }
   var w = ALL.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-  $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
+  findPrice(w); $('cardBody').innerHTML = cardHTML(w); sheet('cardSheet'); var pn = $('cardSheet').querySelector('.panel'); pn.scrollTop = 0;   // each wine opens at its top
   pn.style.setProperty('--phh', pn.querySelector('.ph').offsetHeight + 'px');                     // the wine's name and photo stay pinned just under Done
 });
 $('cardClose').onclick = function () { sheet('cardSheet', false); };
@@ -280,7 +280,7 @@ var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'fiv
 function cardHTML(w) {
   var pr = prose(w), when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   var h = '<article class="card"><header class="tc-head">' + labHTML(w, 'big') + '<div><div class="k">' + esc([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join(' · ')) + '</div>' +
-    '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + '</div></header>';
+    '<h2' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(w.producer || w.aGrape || 'Not yet revealed') + '</h2>' + (w.producer && idLine(w) ? '<div class="id">' + esc(idLine(w)) + '</div>' : '') + priceHTML(w) + '</div></header>';
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
     return '<p><b>' + p.h + '</b>' + (p.q ? '<strong class="q">' + esc(p.q) + '</strong>' : '') + esc(p.m) + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
@@ -347,7 +347,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   font('Archivo', 'bold', 6.4, PC.gold); txt([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join('  ·  ').toUpperCase(), hx, y + 9 * K, { charSpace: .9 });
   font('Playfair', 'bold', 15, (w.producer || w.aGrape) ? PC.ink : PC.muted);
   var title = D.splitTextToSize(pdfText(w.producer || w.aGrape || 'Not yet revealed'), right - hx - 92 * K)[0]; txt(title, hx, y + 25 * K);
-  if (w.producer && idLine(w)) { font('Archivo', 'bold', 8.4, PC.sig); txt(D.splitTextToSize(pdfText(idLine(w)), right - hx - 92 * K)[0], hx, y + 37 * K); }
+  if (w.producer && idLine(w)) { font('Archivo', 'bold', 8.4, PC.sig); txt(D.splitTextToSize(pdfText(idLine(w) + (w.price ? '  \u00b7  Approx. retail ' + priceText(w.price) : '')), right - hx - 92 * K)[0], hx, y + 37 * K); }
   var top = y + Math.max(48 * K, img ? 48 * K : 0);
   // left: the written note
   var LW = W * 0.6, ly = top + 10 * K;
@@ -571,3 +571,88 @@ function reviewsHTML(w) {
     '</div><p class="rv-q">Searches for <b>' + esc(q) + '</b></p></div>';
 }
 /*build*/(window.__V = window.__V || {})['app2'] = 'v2.31';
+
+/* ====================================================================== approximate retail price
+   Once a wine is revealed, the app asks Tavily's keyless web search (no account, no key) for "<wine> <vintage> price"
+   and reads prices from the results itself: a Wine-Searcher average when one is shown, otherwise the middle of the
+   prices on retailer pages that name this wine (and its vintage when known), standard 750 ml bottles only.
+   The price and its source page are saved with the wine; a price the taster types is never replaced.
+   priceSrc: "auto:<url>" found online · "none:<query>" searched, nothing found · "" typed by the taster */
+var PR_BUSY = {}, PR_TRIED = {}, PR_SKIP = /rocketreach|tracxn|mapquest|tavily\.com|cbinsights|linkedin|zoominfo|crunchbase|facebook|instagram|untappd|yelp|youtube|reddit|pinterest|tiktok|wikipedia/;
+var PR_GRAPE = {}; WSET_LISTS.grape.concat(['blanc', 'noir', 'rouge', 'red', 'white', 'rose', 'sec', 'brut', 'grigio', 'gris']).forEach(function (g) { prNorm(g).split(' ').forEach(function (t) { if (t.length > 2) PR_GRAPE[t] = 1; }); });
+var PR_STOP = { domaine: 1, dom: 1, chateau: 1, ch: 1, the: 1, and: 1, de: 1, la: 1, le: 1, les: 1, du: 1, des: 1, di: 1, del: 1, della: 1, wine: 1, wines: 1, winery: 1, estate: 1, vineyards: 1, vineyard: 1, cellars: 1, bodega: 1, bodegas: 1, weingut: 1, tenuta: 1, cantina: 1 };
+function prNorm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[‘’'`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+function prQuery(w) { return [String(w.producer || '').trim(), String(w.aVintage || '').trim()].filter(Boolean).join(' '); }
+function priceText(p) { p = String(p || '').trim(); return /^\d/.test(p) ? '$' + p : p; }
+function priceHTML(w) {
+  if (!w.price && !PR_BUSY[w.id]) return '';
+  if (PR_BUSY[w.id] && !w.price) return '<div class="pr" data-pr="' + esc(w.id) + '">Finding an approximate retail price…</div>';
+  var src = /^auto:/.test(w.priceSrc || '') ? String(w.priceSrc).slice(5) : '';
+  return '<div class="pr" data-pr="' + esc(w.id) + '">Approx. retail <b>' + esc(priceText(w.price)) + '</b>' +
+    (src ? ' <a href="' + esc(src) + '" target="_blank" rel="noopener">' + esc(rvHostP(src)) + ' ›</a>' : ' <span>your price</span>') + '</div>';
+}
+function rvHostP(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
+function prPick(w, results) {                                           // the price, read from the search results
+  // the words that tell this wine apart (producer, cuvée, site); grape names alone would match the producer's other wines
+  var all = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; });
+  var toks = all.filter(function (t) { return !PR_GRAPE[t]; }); if (!toks.length) toks = all;
+  var vin = String(w.aVintage || '').trim(), need = toks.length >= 4 ? toks.length - 1 : toks.length;
+  var cands = [];
+  (results || []).forEach(function (r) {
+    if (!r || PR_SKIP.test(r.url || '') || (/\/(collections|category|categories|search)\b/.test(r.url || '') && !/\/products?\//.test(r.url || ''))) return;   // list pages show other wines' prices
+    var text = String(r.content || ''), hay = prNorm((r.title || '') + ' ' + text + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' '));
+    var hits = toks.filter(function (t) { return (' ' + hay + ' ').indexOf(' ' + t + ' ') >= 0 || hay.indexOf(t) >= 0; }).length;
+    if (!toks.length || hits < need) return;                            // a page about a different wine
+    var vinOk = !vin || hay.indexOf(vin) >= 0;
+    if (/\b(1\.5\s?l|magnum|375\s?ml|half bottle|3\s?l|jeroboam|case of|6 pack|12 pack)\b/i.test(text) && !/750\s?ml/i.test(text)) return;
+    var avg = text.match(/Avg(?:\.|erage)? Price[^$]{0,20}\$\s?([\d,]+(?:\.\d{2})?)/i);
+    if (avg && /wine-searcher/.test(r.url)) { cands.push({ v: +avg[1].replace(/,/g, ''), url: r.url, ws: 1, vinOk: vinOk }); return; }
+    // read prices from where this wine is named onward, so a shop page's other bottles aren't picked up
+    var low = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), key = toks.slice().sort(function (a, b) { return b.length - a.length; })[0], at = low.indexOf(key);
+    var seg = at >= 0 ? text.slice(at, at + 400) : text.slice(0, 400);
+    var m, re = /\$\s?(\d{1,3}(?:,\d{3})*|\d+)(\.\d{2})?(?!\d)/g, found = [];
+    while ((m = re.exec(seg))) {
+      var whole = m[1].replace(/,/g, ''), v = +(whole + (m[2] || ''));
+      if (!m[2] && /^\d{3,6}$/.test(whole) && /^\s*\$\s?\d+\.\d{2}/.test(seg.slice(re.lastIndex))) continue;   // "$8000 $80.00": shop pages print cents twice
+      if (!m[2] && whole.length >= 4 && !/,/.test(m[1])) continue;     // "$22499" with no decimals is a mangled price
+      if (v >= 5 && v <= 5000) found.push(v);
+    }
+    if (found.length) cands.push({ v: found[0], url: r.url, vinOk: vinOk });
+  });
+  if (vin && cands.some(function (c) { return c.vinOk; })) cands = cands.filter(function (c) { return c.vinOk; });
+  var ws = cands.filter(function (c) { return c.ws; })[0];
+  if (ws) return { price: Math.round(ws.v), url: ws.url };
+  if (!cands.length) return null;
+  var sorted = cands.slice().sort(function (a, b) { return a.v - b.v; }), n = sorted.length, wide = sorted[n - 1].v > 1.8 * sorted[0].v;
+  var mid = sorted[Math.floor((n - 1) / (wide ? 3 : 2))];                // widely spread prices lean low: delivery apps and big formats run high
+  return { price: Math.round(mid.v), url: mid.url };
+}
+function findPrice(w, force) {
+  if (!w || !w.id || !String(w.producer || '').trim() || PR_BUSY[w.id] || !navigator.onLine) return;
+  var q = prQuery(w), src = String(w.priceSrc || '');
+  if (w.price && !/^(auto|none):/.test(src)) return;                     // the taster's own price
+  if (!force && (/^auto:/.test(src) && w.price || src === 'none:' + q)) return;   // already found, or already searched for this wine
+  if (!force && PR_TRIED[w.id + q]) return; PR_TRIED[w.id + q] = 1;
+  PR_BUSY[w.id] = 1; repaintPrice(w.id);
+  fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
+    body: JSON.stringify({ query: q.replace(/[‘’'`]/g, '') + ' price 750ml', max_results: 10, search_depth: 'basic' }) })
+    .then(function (r) { if (!r.ok) throw new Error('search ' + r.status); return r.json(); })
+    .then(function (j) {
+      var got = prPick(w, j.results);
+      var price = got ? String(got.price) : '', src = got ? 'auto:' + got.url : 'none:' + q;
+      return api('appSetPrice', w.id, price, src).then(function (x) {
+        if (!x) return; setData(x.all);
+        if (rec.id === w.id && !rec.price) { rec.price = price; rec.priceSrc = src; rerow('identity'); }   // the wine open in Tasting shows it too
+      });
+    })
+    .catch(function () { delete PR_TRIED[w.id + q]; })                  // offline or the search was busy: try again another time
+    .then(function () { delete PR_BUSY[w.id]; repaintPrice(w.id); });
+}
+function repaintPrice(id) {
+  if (!$('cardSheet').classList.contains('show')) return;
+  var w = ALL.filter(function (x) { return x.id === id; })[0], head = $('cardBody').querySelector('.tc-head > div');
+  if (!w || !head || !$('cardBody').querySelector('[data-del="' + id + '"]')) return;
+  var old = head.querySelector('.pr'), html = priceHTML(w);
+  if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
+}
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.32';
