@@ -5,7 +5,8 @@
  * critic, score, a one-line summary in Gemini's own words, and the link.
  *
  * Set-up: Project Settings › Script properties › add GEMINI_KEY (from aistudio.google.com/apikey).
- * Optional properties: MODEL (default gemini-2.5-flash), MAX_PER_DAY (default 150).
+ * Optional properties: MODEL (default gemini-3.8-flash), MAX_PER_DAY (default 150).
+ * If Google retires the model, the script switches to the replacement Google names in its error and remembers it.
  * Then Deploy › New deployment › Web app · Execute as: Me · Who has access: Anyone. Paste the Web app URL into the app's Settings.
  */
 var CRITICS = 'Decanter, James Suckling, Wine Enthusiast, Wine Spectator, Wine Advocate (Robert Parker), Vinous, Jancis Robinson, ' +
@@ -31,7 +32,8 @@ function doPost(e) {
     var used = Number(props.getProperty('used:' + day) || 0);
     if (used >= max) return reply({ ok: false, error: 'Today’s review searches are used up. Try again tomorrow.' });
     props.setProperty('used:' + day, String(used + 1));
-    var out = findReviews(key, props.getProperty('MODEL') || 'gemini-2.5-flash', wine, vintage, q);
+    var model = props.getProperty('MODEL') || 'gemini-3.8-flash', out = findReviews(key, model, wine, vintage, q);
+    if (out.retired && out.retired !== model) { props.setProperty('MODEL', out.retired); out = findReviews(key, out.retired, wine, vintage, q); }   // Google retired the model: use the one it names
     out.query = query; out.searchedAt = new Date().toISOString();
     cache.put(ck, JSON.stringify(out), 21600);
     return reply(out);
@@ -57,7 +59,10 @@ function findReviews(key, model, wine, vintage, q) {
   });
   var code = res.getResponseCode(), body = JSON.parse(res.getContentText() || '{}');
   if (code === 429) return { ok: false, error: 'Google’s free allowance is busy right now. Try again later.' };
-  if (code !== 200) return { ok: false, error: (body.error && body.error.message) || ('Gemini error ' + code) };
+  var msg = (body.error && body.error.message) || '';
+  var next = msg.match(/update to (?:the )?models\/([\w.-]+)/i) || msg.match(/use models\/([\w.-]+)/i);
+  if (code !== 200 && next && /no longer available|deprecated|not found|retired/i.test(msg)) return { ok: false, retired: next[1].replace(/\.+$/, ''), error: msg };
+  if (code !== 200) return { ok: false, error: msg || ('Gemini error ' + code) };
   var cand = (body.candidates || [])[0] || {};
   var text = ((cand.content && cand.content.parts) || []).map(function (p) { return p.text || ''; }).join('');
   var list = parseJsonArray(text);
