@@ -566,22 +566,42 @@ $('syncNow').onclick = function () {
 var RV_BUSY = {}, RV_TRIED = {};
 var RV_SITES = { 'decanter.com': 'Decanter', 'jamessuckling.com': 'James Suckling', 'winespectator.com': 'Wine Spectator', 'wineenthusiast.com': 'Wine Enthusiast',
   'winemag.com': 'Wine Enthusiast', 'vinous.com': 'Vinous', 'jancisrobinson.com': 'Jancis Robinson', 'robertparker.com': 'Wine Advocate', 'jebdunnuck.com': 'Jeb Dunnuck',
-  'timatkin.com': 'Tim Atkin', 'falstaff.com': 'Falstaff', 'gamberorosso.it': 'Gambero Rosso', 'winecompanion.com.au': 'Halliday', 'thewinefront.com.au': 'The Wine Front' };
-var RV_NAMES = ['James Suckling', 'Wine Spectator', 'Wine Advocate', 'Robert Parker', 'Vinous', 'Antonio Galloni', 'Decanter', 'Wine Enthusiast', 'Jeb Dunnuck', 'Jancis Robinson',
-  'Tim Atkin', 'Falstaff', 'Wine & Spirits', 'Burghound', 'Halliday', 'Wine Front', 'Vinum', 'Gambero Rosso'];
-var RV_ALIAS = { 'Robert Parker': 'Wine Advocate', 'Antonio Galloni': 'Vinous', 'Wine Front': 'The Wine Front' };
+  'timatkin.com': 'Tim Atkin', 'falstaff.com': 'Falstaff', 'falstaff.de': 'Falstaff', 'falstaff.at': 'Falstaff', 'gamberorosso.it': 'Gambero Rosso', 'winecompanion.com.au': 'Halliday',
+  'thewinefront.com.au': 'The Wine Front', 'wineandspiritsmagazine.com': 'Wine & Spirits', 'thewineindependent.com': 'The Wine Independent', 'owenbargreen.com': 'Owen Bargreen',
+  'winealign.com': 'WineAlign', 'therealreview.com': 'The Real Review', 'insideburgundy.com': 'Jasper Morris', 'burghound.com': 'Burghound', 'wineanorak.com': 'Jamie Goode',
+  'matthewjukes.com': 'Matthew Jukes', 'gismondionwine.com': 'Gismondi on Wine', 'kerinokeefe.com': "Kerin O'Keefe", 'doctorwine.it': 'Doctor Wine', 'vinum.eu': 'Vinum',
+  'guiapenin.wine': 'Guía Peñín', 'larvf.com': 'La Revue du Vin de France', 'bettanedesseauve.com': 'Bettane+Desseauve', 'gilbertgaillard.com': 'Gilbert & Gaillard',
+  'winepages.com': 'Wine Pages', 'raymondchanwinereviews.co.nz': 'Raymond Chan', 'bobcampbell.nz': 'Bob Campbell', 'tysonstelzer.com': 'Tyson Stelzer', 'wine-pages.com': 'Wine Pages',
+  'winereviewonline.com': 'Wine Review Online', 'tastingbook.com': 'Tastingbook', 'decanterchina.com': 'Decanter', 'decanterworldwinesawards.com': 'Decanter WWA' };
+var RV_DOMAINS = Object.keys(RV_SITES).filter(function (d) { return !/decanterchina|tastingbook/.test(d); });
+// shops, auction and score-aggregator pages that quote critics' scores next to the wine
+var RV_SHOPS = ['wine.com', 'klwines.com', 'totalwine.com', 'winelibrary.com', 'wallywine.com', 'astorwines.com', 'flatiron-wines.com', 'saratogawine.com', 'woodlandhillswine.com',
+  'zachys.com', 'bbr.com', 'thewinesociety.com', 'majestic.co.uk', 'wineaccess.com', 'vivino.com', 'wine-searcher.com', 'danmurphys.com.au', 'lcbo.com', 'saq.com', 'garagistewine.com',
+  'kermitlynch.com', 'winc.com', 'grapesthewineco.com', 'bevmo.com', 'gotham-wines.com', 'sokolin.com', 'wineexchange.com', 'thewinecellarinsider.com', 'cellartracker.com'];
+var RV_NAMES = ['James Suckling', 'Wine Spectator', 'Wine Advocate', 'Robert Parker', 'Vinous', 'Antonio Galloni', 'Neal Martin', 'Josh Raynolds', 'Stephen Tanzer', 'Eric Guido',
+  'Decanter', 'Wine Enthusiast', 'Jeb Dunnuck', 'Jancis Robinson', 'Tim Atkin', 'Falstaff', 'Wine & Spirits', 'Burghound', 'Allen Meadows', 'Halliday', 'James Halliday', 'Wine Front',
+  'Vinum', 'Gambero Rosso', 'Lisa Perrotti-Brown', 'Wine Independent', 'William Kelley', 'Owen Bargreen', 'Jasper Morris', 'WineAlign', 'Real Review', 'Bob Campbell',
+  'Wine Review Online', 'Gismondi', 'Kerin O’Keefe', "Kerin O'Keefe", 'Monica Larner', 'Guia Penin', 'Guía Peñín', 'Bettane', 'Gilbert & Gaillard', 'Jamie Goode',
+  'Tyson Stelzer', 'Raymond Chan', 'Andreas Larsson', 'Matthew Jukes', 'Wine & Spirits Magazine'];
+var RV_ALIAS = { 'Robert Parker': 'Wine Advocate', 'William Kelley': 'Wine Advocate', 'Monica Larner': 'Wine Advocate', 'Antonio Galloni': 'Vinous', 'Neal Martin': 'Vinous',
+  'Josh Raynolds': 'Vinous', 'Stephen Tanzer': 'Vinous', 'Eric Guido': 'Vinous', 'Wine Front': 'The Wine Front', 'Allen Meadows': 'Burghound', 'James Halliday': 'Halliday',
+  'Lisa Perrotti-Brown': 'The Wine Independent', 'Wine Independent': 'The Wine Independent', 'Real Review': 'The Real Review', 'Gismondi': 'Gismondi on Wine',
+  'Kerin O’Keefe': "Kerin O'Keefe", 'Guia Penin': 'Guía Peñín', 'Bettane': 'Bettane+Desseauve', 'Wine & Spirits Magazine': 'Wine & Spirits' };
+// the shorthand shops print: "WS 93", "93 JS", "RP95", "W&S 92"
+var RV_ABBR = { JS: 'James Suckling', WS: 'Wine Spectator', WA: 'Wine Advocate', RP: 'Wine Advocate', WE: 'Wine Enthusiast', JD: 'Jeb Dunnuck', VM: 'Vinous', AG: 'Vinous',
+  'W&S': 'Wine & Spirits', BH: 'Burghound', DEC: 'Decanter', TA: 'Tim Atkin', JH: 'Halliday', LPB: 'The Wine Independent', OB: 'Owen Bargreen' };
 function rvQuery(w) { return [String(w.producer || '').trim(), String(w.aVintage || '').trim()].filter(Boolean).join(' '); }
 function rvParse(text) {
   var out = { query: '', items: [] };
   String(text || '').split(/\n+/).forEach(function (l) {
-    var m = l.match(/^Searched (.+?) for: (.*)$/); if (m) { out.query = m[2].trim(); return; }
+    var m = l.match(/^Searched (.+?) for: (.*)$/); if (m) { out.when = m[1]; out.query = m[2].trim(); return; }
     var f = l.split(' | '); if (f.length >= 5) out.items.push({ critic: f[0], score: f[1], vintage: f[2], text: f.slice(3, -1).join(' | '), url: f[f.length - 1] });
   });
   return out;
 }
 function rvFormat(q, items) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (wide) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -593,6 +613,7 @@ function rvExcerpt(text, w) {                                            // one 
   for (var i = 0; i < sents.length && ex.split(' ').length < 22; i++) {
     var sn = sents[i].trim();
     if (/cookie|subscribe|sign in|log in|newsletter|javascript|all rights reserved|privacy/i.test(sn) || sn.length < 20) continue;
+    if (!ex && sn.split(/\s+/).length <= 10 && /\b(19|20)\d\d\b/.test(sn) && !/\b(is|are|has|shows|offers|with|of)\b/i.test(sn)) continue;   // the wine's own heading
     ex += (ex ? ' ' : '') + sn;
   }
   var words = ex.split(' '); if (words.length > 32) ex = words.slice(0, 30).join(' ').replace(/[,;:]$/, '') + '\u2026';
@@ -626,6 +647,12 @@ function rvPick(w, results) {
       var c = RV_ALIAS[n] || n; if (got[c]) return;
       got[c] = { critic: c, score: m[1] + '/100', vintage: rv, text: '', url: r.url };
     });
+    var re = /(?:^|[^A-Za-z&])(JS|WS|WA|RP|WE|JD|VM|AG|W&S|BH|DEC|TA|JH|LPB|OB)\s?[-:]?\s?(\d{2})(?:\+|-\d{2})?(?![\d%$.,])|\b(\d{2})\s?(?:pts?\s)?(JS|WS|WA|RP|WE|JD|VM|AG|W&S|BH|DEC|TA|JH|LPB|OB)(?![A-Za-z])/g, mm;
+    while ((mm = re.exec(text))) {
+      var ab = mm[1] || mm[4], num = +(mm[2] || mm[3]), cc = RV_ABBR[ab];
+      if (!cc || num < 80 || num > 100 || got[cc]) continue;
+      got[cc] = { critic: cc, score: num + '/100', vintage: rv, text: '', url: r.url };
+    }
   });
   var list = Object.keys(got).map(function (k) { return got[k]; });
   if (vin && list.some(function (x) { return x.vintage === vin; })) list = list.filter(function (x) { return x.vintage === vin || !x.vintage; });
@@ -634,12 +661,25 @@ function rvPick(w, results) {
 function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase()) return;   // already searched for this wine
+  // already searched for this wine (an empty result from the older, narrower search is tried again once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (r.items.length || /wide/.test(r.when || ''))) return;
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
-  tavily(q.replace(/[\u2018\u2019'`]/g, '') + ' wine review score')
-    .then(function (j) { return api('appSetReviews', w.id, rvFormat(q, rvPick(w, j.results))).then(function (x) { if (x) setData(x.all); }); })
-    .catch(function () { delete RV_TRIED[w.id + q]; if (force) toast('Couldn\u2019t search for reviews right now'); })
+  var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
+  // the free search allows a limited number a day, so each search is made to count:
+  // 1) critics' own sites and shops that print critics' scores, together; 2) the open web, only if that found little;
+  // 3) other vintages, only if this vintage found nothing (shown flagged)
+  var all = [], seen = {}, fails = 0, cap = false;
+  function add(j) { (j && j.results || []).forEach(function (x) { if (x && x.url && !seen[x.url]) { seen[x.url] = 1; all.push(x); } }); }
+  function one(query, o) { if (cap) return Promise.resolve(); return tavily(query, o).then(add, function (e) { fails++; if (e && e.cap) cap = true; }); }
+  var chain = one(qq + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 })
+    .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' wine review score points', { max_results: 15 }); })
+    .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
+  chain.then(function () {
+    if ((cap || fails) && !rvPick(w, all).length) { var e = new Error('search busy'); e.cap = cap; throw e; }
+    return api('appSetReviews', w.id, rvFormat(q, rvPick(w, all))).then(function (x) { if (x) setData(x.all); });
+  })
+    .catch(function () { delete RV_TRIED[w.id + q]; if (force) toast('Couldn’t search for reviews right now'); })
     .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
 }
 function repaintReviews(id) {
@@ -659,6 +699,7 @@ function reviewsHTML(w) {
         '<small>' + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span> \u00b7 ' : x.vintage ? esc(x.vintage) + ' \u00b7 ' : '') + (rvSite(x.url) ? '' : 'via ') + esc(rvHost(x.url)) + ' \u203a</small></a>';
     }).join('') + '</div><p class="rv-note">Found online; excerpts are from the linked pages. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
   } else if (RV_BUSY[w.id]) h += '<p class="rv-state"><i class="rv-spin"></i>Looking for professional reviews\u2026</p>';
+  else if (tvPaused()) h += '<p class="rv-state">The free web search has reached today\u2019s limit for this network. Reviews will be looked up again after ' + tvResume() + '.</p>';
   else if (fresh) h += '<p class="rv-state">No critics\u2019 reviews found online for this wine. <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button></p>';
   return h + '<div class="rv-links two">' +
     '<a class="rvl" href="https://www.wine-searcher.com/find/' + esc(encodeURIComponent(s).replace(/%20/g, '+')) + '" target="_blank" rel="noopener"><b>Wine-Searcher</b><small>Critics\u2019 scores in one place</small></a>' +
@@ -681,12 +722,22 @@ document.addEventListener('click', function (e) {
    The price and its source page are saved with the wine; a price the taster types is never replaced.
    priceSrc: "auto:<url>" found online · "none:<query>" searched, nothing found · "" typed by the taster */
 var TV_Q = Promise.resolve();                                           // one keyless search at a time; a busy answer gets one retry
-function tavily(query) {
-  function go() { return fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' },
-    body: JSON.stringify({ query: query, max_results: 10, search_depth: 'basic' }) }).then(function (r) { if (!r.ok) { var e = new Error('search ' + r.status); e.status = r.status; throw e; } return r.json(); }); }
-  var run = TV_Q.then(function () { return go().catch(function (e) {
+function tvPaused() { var t = 0; try { t = +localStorage.getItem('btn-tv-pause') || 0; } catch (x) {} return t > Date.now() ? t : 0; }
+function tvResume() { var t = tvPaused(); return t ? new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''; }
+function tavily(query, opts) {
+  function go(o) { var body = { query: query, max_results: 10, search_depth: 'basic' }; for (var k in o) body[k] = o[k];
+    return fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' }, body: JSON.stringify(body) })
+      .then(function (r) { if (r.ok) return r.json(); var e = new Error('search ' + r.status); e.status = r.status;
+        if (r.status !== 429) throw e;
+        return r.json().catch(function () { return {}; }).then(function (j) {                // the free search's daily allowance for this network is used up
+          var err = j && j.error || {}; if (err.code === 'daily_cap_reached' || err.window === 'day') {
+            var until = Date.now() + Math.max(60, +err.retry_after_seconds || 3600) * 1000; try { localStorage.setItem('btn-tv-pause', String(until)); } catch (x) {}
+            e.cap = true; } throw e; }); }); }
+  var run = TV_Q.then(function () { if (tvPaused()) { var c = new Error('daily limit'); c.cap = true; throw c; } return go(opts || {}).catch(function (e) {
+    if (e.cap) throw e;
+    if (e.status === 400 || e.status === 422) { if (!opts) throw e; var o = { max_results: Math.min((opts || {}).max_results || 10, 10) }; return go(o); }   // option not allowed without a key
     if (e.status && e.status !== 429 && e.status < 500) throw e;
-    return new Promise(function (ok) { setTimeout(ok, 2500); }).then(go); }); });
+    return new Promise(function (ok) { setTimeout(ok, 2500); }).then(function () { return go(opts || {}); }); }); });
   TV_Q = run.catch(function () {}).then(function () { return new Promise(function (ok) { setTimeout(ok, 400); }); });
   return run;
 }
@@ -710,6 +761,7 @@ function priceHTML(w) {
 function priceCell(w) {                                                 // the Actual column's price: found, typed, searching, or not found
   if (w.price) return esc(priceText(w.price));
   if (PR_BUSY[w.id]) return '<span class="prc-s">Searching…</span>';
+  if (tvPaused() && !/^none:/.test(w.priceSrc || '')) return '<span class="prc-s">Search limit reached; tries again after ' + tvResume() + '</span>';
   if (/^none:/.test(w.priceSrc || '')) return '<span class="prc-s">Not found</span> <button type="button" class="prc-again" data-pragain="' + esc(w.id) + '">Search again</button>';
   return '–';
 }
@@ -767,7 +819,7 @@ function findPrice(w, force) {
         if (rec.id === w.id && !rec.price) { rec.price = price; rec.priceSrc = src; rerow('identity'); }   // the wine open in Tasting shows it too
       });
     })
-    .catch(function () { delete PR_TRIED[w.id + q]; if (force) toast('Couldn\u2019t search for a price right now'); })                  // offline or the search was busy: try again another time
+    .catch(function (e) { delete PR_TRIED[w.id + q]; if (force && !(e && e.cap)) toast('Couldn\u2019t search for a price right now'); })                  // offline or the search was busy: try again another time
     .then(function () { delete PR_BUSY[w.id]; repaintPrice(w.id); });
 }
 function repaintPrice(id) {
@@ -778,4 +830,4 @@ function repaintPrice(id) {
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.34';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.35';
