@@ -680,6 +680,99 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 .prc-again{border:0;background:none;padding:0;font:inherit;color:var(--sig);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 /* v2.37 Tavily key */
 .tk-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin:4px 0 10px}
+/* ============================================================ v2.40 design pass */
+/* tasting: the reveal group, live check marks, photo pill, comfortable tap targets */
+.subh{margin:26px 0 2px;padding-top:18px;border-top:1px solid var(--line);font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.subh+.f{border-top:0;padding-top:8px}
+.scoreline+.subh{margin-top:18px}
+.gtab input.hit,.gtab input.miss{padding-right:30px;background-repeat:no-repeat;background-position:right 10px center;background-size:14px 14px}
+.gtab input.hit{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%232F6B2A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3L13 4.5'/%3E%3C/svg%3E")}
+.gtab input.miss{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239A2B38' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4.5 4.5l7 7M11.5 4.5l-7 7'/%3E%3C/svg%3E")}
+.gtab input.hit,.gtab input.miss{transition:background-color .25s,border-color .25s}
+.dbtn input[type=file]{display:none}
+.ph-add{cursor:pointer}
+.addc{min-height:44px;padding:0;display:inline-flex;align-items:center}
+.idline .lnk#idChange{min-height:44px;padding:0 2px;display:inline-flex;align-items:center}
+.phbox .lnk{min-height:44px;display:inline-flex;align-items:center}
+.rail button em{overflow:visible}
+/* notebook detail */
+.tc-head .id .idp{white-space:nowrap}
+.side>.tc-guess{margin-top:-6px}
+.prc-src{margin-left:6px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap}
+.prc-s{font-weight:500}
+.rvi.slim{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:4px 10px;padding:10px 14px}
+.rvi.slim b{font-weight:700;font-size:14px}
+.rvi.slim small{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rvi.slim em{font-style:normal;font:700 15px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums;white-space:nowrap}
+.rv-found{display:grid;gap:8px}
+.rv-more{margin:12px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
+.rv-more a{color:var(--sig);font-weight:600;text-decoration:none}
+.rv-more .lnk{font-size:inherit;font-weight:600;min-height:0;padding:0}
+.rv-state{margin:0}
+@keyframes arrive{0%{box-shadow:0 0 0 0 transparent;background-color:var(--sig-tint)}100%{background-color:transparent}}
+.arrive{animation:arrive 1.6s ease-out;border-radius:8px}
+.rv-found.arrive{animation:none}
+.rv-found.arrive>*{animation:rvin .5s ease-out both}
+.rv-found.arrive>*:nth-child(2){animation-delay:.08s}.rv-found.arrive>*:nth-child(3){animation-delay:.16s}
+@keyframes rvin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* notebook list: sync status, flight summary link */
+#showing .sy{white-space:nowrap}
+#showing .sy.warn{color:var(--sig)}
+.grp .fsum{font-size:12.5px;font-weight:600;color:var(--sig);margin-right:8px;min-height:32px;padding:0}
+/* the save moment and the flight summary */
+.mo{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,10,14,0);transition:background .25s;pointer-events:none}
+.mo.full{pointer-events:auto}
+.mo.full.show{background:rgba(20,10,14,.45)}
+.mo.quick{align-items:flex-end;padding-bottom:calc(92px + var(--sab))}
+.mo-card{pointer-events:auto;background:var(--paper);border-radius:20px;padding:22px 24px 20px;width:100%;max-width:360px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.3);transform:translateY(14px) scale(.98);opacity:0;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.mo.show .mo-card{transform:none;opacity:1}
+.mo.quick .mo-card{max-width:320px;padding:16px 20px 14px}
+.mo-k{font:600 11px/1.3 var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+.mo-card h3{margin:6px 0 14px;font:700 22px/1.15 var(--serif);text-wrap:balance}
+.mo.quick .mo-card h3{font-size:18px;margin-bottom:10px}
+.mo-dots{display:grid;grid-template-columns:repeat(4,1fr);justify-items:center;max-width:240px;margin:0 auto}
+.mo-dots i{width:16px;height:16px;border-radius:50%;background:var(--line-2);transform:scale(.6);opacity:.5}
+.mo.show .mo-dots i{animation:dotin .42s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
+.mo-dots i.y{--c:#4E8F43}.mo-dots i.n{--c:#B8475A}.mo-dots i.x{--c:var(--faint)}
+@keyframes dotin{to{transform:scale(1);opacity:1;background:var(--c)}}
+.mo-lab{display:grid;grid-template-columns:repeat(4,1fr);max-width:240px;margin:6px auto 0;font-size:11px;color:var(--muted)}
+.mo-score{margin-top:12px;opacity:0}
+.mo.show .mo-score{animation:fadein .5s ease-out 1.25s forwards}
+.mo-score b{font:700 40px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.mo.quick .mo-score b{font-size:30px}
+.mo-score small{font-size:15px;color:var(--muted)}
+.mo-card.perfect .mo-score b{background:linear-gradient(100deg,var(--gold) 40%,#F3DFA6 50%,var(--gold) 60%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:glint 1.6s ease-in-out 1.8s 1}
+@keyframes glint{from{background-position:100% 0}to{background-position:-50% 0}}
+@keyframes fadein{to{opacity:1}}
+.mo-next{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.mo-btns{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.mo-btns .btn{flex:1;max-width:160px}
+.mo-card.sum{max-width:440px;text-align:left;max-height:calc(100dvh - 40px);overflow:auto}
+.mo-card.sum h3{margin-bottom:12px}
+.fs-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.fs-stats div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.fs-stats b{display:block;font:700 22px/1.1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.fs-stats b small{font:500 13px var(--sans);color:var(--muted)}
+.fs-stats b.t{font:700 14.5px/1.3 var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fs-stats span{display:block;margin-top:4px;font-size:11.5px;color:var(--muted)}
+.fs-list{border-top:1px solid var(--line)}
+.fs-row{width:100%;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;color:var(--ink);min-height:44px}
+.fs-row .n{font:700 14px var(--serif);color:var(--muted)}
+.fs-row .w b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-row .w small{font-size:12px;color:var(--muted)}
+.fs-row .sc{display:grid;justify-items:end;gap:4px}
+.fs-row .sc b{font:700 17px/1 var(--serif);color:var(--gold)}
+.fs-row .sc b small{font:500 11px var(--sans);color:var(--muted)}
+.fs-row .sc em{font-style:normal;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){ .mo-card,.mo{transition:none} .mo.show .mo-dots i{animation-duration:.01s;animation-delay:0s} .mo.show .mo-score{animation-delay:0s;animation-duration:.01s} .mo-card.perfect .mo-score b{animation:none} .arrive,.rv-found.arrive>*{animation:none} }
+/* identity line: separators fall away at line starts, so no line begins or ends on a dot */
+.tc-head .id{overflow:hidden}
+.tc-head .id .idw{display:flex;flex-wrap:wrap;margin-left:-.9em}
+.tc-head .id .idp{position:relative;padding-left:.9em;white-space:nowrap}
+.tc-head .id .idp:before{content:"\00b7";position:absolute;left:.28em}
+/* six-point rails (Quality): two-word labels wrap between words, never inside one */
+.rail[style*="--n:6"] button em{white-space:normal;text-align:center;line-height:1.15;height:auto;min-height:28px;align-items:flex-start}
+@media (max-width:430px){ .rail[style*="--n:6"] button em{font-size:10.5px} }
 
 </style>
 </head>
@@ -699,7 +792,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div id="tasteView">
   <div class="idline"><div class="in"><b id="idWine">Wine 1</b><span id="idSub"></span><span class="state" id="state">New</span><button type="button" class="lnk" id="idChange">Change</button></div></div>
   <nav class="stages" id="stages"><div class="in">
-    <button type="button" data-s="0" class="on"><i></i>Appearance</button><button type="button" data-s="1"><i></i>Nose</button><button type="button" data-s="2"><i></i>Palate</button><button type="button" data-s="3"><i></i>Conclusions</button><button type="button" data-s="4"><i></i>Wine Identity and Photo</button>
+    <button type="button" data-s="0" class="on"><i></i>Appearance</button><button type="button" data-s="1"><i></i>Nose</button><button type="button" data-s="2"><i></i>Palate</button><button type="button" data-s="3"><i></i>Conclusions</button><button type="button" data-s="4"><i></i>Identity</button>
   </div></nav>
   <main class="in" id="taste"><div class="loading">Opening your tasting notebook…</div></main>
   <div class="foot">Tasting Notes <span id="verLabel"></span> · <a href="#" class="opensettings">Settings</a></div>
@@ -800,7 +893,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.39. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.40. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -836,13 +929,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.39';</script>
-<script src="logic.js?v=2.39"></script>
-<script src="store.js?v=2.39"></script>
-<script src="google.js?v=2.39"></script>
-<script src="lexicon.js?v=2.39"></script>
-<script src="app.js?v=2.39"></script>
-<script src="app2.js?v=2.39"></script>
+<script>var BUILD = 'v2.40';</script>
+<script src="logic.js?v=2.40"></script>
+<script src="store.js?v=2.40"></script>
+<script src="google.js?v=2.40"></script>
+<script src="lexicon.js?v=2.40"></script>
+<script src="app.js?v=2.40"></script>
+<script src="app2.js?v=2.40"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });

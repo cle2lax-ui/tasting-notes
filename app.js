@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.39';
+var VERSION_LABEL = 'v2.40';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -14,7 +14,7 @@ var CHIPC = {
   Red: { 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'], 'Garnet':['#97363C','#5C1920','Developing'],
     'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
 var SHORTR = { 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Pronounced': 'Pronounced', 'Medium-Dry': 'Medium-dry', 'Medium-Sweet': 'Medium-sweet',
-  'Off-Dry': 'Off-dry', 'Luscious': 'Luscious', 'Acceptable': 'Acceptable', 'Very Good': 'Very good', 'Outstanding': 'Outstanding' };
+  'Off-Dry': 'Off-dry', 'Luscious': 'Luscious', 'Acceptable': 'Acceptable', 'Very Good': 'Very Good', 'Outstanding': 'Outstanding' };
 var SAME = 'Palate confirms the aromas listed above';
 function isSame(t) { return String(t).toLowerCase().replace(/[.;:]+$/, '').trim() === SAME.toLowerCase(); }
 var NICE = { 'Hazy (Faulty?)': 'Hazy', 'Unclean (Faulty?)': 'Unclean', 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Not Suitable': 'Not suitable' };
@@ -70,7 +70,7 @@ function rowHTML(r) {
     var list = r[3], i = list.indexOf(rec[k]), p = i < 0 ? 0 : i / (list.length - 1);
     return '<div class="f rw" id="f-' + k + '"><label>' + r[2] + (i >= 0 ? '<small>' + esc(nice(rec[k])) + '</small>' : '') + '</label>' +
       '<div class="rail' + (i < 0 ? ' unset' : '') + '" data-k="' + k + '" style="--n:' + list.length + ';--p:' + p.toFixed(3) + '">' +
-      list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + esc(SHORTR[v] || v).replace('Acceptable', 'Accept&shy;able').replace('Outstanding', 'Out&shy;standing') + '</em></button>'; }).join('') + '</div></div>';
+      list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + (list.length >= 6 && !/\(/.test(SHORTR[v] || v) ? esc(SHORTR[v] || v).replace(' ', '<br>') : esc(SHORTR[v] || v)) + '</em></button>'; }).join('') + '</div></div>';
   }
   if (kind === 'color') {
     var cl = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null, t = CHIPC[rec.type] || {};
@@ -175,12 +175,13 @@ function identityHTML() {
     h += '<span class="l">' + r[0] + '</span>' + (open ? '' : '<input type="text" data-k="' + r[1] + '" class="g' + st + '" value="' + esc(rec[r[1]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">') +
       '<input type="text" data-k="' + r[2] + '" value="' + esc(rec[r[2]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">';
   });
-  h += '</div><div class="f full"><label>Producer and wine</label><input type="text" data-k="producer" value="' + esc(rec.producer) + '" placeholder="' + (open ? 'Producer and wine' : 'After the reveal') + '" autocapitalize="words"></div>';
+  h += '</div>';
+  h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Blind Tasting Guess</span><b id="score">' + (s ? s.hits + '<small>/4</small>' : '–') + '</b>') + '</div>';
+  h += '<h4 class="subh">The reveal</h4><div class="f full"><label>Producer and wine</label><input type="text" data-k="producer" value="' + esc(rec.producer) + '" placeholder="' + (open ? 'Producer and wine' : 'After the reveal') + '" autocapitalize="words"></div>';
   var autoP = /^auto:/.test(rec.priceSrc || '');
   h += '<div class="f full"><label>Approx. retail price<small class="mu">' + (rec.price ? (autoP ? 'Found online \u00b7 ' + esc(String(rec.priceSrc).replace(/^auto:https?:\/\/(www\.)?/, '').split(/[\/?#]/)[0]) : 'Your price') : 'Found online after the reveal, or type your own') + '</small></label>' +
     '<input type="text" data-k="price" inputmode="decimal" autocomplete="off" placeholder="$" value="' + esc(rec.price) + '"></div>';
   h += '<div class="f" id="f-photo"><label>Label photo</label><div class="phbox" id="phBox">' + photoBox() + '</div></div>';
-  h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Score</span><b id="score">' + (s ? s.hits + '<small>/4</small>' : '–') + '</b>') + '</div>';
   return h;
 }
 function score() {
@@ -200,7 +201,7 @@ function photoBox() {
   var u = rec.id && THUMBS[rec.id];
   if (rec.hasPhoto && rec.id && !u) Photos.urls(rec.id).then(function (x) { if (x) { THUMBS[rec.id] = x; var b = $('phBox'); if (b) b.innerHTML = photoBox(); } });
   return (u && rec.hasPhoto ? '<img src="' + u.thumb + '" data-full="' + u.full + '" alt="Label">' : '') +
-    '<label class="lnk">' + (rec.hasPhoto ? 'Replace' : 'Add photo') + '<input type="file" accept="image/*" id="phInput"></label>' +
+    '<label class="dbtn ph-add"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.2c0-.9.7-1.6 1.6-1.6h1.9l1.2-1.8h4.6l1.2 1.8h1.9c.9 0 1.6.7 1.6 1.6v7.2c0 .9-.7 1.6-1.6 1.6H4.6c-.9 0-1.6-.7-1.6-1.6z"/><circle cx="10" cy="10.6" r="3"/></svg>' + (rec.hasPhoto ? 'Replace photo' : 'Add label photo') + '<input type="file" accept="image/*" id="phInput"></label>' +
     (rec.hasPhoto ? '<button type="button" class="lnk" id="phRemove">Remove</button>' : '') +
     (!rec.hasPhoto && ORPHANS.length ? '<button type="button" class="lnk" id="phOrphans">Use a photo on this device (' + ORPHANS.length + ')</button>' : '');
 }
@@ -414,8 +415,9 @@ function save(force, next) {
     if (r.conflict) return ask(r.conflict + ' Replace it with this note?', 'Replace', 'Cancel').then(function (go) { if (go) save(true, next); });
     rec.id = r.id; setData(r.all); orig = { date: rec.date, wineNo: rec.wineNo }; dirty = false; clearDraft(); paintId();
     var sw = ALL.filter(function (x) { return x.id === r.id; })[0]; if (sw && window.findPrice) { findPrice(sw); findReviews(sw); }   // look up a retail price once the wine is revealed
-    if (next) { var d = rec.date, ev = rec.event || '', saved = label(); show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0); toast('Saved ' + saved + ' · now Wine ' + rec.wineNo); }
-    else toast('Saved ' + label());
+    if (next) { var d = rec.date, ev = rec.event || '', saved = label(); show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0);
+      if (!(window.saveMoment && saveMoment(sw, true, rec.wineNo))) toast('Saved ' + saved + ' · now Wine ' + rec.wineNo); }
+    else if (!(window.saveMoment && saveMoment(sw, false))) toast('Saved ' + label());
   }).catch(function (err) { b.disabled = false; b.textContent = was; fail(err); });
 }
 $('saveBtn').onclick = function () { save(false); };
@@ -508,4 +510,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.39';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.40';
