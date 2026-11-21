@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.40';
+var VERSION_LABEL = 'v2.41';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -13,11 +13,11 @@ var CHIPC = {
   'Rosé': { 'Pink':['#F9D3DB','#EDA4B5','Youthful'], 'Pink-Orange':['#F8CBB2','#E8977A','Developing'], 'Orange':['#F2B479','#D98038','Mature'] },
   Red: { 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'], 'Garnet':['#97363C','#5C1920','Developing'],
     'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
-var SHORTR = { 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Pronounced': 'Pronounced', 'Medium-Dry': 'Medium-dry', 'Medium-Sweet': 'Medium-sweet',
+var SHORTR = { 'Pronounced': 'Pronounced', 'Medium-Dry': 'Medium-dry', 'Medium-Sweet': 'Medium-sweet',
   'Off-Dry': 'Off-dry', 'Luscious': 'Luscious', 'Acceptable': 'Acceptable', 'Very Good': 'Very Good', 'Outstanding': 'Outstanding' };
 var SAME = 'Palate confirms the aromas listed above';
 function isSame(t) { return String(t).toLowerCase().replace(/[.;:]+$/, '').trim() === SAME.toLowerCase(); }
-var NICE = { 'Hazy (Faulty?)': 'Hazy', 'Unclean (Faulty?)': 'Unclean', 'Medium(-)': 'Medium (−)', 'Medium(+)': 'Medium (+)', 'Not Suitable': 'Not suitable' };
+var NICE = { 'Hazy (Faulty?)': 'Hazy', 'Unclean (Faulty?)': 'Unclean', 'Not Suitable': 'Not suitable' };
 
 function $(id) { return document.getElementById(id); }
 function $$(s, el) { return [].slice.call((el || document).querySelectorAll(s)); }
@@ -70,7 +70,7 @@ function rowHTML(r) {
     var list = r[3], i = list.indexOf(rec[k]), p = i < 0 ? 0 : i / (list.length - 1);
     return '<div class="f rw" id="f-' + k + '"><label>' + r[2] + (i >= 0 ? '<small>' + esc(nice(rec[k])) + '</small>' : '') + '</label>' +
       '<div class="rail' + (i < 0 ? ' unset' : '') + '" data-k="' + k + '" style="--n:' + list.length + ';--p:' + p.toFixed(3) + '">' +
-      list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + (list.length >= 6 && !/\(/.test(SHORTR[v] || v) ? esc(SHORTR[v] || v).replace(' ', '<br>') : esc(SHORTR[v] || v)) + '</em></button>'; }).join('') + '</div></div>';
+      list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + ((list.length >= 6 && !/\(/.test(SHORTR[v] || v)) || /^Medium (Plus|Minus)$/.test(v) ? esc(SHORTR[v] || v).replace(' ', '<br>') : esc(SHORTR[v] || v)) + '</em></button>'; }).join('') + '</div></div>';
   }
   if (kind === 'color') {
     var cl = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null, t = CHIPC[rec.type] || {};
@@ -171,12 +171,12 @@ function identityHTML() {
     '<button type="button" class="switch' + (open ? ' on' : '') + '" id="openBtn" role="switch" aria-checked="' + open + '"><i></i></button></div>';
   h += '<div class="gtab' + (open ? ' open' : '') + '"><span></span>' + (open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>';
   rows.forEach(function (r, i) {
-    var st = !open && s && s.per[i] !== null && low(rec[r[1]]) ? (s.per[i] ? ' hit' : ' miss') : '';
+    var st = !open && s && s.per[i] !== null && low(rec[r[1]]) ? (s.per[i] === true ? ' hit' : s.per[i] === 0.5 ? ' half' : ' miss') : '';
     h += '<span class="l">' + r[0] + '</span>' + (open ? '' : '<input type="text" data-k="' + r[1] + '" class="g' + st + '" value="' + esc(rec[r[1]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">') +
       '<input type="text" data-k="' + r[2] + '" value="' + esc(rec[r[2]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">';
   });
   h += '</div>';
-  h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Blind Tasting Guess</span><b id="score">' + (s ? s.hits + '<small>/4</small>' : '–') + '</b>') + '</div>';
+  h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Blind Tasting Guess</span><b id="score">' + (s ? fmtScore(s.hits) + '<small>/4</small>' : '–') + '</b>') + '</div>';
   h += '<h4 class="subh">The reveal</h4><div class="f full"><label>Producer and wine</label><input type="text" data-k="producer" value="' + esc(rec.producer) + '" placeholder="' + (open ? 'Producer and wine' : 'After the reveal') + '" autocapitalize="words"></div>';
   var autoP = /^auto:/.test(rec.priceSrc || '');
   h += '<div class="f full"><label>Approx. retail price<small class="mu">' + (rec.price ? (autoP ? 'Found online \u00b7 ' + esc(String(rec.priceSrc).replace(/^auto:https?:\/\/(www\.)?/, '').split(/[\/?#]/)[0]) : 'Your price') : 'Found online after the reveal, or type your own') + '</small></label>' +
@@ -187,14 +187,14 @@ function identityHTML() {
 function score() {
   if (rec.open) return null;
   var pairs = [['gGrape', 'aGrape'], ['gCountry', 'aCountry'], ['gRegion', 'aRegion'], ['gVintage', 'aVintage']], of = 0, hits = 0, per = [];
-  pairs.forEach(function (p) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var h = sameAnswer(rec[p[0]], rec[p[1]]); if (h) hits++; per.push(h); });
+  pairs.forEach(function (p, i) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var pt = answerPoints(rec[p[0]], rec[p[1]], i === 0); hits += pt; per.push(pt === 1 ? true : pt === 0.5 ? 0.5 : false); });
   return of ? { hits: hits, per: per } : null;
 }
 function paintScore() {
-  var s = score(), el = $('score'); if (el) el.innerHTML = s ? s.hits + '<small>/4</small>' : '–';
+  var s = score(), el = $('score'); if (el) el.innerHTML = s ? fmtScore(s.hits) + '<small>/4</small>' : '–';
   ['gGrape', 'gCountry', 'gRegion', 'gVintage'].forEach(function (k, i) {
     var e = document.querySelector('input[data-k="' + k + '"]'); if (!e) return;
-    e.classList.remove('hit', 'miss'); if (s && s.per[i] !== null && low(rec[k])) e.classList.add(s.per[i] ? 'hit' : 'miss');
+    e.classList.remove('hit', 'miss', 'half'); if (s && s.per[i] !== null && low(rec[k])) e.classList.add(s.per[i] === true ? 'hit' : s.per[i] === 0.5 ? 'half' : 'miss');
   });
 }
 function photoBox() {
@@ -510,4 +510,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.40';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.41';

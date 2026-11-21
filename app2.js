@@ -50,7 +50,7 @@ function labHTML(w, cls) {
   var th = THUMBS[w.id];
   return th ? '<img class="lab ' + (cls || '') + '" src="' + th.thumb + '" data-full="' + th.full + '" alt="Label">' : '<span class="lab none ' + (cls || '') + '" style="--wc:' + (SWC[w.color] || 'var(--line-2)') + '"></span>';
 }
-function dotsHTML(w) { if (w.open || !w.hits) return ''; return '<span class="dots">' + w.hits.map(function (h) { return '<i class="' + (h === null ? '' : h ? 'y' : 'n') + '"></i>'; }).join('') + '</span>'; }
+function dotsHTML(w) { if (w.open || !w.hits) return ''; return '<span class="dots">' + w.hits.map(function (h) { return '<i class="' + (h === null ? '' : h === 0.5 ? 'h' : h ? 'y' : 'n') + '"></i>'; }).join('') + '</span>'; }
 function syncAgo() {                                                   // "Synced 2 min ago" under the search, for people using a Google Sheet
   if (!window.Sync || !Sync.connected()) return '';
   var st = Sync.state(), t = +(Sync.config().lastSync || 0);
@@ -67,7 +67,7 @@ function rowHTMLnb(w) {
   var acts = selecting || !w.ymd ? '' : '<div class="ract" aria-hidden="true"><button type="button" class="ra edit" tabindex="-1" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button><button type="button" class="ra share" tabindex="-1" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>PDF</button><button type="button" class="ra del" tabindex="-1" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></div>';
   return '<div class="rw2">' + acts + '<button type="button" class="row' + (SEL[w.id] ? ' sel' : '') + '" data-id="' + esc(w.id) + '">' + (selecting ? '<span class="pick">' + (SEL[w.id] ? '✓' : '') + '</span>' : '') + labHTML(w) +
     '<span class="w"><b' + (w.producer || w.aGrape ? '' : ' class="un"') + '>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '<small>' + esc(['Wine ' + w.wineNo, w.quality].filter(Boolean).join(' · ')) + '</small></span>' +
-    '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + w.score + '<small>/4</small></b>') + dotsHTML(w) + '</span></button></div>';
+    '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + fmtScore(w.score) + '<small>/4</small></b>') + dotsHTML(w) + '</span></button></div>';
 }
 function renderNotebook() {
   var wines = shownWines(), byGroup = NB.sort === 'Date & Wine #' || NB.sort === 'Tasting / Event', html = '', last = null;
@@ -155,15 +155,15 @@ function cap(s) { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase
 function sent(s) { s = cap(s); return s && !/[.!?]$/.test(s) ? s + '.' : s; }
 function lw(v) { return nice(v).toLowerCase(); }
 /* ---- the written note, in the full sentences of the WSET Systematic Approach.
-   Each assessed term is stated as a sentence ("The acidity is Medium (+).") with the SAT term capitalized;
+   Each assessed term is stated as a sentence ("The acidity is Medium Plus.") with the SAT term capitalized;
    descriptors are grouped by where they come from (primary, secondary, tertiary) using the Lexicon;
    the taster's own comments follow in the same voice. */
 function andList(a) { a = a.filter(Boolean); return a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
-function term(v) { return nice(v); }                                   // SAT terms keep their capitals: Pale, Medium (+), Off-Dry
+function term(v) { return nice(v); }                                   // SAT terms keep their capitals: Pale, Medium Plus, Off-Dry
 var RIPE = { 'unripe fruit': 'Unripe', 'ripe fruit': 'Ripe', 'dried fruit': 'Dried', 'cooked fruit': 'Cooked' };
 var ORIGIN_WORD = { p: 'primary', s: 'secondary', t: 'tertiary' };
 /* ---- the written note, following the WSET L4 Tasting Guidance (Issue 1.4, 2023):
-   - every structural component is named with its single SAT level ("The acidity is Medium (+).")
+   - every structural component is named with its single SAT level ("The acidity is Medium Plus.")
    - clarity and condition carry no marks (exam wines are clear and clean), so they are only written when they point to a fault
    - aromas and flavors follow the Lexicon: specific descriptors introduced by their cluster and grouped by type
      ("primary aromas of black fruit (blackcurrant, black cherry) and herbal (mint); secondary aromas of oak (vanilla)"),
@@ -307,11 +307,11 @@ function cardHTML(w) {
   }).join('') + '</div></div>';
   var rows = [['Grape', 'gGrape', 'aGrape'], ['Country', 'gCountry', 'aCountry'], ['Region', 'gRegion', 'aRegion'], ['Vintage', 'gVintage', 'aVintage']];
   h += '<div><h6>' + (w.open ? 'The wine' : 'Guess and actual') + '</h6><div class="gx' + (w.open ? ' open' : '') + '"><span></span>' + (w.open ? '' : '<span class="h">My guess</span>') + '<span class="h">Actual</span>' +
-    rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? ' y' : ' n';
+    rows.map(function (r, i) { var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit === 0.5 ? ' hf' : hit ? ' y' : ' n';
       return '<span class="l">' + r[0] + '</span>' + (w.open ? '' : '<span class="g' + st + '">' + esc(w[r[1]] || '–') + '</span>') + '<span class="a">' + esc(w[r[2]] || '–') + '</span>'; }).join('') +
     (String(w.producer || '').trim() ? '<span class="l">Approx. price</span>' + (w.open ? '' : '<span class="g"></span>') + '<span class="a" data-prc="' + esc(w.id) + '">' + priceCell(w) + '</span>' : '') + '</div></div>';
   // the blind-tasting result sits with the answers it comes from; the critics close the page
-  h += '<div class="tc-guess">' + (w.open ? '<span>Tasted open</span><b class="op">Not scored</b>' : '<span>Blind Tasting Guess</span><b>' + (w.score === '' ? '–' : w.score + '<small>/4</small>') + '</b>') + '</div>';
+  h += '<div class="tc-guess">' + (w.open ? '<span>Tasted open</span><b class="op">Not scored</b>' : '<span>Blind Tasting Guess</span><b>' + (w.score === '' ? '–' : fmtScore(w.score) + '<small>/4</small>') + '</b>') + '</div>';
   h += reviewsHTML(w);
   h += '</div></div>';
   h += '<footer class="tc-foot">' + (w.ymd ? '<button type="button" class="btn" data-edit="' + w.ymd + '|' + w.wineNo + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>Edit</button>' : '') + '<button type="button" class="btn" data-pdf1="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button><button type="button" class="btn danger" data-del="' + esc(w.id) + '"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>Delete</button></footer></article>';
@@ -357,10 +357,14 @@ function pdfThumb(id) { return Photos.get(id).then(function (p) { return p && p.
 function pdfCard(D, w, x, y, W, draw, K, img) {
   function font(f, st, size, color) { D.setFont(f, st); D.setFontSize(size * K); if (color) D.setTextColor(color); }
   function txt(t, tx, ty, o) { if (draw) D.text(t, tx, ty, o || {}); }
+  function fitText(t, width, size, color) {                             // long answers step down in size before they are shortened
+    for (var z = size; z >= 5.4; z -= 0.4) { font('Archivo', 'bold', z, color); if (D.getTextWidth(t) <= width) return t; }
+    while (t.length > 3 && D.getTextWidth(t + '…') > width) t = t.slice(0, -1); return t.replace(/[\s,]+$/, '') + '…';
+  }
   var hx = x, when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   if (img) { var ip = D.getImageProperties(img), ih = 40 * K, iw = Math.min(ih * 1.2, ih * ip.width / ip.height); if (draw) { D.addImage(img, 'JPEG', x, y + 2, iw, ih, undefined, 'MEDIUM'); D.setDrawColor(PC.line); D.setLineWidth(.5); D.rect(x, y + 2, iw, ih); } hx = x + iw + 12 * K; }
   var right = x + W;
-  font('Playfair', 'bold', 18, PC.gold); var sc = w.open ? '' : w.score === '' ? '–' : w.score + '/4';
+  font('Playfair', 'bold', 18, PC.gold); var sc = w.open ? '' : w.score === '' ? '–' : fmtScore(w.score) + '/4';
   if (w.open) { font('Archivo', 'bold', 7.5, PC.muted); txt('TASTED OPEN', right, y + 14 * K, { align: 'right' }); } else { txt(sc, right, y + 18 * K, { align: 'right' }); font('Archivo', 'bold', 5.6, PC.muted); txt('BLIND TASTING GUESS', right, y + 27 * K, { align: 'right', charSpace: .8 }); }
   font('Archivo', 'bold', 6.4, PC.gold); txt([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join('  ·  ').toUpperCase(), hx, y + 9 * K, { charSpace: .9 });
   font('Playfair', 'bold', 15, (w.producer || w.aGrape) ? PC.ink : PC.muted);
@@ -393,13 +397,17 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   var c1 = rx, c2 = rx + 40 * K, c3 = w.open ? c2 : rx + 40 * K + (right - rx - 40 * K) / 2, cw = (right - c2) / (w.open ? 1 : 2) - 4 * K;
   font('Archivo', 'bold', 5.4, PC.muted); if (!w.open) txt('MY GUESS', c2, gy, { charSpace: .6 }); txt('ACTUAL', c3, gy, { charSpace: .6 }); gy += 9 * K;
   rows.forEach(function (r, i) {
-    var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit ? 'y' : 'n';
+    var hit = w.hits ? w.hits[i] : null, st = w.open || hit === null || !w[r[1]] ? '' : hit === 0.5 ? 'h' : hit ? 'y' : 'n';
     font('Archivo', 'normal', 6.6, PC.muted); txt(r[0], c1, gy);
-    if (!w.open) { font('Archivo', 'bold', 7, st === 'n' ? PC.muted : PC.ink); var gt = D.splitTextToSize(pdfText(w[r[1]] || '–'), cw - 8 * K)[0]; txt(gt, c2, gy);
+    if (!w.open) { var gt = fitText(pdfText(w[r[1]] || '–'), cw - 8 * K, 7, st === 'n' ? PC.muted : PC.ink); txt(gt, c2, gy);
       if (st && draw) { var mx = c2 + D.getTextWidth(gt) + 5 * K, my = gy - 2.6 * K; D.setLineWidth(.9 * K); D.setDrawColor(st === 'y' ? PC.ok : PC.no);
-        if (st === 'y') { D.line(mx - 2 * K, my, mx - .5 * K, my + 1.8 * K); D.line(mx - .5 * K, my + 1.8 * K, mx + 2.4 * K, my - 2 * K); }
+        if (st === 'h') { D.setFont('Archivo', 'bold'); D.setFontSize(7 * K); D.setTextColor(PC.gold); D.text('½', mx - 2.2 * K, gy); }
+        else if (st === 'y') { D.line(mx - 2 * K, my, mx - .5 * K, my + 1.8 * K); D.line(mx - .5 * K, my + 1.8 * K, mx + 2.4 * K, my - 2 * K); }
         else { D.line(mx - 1.8 * K, my - 1.8 * K, mx + 1.8 * K, my + 1.8 * K); D.line(mx + 1.8 * K, my - 1.8 * K, mx - 1.8 * K, my + 1.8 * K); } } }
-    font('Archivo', 'bold', 7, PC.sig); txt(D.splitTextToSize(pdfText(w[r[2]] || '–'), cw)[0], c3, gy); gy += 10 * K;
+    var at = pdfText(w[r[2]] || '–'); font('Archivo', 'bold', 6.6, PC.sig);
+    if (D.getTextWidth(at) > cw && D.getTextWidth(at) * 6.2 / 6.6 > cw) { var al = D.splitTextToSize(at, cw).slice(0, 2); al.forEach(function (l, j) { txt(l, c3, gy + j * 8 * K); }); gy += 8 * K * (al.length - 1); }   // a blend gets two lines
+    else txt(fitText(at, cw, 7, PC.sig), c3, gy);
+    gy += 10 * K;
   });
   if (w.price) { font('Archivo', 'normal', 6.6, PC.muted); txt('Approx. price', c1, gy); font('Archivo', 'bold', 7, PC.sig); txt(pdfText(priceText(w.price)), c3, gy); gy += 10 * K; }   // as on the wine page
   // right, below guess and actual: professional reviews
@@ -929,11 +937,11 @@ function saveMoment(w, next, nextNo) {
   if (!w || w.open || w.score === '' || !w.hits || celebrated(w.id)) return false;
   celebrated(w.id, true);
   var n = +w.score, perfect = n === 4 && w.hits.every(function (h) { return h === true; }), fl = flightOf(w);
-  var dots = w.hits.map(function (h, i) { return '<i class="' + (h === null ? 'x' : h ? 'y' : 'n') + '" style="--d:' + (i * 260 + 200) + 'ms"></i>'; }).join('');
+  var dots = w.hits.map(function (h, i) { return '<i class="' + (h === null ? 'x' : h === 0.5 ? 'h' : h ? 'y' : 'n') + '" style="--d:' + (i * 260 + 200) + 'ms"></i>'; }).join('');
   var labels = ['Grape', 'Country', 'Region', 'Vintage'].map(function (t) { return '<span>' + t + '</span>'; }).join('');
   var html = '<div class="mo-card' + (perfect ? ' perfect' : '') + '" role="status"><div class="mo-k">' + esc('Wine ' + w.wineNo + ' revealed') + '</div><h3>' + esc(w.producer || w.aGrape || 'Saved') + '</h3>' +
     '<div class="mo-dots">' + dots + '</div><div class="mo-lab">' + labels + '</div>' +
-    '<div class="mo-score"><b>' + n + '</b><small> of 4</small></div>' +
+    '<div class="mo-score"><b>' + fmtScore(n) + '</b><small> of 4</small></div>' +
     (next ? '<p class="mo-next">Now Wine ' + esc(nextNo) + '</p>' :
       '<div class="mo-btns">' + (fl.length > 1 ? '<button type="button" class="btn" data-mo-sum="' + esc(w.id) + '">Flight summary</button>' : '') + '<button type="button" class="btn pri" data-mo-x>Done</button></div>') + '</div>';
   var o = overlay(next ? 'quick' : 'full', html);
@@ -951,12 +959,12 @@ function flightSummary(list) {
   var name = function (w) { return w.producer || w.aGrape || 'Wine ' + w.wineNo; };
   var html = '<div class="mo-card sum"><div class="mo-k">' + esc([when, list[0].event].filter(Boolean).join(' · ')) + '</div><h3>Flight summary</h3>' +
     '<div class="fs-stats"><div><b>' + list.length + '</b><span>Wines</span></div>' +
-    (blind.length ? '<div><b>' + hits + '<small>/' + (blind.length * 4) + '</small></b><span>Blind score</span></div>' : '') +
-    (best ? '<div><b class="t">' + esc(name(best)) + '</b><span>Best call · ' + best.score + ' of 4</span></div>' : '') +
+    (blind.length ? '<div><b>' + fmtScore(hits) + '<small>/' + (blind.length * 4) + '</small></b><span>Blind score</span></div>' : '') +
+    (best ? '<div><b class="t">' + esc(name(best)) + '</b><span>Best call · ' + fmtScore(best.score) + ' of 4</span></div>' : '') +
     (top ? '<div><b class="t">' + esc(top.x.critic) + ' ' + esc(top.x.score) + '</b><span>Top critic score · ' + esc(name(top.w)) + '</span></div>' : '') + '</div>' +
     '<div class="fs-list">' + list.map(function (w) {
       return '<button type="button" class="fs-row" data-fs-open="' + esc(w.id) + '"><span class="n">' + w.wineNo + '</span><span class="w"><b>' + esc(name(w)) + '</b>' + (w.quality ? '<small>' + esc(w.quality) + '</small>' : '') + '</span>' +
-        '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + w.score + '<small>/4</small></b>') + dotsHTML(w) + '</span></button>'; }).join('') + '</div>' +
+        '<span class="sc">' + (w.open ? '<em>Open</em>' : w.score === '' ? '<b>–</b>' : '<b>' + fmtScore(w.score) + '<small>/4</small></b>') + dotsHTML(w) + '</span></button>'; }).join('') + '</div>' +
     '<div class="mo-btns"><button type="button" class="btn" data-mo-x>Done</button><button type="button" class="btn pri" data-fs-pdf>Share PDF</button></div></div>';
   var o = overlay('full', html);
   o.querySelector('[data-fs-pdf]').onclick = function () { o.close(); sharePdf(list, flightTitle(list)); };
@@ -969,4 +977,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.40';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.41';

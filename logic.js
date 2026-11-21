@@ -8,13 +8,13 @@ const L = {
   rose: ['Pink', 'Pink-Orange', 'Orange'],
   red: ['Purple', 'Ruby', 'Garnet', 'Tawny', 'Brown'],
   condition: ['Clean', 'Unclean (Faulty?)'],
-  intensity: ['Light', 'Medium(-)', 'Medium', 'Medium(+)', 'Pronounced'],
+  intensity: ['Light', 'Medium Minus', 'Medium', 'Medium Plus', 'Pronounced'],
   development: ['Youthful', 'Developing', 'Fully Developed'],
   sweetness: ['Dry', 'Off-Dry', 'Medium-Dry', 'Medium-Sweet', 'Sweet', 'Luscious'],
-  five: ['Low', 'Medium(-)', 'Medium', 'Medium(+)', 'High'],
+  five: ['Low', 'Medium Minus', 'Medium', 'Medium Plus', 'High'],
   alcohol: ['Low', 'Medium', 'High'],
-  body: ['Light', 'Medium(-)', 'Medium', 'Medium(+)', 'Full'],
-  finish: ['Short', 'Medium(-)', 'Medium', 'Medium(+)', 'Long'],
+  body: ['Light', 'Medium Minus', 'Medium', 'Medium Plus', 'Full'],
+  finish: ['Short', 'Medium Minus', 'Medium', 'Medium Plus', 'Long'],
   quality: ['Faulty', 'Poor', 'Acceptable', 'Good', 'Very Good', 'Outstanding'],
   aging: ['Suitable', 'Not Suitable'],
   blic: ['Balance', 'Length', 'Intensity', 'Complexity'],
@@ -127,8 +127,10 @@ function clean(v) {
   if (v instanceof Date) return v;
   return String(v).replace(/\s+/g, ' ').trim().replace(/,$/, '').trim();
 }
+// Medium Plus / Medium Minus were written "Medium(+)" / "Medium (−)" before v2.41; old values still read correctly
+function legacyMed(s) { return String(s).replace(/^medium\s*\(\s*\+\s*\)$/i, 'Medium Plus').replace(/^medium\s*\(\s*[-\u2212\u2013]\s*\)$/i, 'Medium Minus').replace(/^med(ium)?\s*\+$/i, 'Medium Plus').replace(/^med(ium)?\s*[-\u2212]$/i, 'Medium Minus'); }
 function canon(v, list) {                       // match a scale value regardless of capitals
-  const s = clean(v); if (!s) return '';
+  const s = legacyMed(clean(v)); if (!s) return '';
   const hit = list.find(x => x.toLowerCase() === s.toLowerCase());
   return hit || titleCase(s);
 }
@@ -150,6 +152,27 @@ function answerKey(v) {
   return SYNMAP[s] || s;
 }
 function sameAnswer(a, b) { return answerKey(a) !== '' && answerKey(a) === answerKey(b); }
+// the grapes named in an answer: "Grenache, Syrah, Mourvèdre", "Cabernet/Merlot", "GSM", "Syrah blend"
+const BLENDS = { gsm: ['grenache', 'syrah', 'mourvedre'], sgm: ['syrah', 'grenache', 'mourvedre'] };
+function grapeSet(v) {
+  const raw = clean(v).toString(); if (!raw) return [];
+  let parts = raw.split(/\s*(?:,|\/|&|\+|;|\band\b|\s[-\u2013]\s)\s*/i);
+  let out = [];
+  parts.forEach(p => { const k = answerKey(p.replace(/\b(blend|cuvee|field blend|dominant|led|based)\b/ig, ' ')); if (!k) return; (BLENDS[k] || [k]).forEach(x => { const y = SYNMAP[x] || x; if (out.indexOf(y) < 0) out.push(y); }); });
+  return out;
+}
+// one answer's points: 1 for the right answer; for grapes, ½ for naming one grape of a blend (or a blend that includes the grape)
+function answerPoints(g, a, grape) {
+  if (answerKey(g) === '' || answerKey(a) === '') return 0;
+  if (sameAnswer(g, a)) return 1;
+  if (!grape) return 0;
+  const gs = grapeSet(g), as = grapeSet(a);
+  if (!gs.length || !as.length) return 0;
+  const shared = gs.filter(x => as.indexOf(x) >= 0).length;
+  if (shared === gs.length && shared === as.length) return 1;           // the same grapes, written another way
+  return shared ? 0.5 : 0;
+}
+function fmtScore(n) { if (n === '' || n === null || n === undefined) return ''; n = Number(n); const w = Math.floor(n); return (n - w >= 0.5 ? (w ? w : '') + '\u00bd' : String(w)); }
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
 function dateLabel(d) {
   if (!(d instanceof Date) || isNaN(d)) return '';
@@ -188,10 +211,11 @@ function normalize(rows) {
     w.open = clean(r.open) !== '';
     w.mode = w.open ? 'Open' : 'Blind';
     if (w.open) { w.gGrape = w.gCountry = w.gRegion = w.gVintage = ''; }
-    w.hits = pairs.map(([g, a]) => (w.open || w[a] === '') ? null : sameAnswer(w[g], w[a]));
+    // a hit is true (right), 0.5 (one grape of a blend) or false; null when there is no actual answer
+    w.hits = pairs.map(([g, a], i) => { if (w.open || w[a] === '') return null; const pt = answerPoints(w[g], w[a], i === 0); return pt === 1 ? true : pt === 0.5 ? 0.5 : false; });
     const scored = w.hits.filter(h => h !== null);
-    w.score = scored.length ? scored.filter(Boolean).length : '';
-    w.scoreLabel = w.open ? 'Tasted open' : scored.length ? w.score + ' of ' + pairs.length : '';
+    w.score = scored.length ? scored.reduce((t, h) => t + (h === true ? 1 : h === 0.5 ? 0.5 : 0), 0) : '';
+    w.scoreLabel = w.open ? 'Tasted open' : scored.length ? fmtScore(w.score) + ' of ' + pairs.length : '';
     // a re-submitted Date + Wine # replaces the earlier entry
     const key = w.dateLabel + '#' + w.wineNo;
     if (w.dateLabel && w.wineNo !== '' && seen[key] !== undefined) out[seen[key]] = w;
@@ -213,7 +237,7 @@ function filterOptions(wines, fieldLabel) {
   const scale = !Array.isArray(field) && SCALES[field];
   if (scale) list.sort((a, b) => idx(scale, a) - idx(scale, b));
   else if (field === 'dateLabel') list.sort((a, b) => new Date(a) - new Date(b));
-  else if (field === 'scoreLabel') list.sort((a, b) => parseFloat(b) - parseFloat(a));
+  else if (field === 'scoreLabel') list.sort((a, b) => parseFloat(String(b).replace('\u00bd', '.5').replace(/^\./, '0.')) - parseFloat(String(a).replace('\u00bd', '.5').replace(/^\./, '0.')));
   else list.sort((a, b) => a.localeCompare(b));
   return ['(all)'].concat(list);
 }
@@ -275,4 +299,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.40';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.41';

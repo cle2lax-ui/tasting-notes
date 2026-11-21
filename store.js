@@ -77,6 +77,9 @@ function loadRows() {
       if (a !== r.aromas || f !== r.flavors) { r.aromas = a; r.flavors = f; r.dirty = true; loadRows.repaired = (loadRows.repaired || 0) + 1; changed = true; }
       // repair: the photo is on this device but the note doesn't know it (a photo still being prepared when the
       // wine was saved). Mark it so the next sync uploads it and adds its link to the Sheet.
+      // v2.41: "Medium(+)" / "Medium(-)" are now written "Medium Plus" / "Medium Minus"; the Sheet gets the new words on the next sync
+      ['appInt', 'noseInt', 'acidity', 'tannin', 'body', 'flavInt', 'finish', 'alcohol', 'sweetness'].forEach(function (k) {
+        if (r[k] && /^med(ium)?\s*(\(\s*[-+\u2212\u2013]\s*\)|[-+\u2212])$/i.test(String(r[k]).trim())) { r[k] = legacyMed(String(r[k]).trim()); r.dirty = true; changed = true; } });
       if (photosKnown && hasBlob[r.id] && !r.hasPhoto) { r.hasPhoto = true; r.photoFix = true; changed = true; }
       // the note says it has a photo that isn't on this device: clear the flag so a Sheet copy can be fetched again
       if (photosKnown && !hasBlob[r.id] && r.hasPhoto) { r.hasPhoto = false; changed = true; }
@@ -282,4 +285,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.40';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.41';
