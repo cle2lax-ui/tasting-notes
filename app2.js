@@ -603,6 +603,12 @@ var RV_ALIAS = { 'Robert Parker': 'Wine Advocate', 'William Kelley': 'Wine Advoc
 // the shorthand shops print: "WS 93", "93 JS", "RP95", "W&S 92"
 var RV_ABBR = { JS: 'James Suckling', WS: 'Wine Spectator', WA: 'Wine Advocate', RP: 'Wine Advocate', WE: 'Wine Enthusiast', JD: 'Jeb Dunnuck', VM: 'Vinous', AG: 'Vinous',
   'W&S': 'Wine & Spirits', BH: 'Burghound', DEC: 'Decanter', TA: 'Tim Atkin', JH: 'Halliday', LPB: 'The Wine Independent', OB: 'Owen Bargreen' };
+// Steve's order of preference; everyone else after, quoted reviews first, then by score
+var RV_ORDER = ['James Suckling', 'Jeb Dunnuck', 'Jancis Robinson', 'Wine Spectator', 'Decanter', 'Vinous', 'Wine Enthusiast'];
+function rvTop(list, n) {
+  function rank(x) { var i = RV_ORDER.indexOf(x.critic); return i < 0 ? 99 : i; }
+  return list.slice().sort(function (a, b) { return rank(a) - rank(b) || (b.text ? 1 : 0) - (a.text ? 1 : 0) || (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0); }).slice(0, n || 3);
+}
 function rvQuery(w) { return [String(w.producer || '').trim(), String(w.aVintage || '').trim()].filter(Boolean).join(' '); }
 function rvParse(text) {
   var out = { query: '', items: [] };
@@ -669,7 +675,7 @@ function rvPick(w, results) {
   });
   var list = Object.keys(got).map(function (k) { return got[k]; });
   if (vin && list.some(function (x) { return x.vintage === vin; })) list = list.filter(function (x) { return x.vintage === vin || !x.vintage; });
-  return list.sort(function (a, b) { return (b.text ? 1 : 0) - (a.text ? 1 : 0) || (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0); }).slice(0, 5);
+  return rvTop(list, 5);
 }
 function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
@@ -705,7 +711,7 @@ function reviewsHTML(w) {
   if (!String(w.producer || '').trim()) return h + '<div class="rv-lock">Reviews appear once you fill in the producer and wine name, so they can\u2019t spoil a blind tasting.</div></div>';
   var q = rvQuery(w), s = q.replace(/[\u2018\u2019'`]/g, ''), r = rvParse(w.reviews), fresh = r.query && r.query.toLowerCase() === q.toLowerCase();
   if (fresh && r.items.length) {
-    h += '<div class="rv-found">' + r.items.map(function (x) {
+    h += '<div class="rv-found">' + rvTop(r.items, 3).map(function (x) {
       var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim();
       return '<a class="rvi" href="' + esc(x.url) + '" target="_blank" rel="noopener"><div class="rvi-h"><b>' + esc(x.critic) + '</b>' + (x.score ? '<em>' + esc(x.score) + '</em>' : '') + '</div>' +
         (x.text ? '<p>\u201c' + esc(x.text) + '\u201d</p>' : '') +
@@ -722,7 +728,7 @@ function reviewsHTML(w) {
 function reviewsPdf(w) {                                                // the PDF's review list, beside the structure and guess
   var r = rvParse(w.reviews); if (!r.items.length || !String(w.producer || '').trim() || r.query.toLowerCase() !== rvQuery(w).toLowerCase()) return [];
   var v = String(w.aVintage || '').trim();
-  return r.items.map(function (x) { return { critic: x.critic, score: x.score, text: x.text, url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v) }; });
+  return rvTop(r.items, 3).map(function (x) { return { critic: x.critic, score: x.score, text: x.text, url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v) }; });
 }
 document.addEventListener('click', function (e) {
   var b = e.target.closest('[data-rvagain]'); if (!b) return;
@@ -870,4 +876,4 @@ function repaintPrice(id) {
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.38';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.39';
