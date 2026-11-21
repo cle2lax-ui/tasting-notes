@@ -735,15 +735,41 @@ document.addEventListener('click', function (e) {
    The price and its source page are saved with the wine; a price the taster types is never replaced.
    priceSrc: "auto:<url>" found online · "none:<query>" searched, nothing found · "" typed by the taster */
 var TV_Q = Promise.resolve();                                           // one keyless search at a time; a busy answer gets one retry
-function tvPaused() { var t = 0; try { t = +localStorage.getItem('btn-tv-pause') || 0; } catch (x) {} return t > Date.now() ? t : 0; }
+function tvKey() { try { return (localStorage.getItem('btn-tavily-key') || '').trim(); } catch (x) { return ''; } }
+function tvPaint(msg) {
+  var k = tvKey(), inp = $('tvKey'), st = $('tvState'); if (!inp) return;
+  if (document.activeElement !== inp) inp.value = k ? k.slice(0, 9) + '\u2022\u2022\u2022\u2022\u2022\u2022' + k.slice(-4) : '';
+  $('tvClear').hidden = !k;
+  st.textContent = msg || (k ? 'Using your Tavily key on this device. No daily limit.' : 'No key on this device: using the shared free daily allowance.');
+}
+document.addEventListener('click', function (e) {
+  if (e.target.closest('#gear')) setTimeout(function () { tvPaint(); }, 50);
+  if (e.target.id === 'tvClear') { try { localStorage.removeItem('btn-tavily-key'); } catch (x) {} tvPaint(); return; }
+  if (e.target.id !== 'tvSave') return;
+  var k = ($('tvKey').value || '').trim();
+  if (/\u2022/.test(k)) k = tvKey();
+  if (!/^tvly-[A-Za-z0-9_-]{10,}$/.test(k)) { tvPaint('That doesn\u2019t look like a Tavily key. It starts with tvly- and is copied from your Tavily dashboard.'); return; }
+  tvPaint('Testing your key\u2026');
+  fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + k }, body: JSON.stringify({ query: 'Ridge Monte Bello review', max_results: 1 }) })
+    .then(function (r) {
+      if (r.status === 401 || r.status === 403) { tvPaint('Tavily didn\u2019t accept that key. Copy it again from your Tavily dashboard and paste it here.'); return; }
+      if (!r.ok && r.status !== 429 && r.status !== 432) { tvPaint('Couldn\u2019t reach Tavily just now (' + r.status + '). The key was not saved; try again.'); return; }
+      try { localStorage.setItem('btn-tavily-key', k); localStorage.removeItem('btn-tv-pause'); } catch (x) {}
+      RV_TRIED = {}; PR_TRIED = {}; $('tvKey').blur(); tvPaint(r.ok ? 'Key works. Saved on this device; prices and reviews now use it.' : 'Key saved, but your Tavily plan\u2019s allowance is used up for now.');
+    })
+    .catch(function () { tvPaint('Couldn\u2019t reach Tavily. Check your connection and try again.'); });
+});
+document.addEventListener('focusin', function (e) { if (e.target.id === 'tvKey' && /\u2022/.test(e.target.value)) e.target.value = ''; });
+function tvPaused() { if (tvKey()) return 0; var t = 0; try { t = +localStorage.getItem('btn-tv-pause') || 0; } catch (x) {} return t > Date.now() ? t : 0; }
 function tvResume() { var t = tvPaused(); return t ? new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''; }
 function tavily(query, opts) {
   function go(o) { var body = { query: query, max_results: 10, search_depth: 'basic' }; for (var k in o) body[k] = o[k];
-    return fetch('https://api.tavily.com/search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tavily-Access-Mode': 'keyless' }, body: JSON.stringify(body) })
+    var key = tvKey(), hd = { 'Content-Type': 'application/json' }; if (key) hd.Authorization = 'Bearer ' + key; else hd['X-Tavily-Access-Mode'] = 'keyless';
+    return fetch('https://api.tavily.com/search', { method: 'POST', headers: hd, body: JSON.stringify(body) })
       .then(function (r) { if (r.ok) return r.json(); var e = new Error('search ' + r.status); e.status = r.status;
         if (r.status !== 429) throw e;
         return r.json().catch(function () { return {}; }).then(function (j) {                // the free search's daily allowance for this network is used up
-          var err = j && j.error || {}; if (err.code === 'daily_cap_reached' || err.window === 'day') {
+          var err = j && j.error || {}; if (!tvKey() && (err.code === 'daily_cap_reached' || err.window === 'day')) {
             var until = Date.now() + Math.max(60, +err.retry_after_seconds || 3600) * 1000; try { localStorage.setItem('btn-tv-pause', String(until)); } catch (x) {}
             e.cap = true; } throw e; }); }); }
   var run = TV_Q.then(function () { if (tvPaused()) { var c = new Error('daily limit'); c.cap = true; throw c; } return go(opts || {}).catch(function (e) {
@@ -843,4 +869,4 @@ function repaintPrice(id) {
   var old = head.querySelector('.pr'), html = priceHTML(w);
   if (old) old.outerHTML = html || ''; else if (html) head.insertAdjacentHTML('beforeend', html);
 }
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.36';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.37';

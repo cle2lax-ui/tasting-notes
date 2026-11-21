@@ -678,6 +678,8 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 /* v2.34 price cell */
 .gx .prc-s{color:var(--muted)}
 .prc-again{border:0;background:none;padding:0;font:inherit;color:var(--sig);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+/* v2.37 Tavily key */
+.tk-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin:4px 0 10px}
 
 </style>
 </head>
@@ -788,10 +790,17 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <input type="file" id="bkFile" accept=".json,application/json,.tasting" hidden>
   </section>
   <section>
+    <h3 class="eyebrow">Prices &amp; Reviews</h3>
+    <p>Prices and critics’ reviews come from Tavily web search. Without a key, every device on your network shares a small free daily allowance. With your own free Tavily key (1,000 searches a month) there’s no daily limit.</p>
+    <input class="tk-in" id="tvKey" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="tvly-…  (paste your key)">
+    <div class="row2"><button class="btn" id="tvSave" type="button">Save and Test</button><button class="btn" id="tvClear" type="button">Remove Key</button></div>
+    <p class="about" id="tvState" style="margin:8px 2px 0"></p>
+  </section>
+  <section>
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.36. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.37. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -827,13 +836,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.36';</script>
-<script src="logic.js?v=2.36"></script>
-<script src="store.js?v=2.36"></script>
-<script src="google.js?v=2.36"></script>
-<script src="lexicon.js?v=2.36"></script>
-<script src="app.js?v=2.36"></script>
-<script src="app2.js?v=2.36"></script>
+<script>var BUILD = 'v2.37';</script>
+<script src="logic.js?v=2.37"></script>
+<script src="store.js?v=2.37"></script>
+<script src="google.js?v=2.37"></script>
+<script src="lexicon.js?v=2.37"></script>
+<script src="app.js?v=2.37"></script>
+<script src="app2.js?v=2.37"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
