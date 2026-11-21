@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.41';
+var VERSION_LABEL = 'v2.42';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -44,7 +44,7 @@ function STAGES() { return [
     rows: [['chips', 'clarity', 'Clarity', S.clarity], ['rail', 'appInt', 'Intensity', S.appInt], ['chips', 'type', 'Wine type', S.type], ['color'],
       ['comment', 'appNotes', 'Add an appearance note', 'Legs, deposit, rim, bubbles…']] },
   { t: 'Nose', need: ['condition', 'noseInt', 'development', 'aromas'], sum: function () { var n = toks('aromas').length; return [nice(rec.noseInt), rec.development, n ? n + ' aromas' : ''].filter(Boolean).join(' · '); },
-    rows: [['chips', 'condition', 'Condition', S.condition], ['rail', 'noseInt', 'Intensity', S.intensity], ['chips', 'development', 'Development', S.development],
+    rows: [['chips', 'condition', 'Condition', S.condition], ['rail', 'noseInt', 'Intensity', S.intensity], ['rail', 'development', 'Development', S.development],
       ['desc', 'aromas', 'Aromas'], ['comment', 'noseNotes', 'Add a nose comment', 'How it changes in the glass, what stands out…']] },
   { t: 'Palate', need: ['sweetness', 'acidity', 'tannin', 'alcohol', 'body', 'flavInt', 'finish', 'flavors'], sum: function () { return [rec.sweetness, rec.acidity && 'acid ' + nice(rec.acidity).toLowerCase(), rec.finish && nice(rec.finish).toLowerCase() + ' finish'].filter(Boolean).join(' · '); },
     rows: [['rail', 'sweetness', 'Sweetness', S.sweetness], ['rail', 'acidity', 'Acidity', S.five], ['rail', 'tannin', 'Tannin', S.five],
@@ -510,4 +510,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.41';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.42';
