@@ -810,9 +810,12 @@ function findReviews(w, force) {
     var o = seen[x.url], c = String(x.content || '').trim(); if (c && String(o.content || '').indexOf(c) < 0) o.content = String(o.content || '').trim().replace(/[^.!?]*$/, function (t) { return t.length < 40 ? '' : t; }) + ' \u00b6 ' + c;
     if (x.raw_content && !o.raw_content) o.raw_content = x.raw_content; }); }
   function one(query, o) { if (cap) return Promise.resolve(); return tavily(query, o).then(add, function (e) { fails++; if (e && e.cap) cap = true; }); }
-  var chain = one(qq + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 })
+  // critics' own sites by themselves (searched together with shops, store pages crowd the critics out), then shops quoting critics,
+  // then the open web if that found little, then other vintages if this one found nothing
+  var chain = one(qq + ' review', { include_domains: RV_DOMAINS, max_results: 20 })
+    .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' points rated', { include_domains: RV_SHOPS, max_results: 15 }); })
     .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' wine review score points', { max_results: 15 }); })
-    .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
+    .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review', { include_domains: RV_DOMAINS, max_results: 20 }); });
   chain = chain.then(function () {                                       // a critic's page about this wine whose score wasn't in the passage the search returned:
     var miss = function () { return rvPick(w, all, true).filter(function (x) { return !x.score && rvSite(x.url) && (!vin || !x.vintage || x.vintage === vin); }); };  // ask again, worded the way review pages read
     if (!miss().length || cap) return;
@@ -1113,4 +1116,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51g';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51h';
