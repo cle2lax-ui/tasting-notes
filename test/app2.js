@@ -694,9 +694,18 @@ function rvNameOk(w, r) {
   var head = prNorm((r.title || '') + ' ' + String(r.url || '').replace(/[\/+_?=&-]/g, ' '));
   var words = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; });
   if (!words.length) return false;
-  var grapes = words.filter(function (t) { return PR_GRAPE[t] && !/^(red|white|rose|rouge|sec|brut|blanco|tinto|bianco|rosso)$/.test(t); }), rest = words.filter(function (t) { return !PR_GRAPE[t]; });
+  var plain = /^(red|white|rose|rouge|sec|brut|blanco|tinto|bianco|rosso)$/;
+  var grapes = words.filter(function (t) { return PR_GRAPE[t] && !plain.test(t); }), rest = words.filter(function (t) { return !PR_GRAPE[t]; });
   var missing = rest.filter(function (t) { return head.indexOf(t) < 0; }).length;
-  return grapes.every(function (t) { return head.indexOf(t) >= 0; }) && missing <= (rest.length >= 3 ? 1 : 0);   // the grape always; one other word may be missing from long names
+  if (!grapes.every(function (t) { return head.indexOf(t) >= 0; }) || missing > (rest.length >= 3 ? 1 : 0)) return false;
+  // a page about the same producer's other grape (Ridge Monte Bello Chardonnay for Ridge Monte Bello Cabernet): reject
+  var mine = prNorm([w.producer, w.aGrape].join(' ')).split(' ');
+  var theirs = head.split(' ').filter(function (t) { return PR_GRAPE[t] && !plain.test(t) && t.length > 3 && !/^(blanc|noir|gris|grigio|franc)$/.test(t); });
+  if (theirs.length && !theirs.some(function (t) { return mine.indexOf(t) >= 0; })) return false;
+  // a Vivino page's own name must not add words (tilia-estate-si-chardonnay is another winery's wine than Tilia Chardonnay)
+  var vs = String(r.url || '').match(/vivino\.com\/(?:[a-z]{2}\/)?(?:[a-z]{2}\/)?([a-z0-9-]+)\/w\/\d+/i);
+  if (vs) { var extra = prNorm(vs[1].replace(/-/g, ' ')).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t] && mine.indexOf(t) < 0 && !/^(vineyards?|winery|wines?|bodegas?|cellars?|vinos?)$/.test(t); }); if (extra.length) return false; }
+  return true;
 }
 function rvVivinoUrl(w, results) {                                      // this wine's own Vivino page among the results
   var hit = (results || []).filter(function (r) { return r && /(^|\.)vivino\.com$/.test(rvHost(r.url)) && /\/w\/\d+/.test(r.url) && rvNameOk(w, r); })[0];
@@ -1116,4 +1125,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51h';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51i';
