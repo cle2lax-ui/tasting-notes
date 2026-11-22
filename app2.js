@@ -651,7 +651,7 @@ function rvParse(text) {
 }
 function rvFormat(q, items) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (wide) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v3) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -669,6 +669,17 @@ function rvExcerpt(text, w) {                                            // one 
   var words = ex.split(' '); if (words.length > 32) ex = words.slice(0, 30).join(' ').replace(/[,;:]$/, '') + '\u2026';
   return ex;
 }
+// is this text a tasting note, or a list, an index or a table row that merely names the wine?
+function rvProse(t) {
+  t = String(t || '').trim(); var words = t.split(/\s+/); if (words.length < 8) return false;
+  var nums = words.filter(function (x) { return /^[$£€]?\d/.test(x); }).length; if (nums / words.length > 0.12) return false;
+  var caps = words.filter(function (x) { return /^[A-ZÀ-Þ]/.test(x); }).length; if ((t.match(/,/g) || []).length >= 3 && caps / words.length > 0.55) return false;
+  return /\b(aromas?|nose|palate|flavou?rs?|notes?|finish(es)?|acid(ity)?|tannins?|fruit|texture|bodied|body|crisp|fresh|ripe|oak|mineral|juicy|savou?ry|elegant|structure|balanced?|drink|bright|lively|round|silky|creamy|zesty|citrus|cherry|berry|spice)\b/i.test(t);
+}
+// pages that list many wines (ratings tables, A–Z winery indexes, "best of" roundups, search and tag pages)
+var RV_LISTPAGE = /\/(wineries|producers|search|tags?|categor(y|ies)|lists?|a-z|index|page\/\d)(\/|$|\?)|wine-ratings\/[a-z-]+\/?$|[?&](page|s|q)=/i;
+var RV_LISTTITLE = /\b(wineries|producers|a\s?[-–]\s?z|index|ratings:|best\b|top \d+|under \$|\d+ wines|buying guide|search results|archives?)\b/i;
+function rvGood(x) { return !!(x && (x.score || rvProse(x.text))); }
 function rvScore(text) {
   var m = String(text).match(/\b(\d{2})(?:\+)?\s?(?:pts|points|\/100|-point)\b/i) || String(text).match(/\bscore[d:]?\s*(\d{2})\b/i);
   if (m && +m[1] >= 80 && +m[1] <= 100) return m[1] + '/100';
@@ -684,12 +695,17 @@ function rvPick(w, results) {
     var vm = hay.match(/\b(19[5-9]\d|20[0-4]\d)\b/), rv = vin && hay.indexOf(vin) >= 0 ? vin : (vm ? vm[1] : '');
     var site = rvSite(r.url);
     if (site) {                                                         // the critic's own page
+      // it must be a page about this wine: its name in the title or address, and not a list of many wines
+      var head = prNorm((r.title || '') + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' ')), key = prKey(w);
+      if (RV_LISTPAGE.test(r.url || '') || RV_LISTTITLE.test(r.title || '') || (key && head.indexOf(key) < 0)) return;
       var sc = rvScore((r.title || '') + ' ' + text), ex = rvExcerpt(text, w);
+      if (!rvProse(ex)) ex = '';
       if (!sc && !ex) return;
       var item = { critic: site, score: sc, vintage: rv, text: ex, url: r.url };
       if (!got[site] || (vin && rv === vin && got[site].vintage !== vin)) got[site] = item;
       return;
     }
+    if (RV_LISTPAGE.test(r.url || '') || RV_LISTTITLE.test(r.title || '')) return;
     // a retailer quoting critics: "94 James Suckling", "James Suckling 94 pts", "90 Antonio Galloni - Vinous"
     RV_NAMES.forEach(function (n) {
       var e = n.replace(/&/g, '&'), re1 = new RegExp('\\b(\\d{2})\\s*(?:pts|points|\\+)?\\s*[-\u2013:]?\\s*' + e, 'i'), re2 = new RegExp(e + '\\s*[-\u2013:]?\\s*(\\d{2})\\s*(?:pts|points|\\/100)?\\b', 'i');
@@ -712,7 +728,7 @@ function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (r.items.length || /wide/.test(r.when || ''))) return;
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && /v3/.test(r.when || '')) return;     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -747,8 +763,8 @@ function reviewsHTML(w) {
   var more = '<p class="rv-more">More reviews: <a href="https://www.wine-searcher.com/find/' + esc(encodeURIComponent(s).replace(/%20/g, '+')) + '" target="_blank" rel="noopener">Wine-Searcher</a> \u00b7 ' +
     '<a href="https://www.google.com/search?q=' + esc(encodeURIComponent(s + ' wine review')) + '" target="_blank" rel="noopener">Google</a>' +
     (RV_BUSY[w.id] || tvPaused() ? '' : ' \u00b7 <button type="button" class="lnk" data-rvagain="' + esc(w.id) + '">Search again</button>') + '</p>';
-  if (fresh && r.items.length) {
-    h += '<div class="rv-found">' + rvTop(r.items, 3).map(function (x) {
+  if (fresh && r.items.filter(rvGood).length) {
+    h += '<div class="rv-found">' + rvTop(r.items.filter(rvGood), 3).map(function (x) {
       var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim();
       var foot = (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span> \u00b7 ' : x.vintage ? esc(x.vintage) + ' \u00b7 ' : '') + (rvSite(x.url) ? '' : 'via ') + esc(rvHost(x.url)) + ' \u203a';
       if (!x.text) return '<a class="rvi slim" href="' + esc(x.url) + '" target="_blank" rel="noopener"><b>' + esc(x.critic) + '</b><small>' + foot + '</small>' + (x.score ? '<em>' + esc(x.score) + '</em>' : '') + '</a>';
@@ -763,7 +779,7 @@ function reviewsHTML(w) {
 function reviewsPdf(w) {                                                // the PDF's review list, beside the structure and guess
   var r = rvParse(w.reviews); if (!r.items.length || !String(w.producer || '').trim() || r.query.toLowerCase() !== rvQuery(w).toLowerCase()) return [];
   var v = String(w.aVintage || '').trim();
-  return rvTop(r.items, 3).map(function (x) { return { critic: x.critic, score: x.score, text: x.text, url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v) }; });
+  return rvTop(r.items.filter(rvGood), 3).map(function (x) { return { critic: x.critic, score: x.score, text: x.text, url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v) }; });
 }
 document.addEventListener('click', function (e) {
   var b = e.target.closest('[data-rvagain]'); if (!b) return;
@@ -954,7 +970,7 @@ function flightSummary(list) {
   if (!list || !list.length) return;
   var blind = list.filter(function (w) { return !w.open && w.score !== ''; }), hits = blind.reduce(function (t, w) { return t + (+w.score || 0); }, 0);
   var best = blind.slice().sort(function (a, b) { return (+b.score || 0) - (+a.score || 0) || a.wineNo - b.wineNo; })[0];
-  var top = null; list.forEach(function (w) { rvTop(rvParse(w.reviews).items, 3).forEach(function (x) { var v = critic100(x); if (v && (!top || v > top.v)) top = { v: v, x: x, w: w }; }); });
+  var top = null; list.forEach(function (w) { rvTop(rvParse(w.reviews).items.filter(rvGood), 3).forEach(function (x) { var v = critic100(x); if (v && (!top || v > top.v)) top = { v: v, x: x, w: w }; }); });
   var when = list[0].ymd ? new Date(list[0].ymd + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '';
   var name = function (w) { return w.producer || w.aGrape || 'Wine ' + w.wineNo; };
   var html = '<div class="mo-card sum"><div class="mo-k">' + esc([when, list[0].event].filter(Boolean).join(' · ')) + '</div><h3>Flight summary</h3>' +
@@ -977,4 +993,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.42';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.43';

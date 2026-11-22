@@ -782,6 +782,11 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 .mo-dots i.h{--c:linear-gradient(90deg,#4E8F43 50%,var(--line-2) 50%)}
 .mo.show .mo-dots i.h{animation:dotinh .42s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
 @keyframes dotinh{to{transform:scale(1);opacity:1;background:linear-gradient(90deg,#4E8F43 50%,var(--line-2) 50%)}}
+/* v2.43: the wine page never scrolls sideways (iOS let it drift when any line ran a pixel wide) */
+.card-sheet .panel{overflow-x:hidden;overscroll-behavior-x:none}
+.card-sheet .card{max-width:100%}
+.prc-src{white-space:normal;overflow-wrap:anywhere}
+.rvi p,.rvi small,.rv-more{overflow-wrap:anywhere}
 
 </style>
 </head>
@@ -902,7 +907,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.42. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.43. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -938,13 +943,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.42';</script>
-<script src="logic.js?v=2.42"></script>
-<script src="store.js?v=2.42"></script>
-<script src="google.js?v=2.42"></script>
-<script src="lexicon.js?v=2.42"></script>
-<script src="app.js?v=2.42"></script>
-<script src="app2.js?v=2.42"></script>
+<script>var BUILD = 'v2.43';</script>
+<script src="logic.js?v=2.43"></script>
+<script src="store.js?v=2.43"></script>
+<script src="google.js?v=2.43"></script>
+<script src="lexicon.js?v=2.43"></script>
+<script src="app.js?v=2.43"></script>
+<script src="app2.js?v=2.43"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
