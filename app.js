@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.47';
+var VERSION_LABEL = 'v2.48';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -36,6 +36,19 @@ function ask(msg, yes, no, danger) {     // danger: the confirming button is red
   });
 }
 function fail(err) { toast('Something went wrong: ' + (err && err.message ? err.message : err)); }
+// iPad and iPhone keep scrolling the page behind an open sheet unless the page itself is pinned in place:
+// while body.locked is set, the page is fixed at its scroll position and put back exactly there afterwards
+(function () {
+  var y = null, OPEN = '.sheet.show, .lx.show, .welcome.show, .lightbox.show';
+  new MutationObserver(function () {
+    var on = !!document.querySelector(OPEN), st = document.body.style;      // any open sheet (Settings, wine page, Change, Lexicon, photo viewer)
+    if (document.body.classList.contains('locked') !== on) document.body.classList.toggle('locked', on);
+    if (on && y === null) { y = window.scrollY || 0; st.position = 'fixed'; st.top = -y + 'px'; st.left = '0'; st.right = '0'; st.width = '100%'; }
+    else if (!on && y !== null) { st.position = st.top = st.left = st.right = st.width = ''; window.scrollTo(0, y); y = null; }
+  }).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+  // a drag on the dimmed backdrop (outside the panel) must not move anything
+  document.addEventListener('touchmove', function (e) { if (e.target.classList && (e.target.classList.contains('sheet') || e.target.classList.contains('modal'))) e.preventDefault(); }, { passive: false });
+})();
 function sheet(id, on) { $(id).classList.toggle('show', on !== false); document.body.classList.toggle('locked', !!document.querySelector('.sheet.show, .lx.show, .welcome.show, .lightbox.show')); }
 
 /* ====================================================================== Taste: structure */
@@ -510,4 +523,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.47';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.48';
