@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tasting Notes</title>
+<meta name="theme-color" content="#5A1229">
+<script>(function(){try{var p=JSON.parse(localStorage.getItem('btn-theme2')||'"auto"');var d=p==='dark'||(p!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d)r.setAttribute('data-theme','dim');r.style.colorScheme=d?'dark':'light';}catch(e){}})();</script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tasting Notes">
+<link rel="manifest" id="manifestLink" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+/* Tasting Notes 2.0 — one quiet system: hairlines, space, serif titles, burgundy only where something is chosen. */
+@font-face{font-family:'Archivo';font-weight:400;font-display:swap;src:url(fonts/archivo-400.woff2) format('woff2')}
+@font-face{font-family:'Archivo';font-weight:500;font-display:swap;src:url(fonts/archivo-500.woff2) format('woff2')}
+@font-face{font-family:'Archivo';font-weight:600;font-display:swap;src:url(fonts/archivo-600.woff2) format('woff2')}
+@font-face{font-family:'Archivo';font-weight:700;font-display:swap;src:url(fonts/archivo-700.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-weight:600;font-display:swap;src:url(fonts/playfair-600.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-weight:700;font-display:swap;src:url(fonts/playfair-700.woff2) format('woff2')}
+:root{
+  --sig:#6D1A36;--sig-hi:#86274A;--sig-lo:#4D0F25;--sig-tint:#F5EAED;--on-sig:#fff;--bar:#5A1229;
+  --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F4ECDD;
+  --ink:#1F1A1D;--ink-2:#4A4146;--muted:#857A7F;--faint:#C2B8AF;
+  --paper:#F8F5EF;--card:#FFFFFF;--line:#ECE5DA;--line-2:#DDD3C5;--seg:#EFE8DE;
+  --ok:#E3EFDC;--ok-ink:#2F5A22;--ok-line:#C2DBB5;--no:#F7DDDD;--no-ink:#8A2430;--no-line:#EBBDBD;
+  --f-fruit:#C23B57;--f-floral:#B85CA0;--f-green:#5F9445;--f-spice:#C47324;--f-oak:#8A5530;--f-yeast:#C9A24F;--f-nut:#A9823A;--f-earth:#5E4334;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;--sans:'Archivo',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --sh-1:0 1px 2px rgba(31,26,29,.05),0 8px 24px -14px rgba(31,26,29,.25);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+}
+:root[data-theme="dim"]{
+  --sig:#E3A0B7;--sig-hi:#EDB4C8;--sig-lo:#C9839C;--sig-tint:#3A1F2A;--on-sig:#2A0A16;--bar:#22070F;
+  --gold:#C9A35E;--gold-ink:#D8B676;--gold-tint:#33281B;
+  --ink:#F1E8E2;--ink-2:#D3C7C1;--muted:#A3959A;--faint:#5E5257;
+  --paper:#141013;--card:#1E171B;--line:#30262B;--line-2:#45393E;--seg:#2A2125;
+  --ok:#23331E;--ok-ink:#A9D79A;--ok-line:#35502C;--no:#3A1D21;--no-ink:#F0A9AF;--no-line:#5A2A30;
+  --f-fruit:#E06A82;--f-floral:#D58BC2;--f-green:#8FC071;--f-spice:#E59A50;--f-oak:#C08A5E;--f-yeast:#E2C27A;--f-nut:#D2AE66;--f-earth:#B0907D;
+  --sh-1:0 1px 2px rgba(0,0,0,.3),0 10px 30px -16px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;font-style:normal}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font:inherit;color:var(--ink)}
+.in{max-width:1180px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.lnk{border:0;background:none;padding:0;color:var(--sig);font-weight:600;text-decoration:none}
+.lnk input[type=file]{display:none}
+.hint{color:var(--muted);font-size:13.5px}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+.btn{display:inline-grid;place-items:center;min-height:46px;padding:0 18px;border-radius:13px;border:1px solid var(--line-2);background:var(--card);font-weight:600;font-size:15px;color:var(--ink)}
+.btn.pri{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+.btn:disabled{opacity:.45}
+.btn:active{transform:scale(.985)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------------- header */
+.mast{position:sticky;top:0;z-index:30;background:var(--bar);color:#fff;padding-top:var(--sat)}
+.mast .in{display:flex;align-items:center;gap:14px;height:56px}
+.mast h1{margin:0;font:700 21px/1 var(--serif);letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:lining-nums}
+.tabs{display:flex;background:rgba(255,255,255,.13);border-radius:20px;padding:3px;margin-left:auto}
+.tabs button{border:0;background:none;color:rgba(255,255,255,.82);font-weight:600;font-size:13.5px;padding:7px 14px;border-radius:17px}
+.tabs button[aria-selected="true"]{background:#fff;color:#5A1229}
+.mtools{display:none;gap:8px}
+.hbtn{border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-weight:600;font-size:13px;padding:7px 12px;border-radius:17px}
+.gear{position:relative;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.13);display:grid;place-items:center;color:#fff;flex:none}
+.gear svg{width:19px;height:19px}
+.gear i{position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bar);background:transparent}
+.gear[data-s="synced"] i,.gear[data-s="idle"] i{background:#7BC46A}
+.gear[data-s="syncing"] i{background:#E9C46A}
+.gear[data-s="signin"] i,.gear[data-s="error"] i{background:#F08C5A}
+.gear[data-s="offline"] i{background:#9A9A9A}
+@media (max-width:420px){ .mast h1{font-size:19px} .tabs button{padding:7px 11px} }
+#tasteView,#nbView{display:none}
+body[data-view="taste"] #tasteView,body[data-view="notebook"] #nbView{display:block}
+@media (min-width:900px){ body[data-view="notebook"] .mtools{display:flex} .tabs{margin-left:auto} }
+
+/* ---------------- Taste: identity line and stage index */
+.idline{background:var(--paper);border-bottom:1px solid var(--line)}
+.idline .in{display:flex;align-items:center;gap:10px;min-height:52px}
+.idline b{font:700 19px/1 var(--serif);font-variant-numeric:lining-nums;white-space:nowrap}
+.idline #idSub{color:var(--muted);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.state{margin-left:auto;font:600 11px/1 var(--sans);letter-spacing:.06em;color:var(--muted);padding:5px 8px;border-radius:8px;background:var(--seg);white-space:nowrap}
+.state.dirty{color:var(--gold-ink);background:var(--gold-tint)}
+.idline .lnk{font-size:14px;white-space:nowrap}
+.stages{position:sticky;top:calc(56px + var(--sat));z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.stages .in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.stages .in::-webkit-scrollbar{display:none}
+.stages button{border:0;background:none;display:flex;align-items:center;gap:6px;padding:13px 8px 12px;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap;box-shadow:inset 0 -2px 0 transparent}
+.stages button i{width:7px;height:7px;border-radius:50%;border:1.3px solid var(--faint)}
+.stages button.done i{background:var(--gold);border-color:var(--gold)}
+.stages button.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--sig)}
+.stages button.on i{background:var(--sig);border-color:var(--sig)}
+#taste{padding-bottom:30px}
+.stage{padding:30px 0 6px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.sh h2{margin:0;font:700 25px/1.1 var(--serif);letter-spacing:-.01em}
+.sh small{color:var(--muted);font-size:13px;text-align:right}
+.f{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px 14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.f>label{font-weight:500;color:var(--ink-2);font-size:14.5px;line-height:1.25}
+.f>label small{display:block;margin-top:3px;font-size:12.5px;font-weight:700;color:var(--sig)}
+.f.full{grid-template-columns:1fr;gap:8px}
+.f.cm{padding:10px 0}
+.f input[type=text],.f textarea{width:100%;border:1px solid var(--line-2);border-radius:12px;background:var(--card);padding:11px 13px;font-size:15px;resize:none;line-height:1.45}
+.f textarea{min-height:44px}
+.addc{border:0;background:none;padding:4px 0;color:var(--sig);font-weight:600;font-size:14px;text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line-2);background:var(--card);border-radius:20px;padding:8px 14px;font-size:14px;font-weight:500;line-height:1.1}
+.chip.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig);font-weight:600}
+.chip.sm{padding:6px 11px;font-size:13px}
+/* the one scale control */
+.rail{--n:5;--p:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));position:relative;padding-top:2px}
+.rail:before,.rail:after{content:"";position:absolute;top:13px;height:3px;border-radius:2px;left:calc(50% / var(--n))}
+.rail:before{right:calc(50% / var(--n));background:var(--line-2)}
+.rail:after{width:calc((100% - 100% / var(--n)) * var(--p));background:var(--sig)}
+.rail.unset:after{display:none}
+.rail button{border:0;background:none;padding:0 0 2px;display:grid;justify-items:center;gap:6px;position:relative;z-index:1;min-height:44px}
+.rail button:before{content:"";width:13px;height:13px;margin-top:6px;border-radius:50%;background:var(--paper);border:2px solid var(--faint);transition:transform .15s}
+.rail button.f1:before{width:9px;height:9px;margin-top:8px;background:var(--sig);border-color:var(--sig)}
+.rail button.on:before{width:22px;height:22px;margin-top:1px;background:var(--sig);border-color:var(--sig);box-shadow:0 0 0 4px var(--sig-tint)}
+.rail button em{font-size:11.5px;font-weight:500;color:var(--muted);white-space:nowrap;line-height:1}
+.rail button.on em{color:var(--sig);font-weight:700}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw button{border:0;background:none;padding:0;display:grid;justify-items:center;gap:5px;font-size:11.5px;font-weight:500;color:var(--muted);width:50px}
+.sw button i{width:44px;height:52px;border-radius:5px;background:linear-gradient(180deg,var(--c1),var(--c2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw button.on{color:var(--sig);font-weight:700}
+.sw button.on i{outline:2px solid var(--sig);outline-offset:2px}
+/* descriptors */
+.desc{border:1px solid var(--line-2);border-radius:14px;background:var(--card);padding:10px}
+.tks{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tok{display:inline-flex;align-items:center;gap:6px;padding:5px 4px 5px 10px;border-radius:9px;background:var(--seg);font-size:13.5px;font-weight:500}
+.tok:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--fc,var(--faint))}
+.tok.own:before{background:none;border:1.3px solid var(--faint)}
+.tok button{border:0;background:none;width:22px;height:22px;border-radius:50%;color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center}
+.din{flex:1;min-width:120px;border:0 !important;background:none !important;padding:7px 4px !important;outline:none}
+.sug{display:flex;flex-wrap:wrap;gap:6px}
+.sug:not(:empty){padding:8px 0 2px}
+.dft{display:flex;align-items:center;gap:16px;margin-top:8px;padding-top:9px;border-top:1px solid var(--line);font-size:14px}
+.dft small{margin-left:auto;color:var(--muted);font-size:12.5px}
+/* identity */
+.switch{width:52px;height:31px;border-radius:16px;border:0;background:var(--line-2);position:relative;justify-self:end}
+.switch i{position:absolute;left:3px;top:3px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s}
+.switch.on{background:var(--sig)}.switch.on i{left:24px}
+.gtab{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1fr);gap:8px 10px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.gtab.open{grid-template-columns:72px minmax(0,1fr)}
+.gtab .h{font:600 10.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gtab .l{font-weight:500;color:var(--ink-2);font-size:14px}
+.gtab input{width:100%;min-width:0;border:1px solid var(--line-2);border-radius:11px;background:var(--card);padding:10px 11px;font-size:15px}
+.gtab input.hit{border-color:var(--ok-line);background:var(--ok);color:var(--ok-ink);font-weight:600}
+.gtab input.miss{border-color:var(--no-line);background:var(--no);color:var(--no-ink)}
+.phbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.phbox img{width:54px;height:70px;object-fit:cover;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:zoom-in}
+.scoreline{display:flex;align-items:baseline;justify-content:space-between;padding:16px 0 4px;border-top:1px solid var(--line)}
+.scoreline span{font-weight:500;color:var(--ink-2)}
+.scoreline b{font:700 30px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.scoreline b small{font:500 14px var(--sans);color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:10px 0 120px}
+.foot a{color:var(--muted)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 0 calc(10px + var(--sab))}
+.bar .in{display:flex;gap:10px;justify-content:flex-end}
+.bar .btn{flex:1;max-width:220px}.bar .btn.pri{flex:2;max-width:320px}
+@media (min-width:760px){ .f{grid-template-columns:150px minmax(0,1fr)} #taste{max-width:796px} }
+.f>label small.mu{color:var(--muted);font-weight:500}
+@media (min-width:760px){ .idline .in,.stages .in,.bar .in{max-width:796px} }
+@media (max-width:559px){
+  .f.rw{grid-template-columns:1fr;gap:10px}
+  .f.rw>label{display:flex;align-items:baseline;gap:10px}
+  .f.rw>label small{margin:0}
+  .f.rw .rail{margin:0 -4px}
+  .sw{gap:8px}.sw button{width:auto;flex:1;min-width:0}.sw button i{width:100%;max-width:56px}
+}
+
+/* ---------------- Notebook */
+.nb-tools{position:sticky;top:calc(56px + var(--sat));z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+.nb-tools .in{display:flex;gap:10px;padding-top:10px;padding-bottom:10px}
+.search{flex:1;display:flex;align-items:center;gap:8px;height:42px;border-radius:21px;border:1px solid var(--line-2);background:var(--card);padding:0 14px;color:var(--muted)}
+.search svg{width:16px;height:16px;flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:15px}
+.fbtn{height:42px;padding:0 16px;border-radius:21px;border:1px solid var(--line-2);background:var(--card);color:var(--sig);font-weight:600}
+.fbtn.on{background:var(--sig-tint);border-color:var(--sig)}
+.showing{font-size:12.5px;color:var(--muted);padding:12px 18px 0}
+.showing b{color:var(--ink-2)}
+.grp{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:20px 18px 8px}
+.grp b{font:700 17px/1.2 var(--serif);font-variant-numeric:lining-nums}
+.grp span{font-size:12.5px;color:var(--muted);text-align:right}
+.row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:12px 18px}
+.row:not(:has(.pick)){grid-template-columns:auto minmax(0,1fr) auto}
+.row.sel{background:var(--sig-tint)}
+.pick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:grid;place-items:center;font-size:12px;color:var(--on-sig)}
+.row.sel .pick{background:var(--sig);border-color:var(--sig)}
+.lab{width:40px;height:52px;border-radius:5px;object-fit:cover;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);flex:none}
+.lab.none{display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--line-2)}
+.lab.none:after{content:"";width:12px;height:12px;border-radius:50%;background:var(--wc)}
+.row .w{min-width:0}
+.row .w b{display:block;font:700 16.5px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .w b.un{color:var(--muted)}
+.row .w span{display:block;font-weight:600;font-size:12.5px;color:var(--sig);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .w small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.sc{display:grid;justify-items:end;gap:5px}
+.sc b{font:700 17px/1 var(--sans);color:var(--gold);font-variant-numeric:tabular-nums}
+.sc b small{font-size:11px;color:var(--muted);font-weight:500}
+.sc em{font-size:12px;color:var(--muted);font-weight:600}
+.dots{display:flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.dots i.y{background:#4E8F43}.dots i.n{background:#B8475A}
+.empty{padding:50px 18px;text-align:center}
+.empty h3{font:700 20px var(--serif);margin:0 0 6px}
+.empty p{color:var(--muted);margin:0}
+#nbView{padding-bottom:110px}
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:26;background:var(--card);border-top:1px solid var(--line);padding:10px 0 calc(10px + var(--sab));transform:translateY(110%);transition:transform .25s}
+.selbar.show{transform:none}
+.selbar .in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.selbar .n{font-weight:600;margin-right:auto}
+.selbar .btn{min-height:40px;padding:0 12px;font-size:14px}
+/* iPad and wider: one centered list that scrolls with the page */
+@media (min-width:900px){
+  #nbView{padding-bottom:40px}
+  .nb-split{max-width:980px;margin:0 auto}
+  .nb-tools .in{max-width:980px}
+}
+
+/* ---------------- tasting card */
+.card .tc-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center}
+.lab.big{width:68px;height:88px;border-radius:7px;cursor:zoom-in}
+.lab.big.none{cursor:default}
+.tc-head .k{font:600 11px/1.3 var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+.tc-head h2{margin:5px 0 4px;font:700 27px/1.08 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.tc-head h2.un{color:var(--muted)}
+.tc-head .id{font-weight:700;color:var(--sig);font-size:14.5px}
+.score{display:grid;justify-items:center;gap:4px}
+.score b{font:700 34px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.score b small{font:500 14px var(--sans);color:var(--muted)}
+.score span{font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.score .op{font-size:11px;letter-spacing:.08em}
+.tc-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:36px;margin-top:26px}
+.prose p{margin:0 0 16px;font-size:15.5px;line-height:1.6}
+.prose p b{display:block;font:700 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--sig);margin-bottom:6px}
+.prose .c{color:var(--muted)}
+.side{display:grid;gap:24px;align-content:start}
+.side h6{margin:0 0 10px;font:700 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.prof{display:grid;gap:7px}
+.prof>div{display:grid;grid-template-columns:82px minmax(0,1fr) 54px;align-items:center;gap:8px}
+.prof>div span:first-child{font-size:13px;color:var(--ink-2)}
+.prof>div.na span:first-child,.prof>div.na em{color:var(--faint)}
+.prof em{font-size:12.5px;font-weight:700;text-align:right}
+.prof .line{position:relative;height:12px;display:flex;justify-content:space-between;align-items:center}
+.prof .line:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line-2)}
+.prof .line i{position:relative;width:5px;height:5px;border-radius:50%;background:var(--faint)}
+.prof .line i.on{width:12px;height:12px;background:var(--sig)}
+.gx{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:7px 12px;align-items:baseline}
+.gx.open{grid-template-columns:auto minmax(0,1fr)}
+.gx .h{font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gx .l{font-size:13px;color:var(--muted)}
+.gx .g{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.gx .g.y:after{content:" ✓";color:#4E8F43}
+.gx .g.n{color:var(--muted);text-decoration:line-through;text-decoration-color:#B8475A}
+.gx .a{font-weight:700;font-size:14px;color:var(--sig);overflow-wrap:anywhere}
+.tc-foot{display:flex;gap:10px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.tc-foot .btn{min-height:40px;font-size:14px}
+@media (max-width:899px){ .tc-body{grid-template-columns:1fr;gap:26px} .tc-head{gap:14px} .tc-head h2{font-size:23px} .lab.big{width:56px;height:72px} }
+
+/* ---------------- sheets */
+.sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(20,10,14,.45);align-items:flex-end;justify-content:center}
+.sheet.show{display:flex}
+.sheet .panel{width:100%;max-width:640px;max-height:calc(100% - 40px - var(--sat));overflow:auto;background:var(--paper);border-radius:22px 22px 0 0;padding:16px max(20px,env(safe-area-inset-left,0px)) calc(28px + var(--sab));box-shadow:0 -20px 50px rgba(0,0,0,.25)}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ph h2,.sheet .panel>h2{margin:0;font:700 26px/1.1 var(--serif)}
+.x{border:0;background:none;color:var(--sig);font-weight:700;font-size:16px;padding:8px 0}
+.frm{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px 14px;align-items:center;margin:10px 0 18px}
+.frm label{color:var(--ink-2);font-weight:500}
+.frm input,.frm select{width:100%;height:44px;border:1px solid var(--line-2);border-radius:12px;background:var(--card);padding:0 12px;font-size:15px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--card);font-size:20px}
+.stepper span{min-width:44px;text-align:center;font:700 20px var(--serif);font-variant-numeric:lining-nums}
+.sheet h3.eyebrow{margin:24px 0 10px}
+.olist .od{font:700 15px/1.2 var(--serif);margin:16px 0 6px;font-variant-numeric:lining-nums}
+.orow{display:flex;gap:12px;align-items:baseline;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:11px 2px;text-align:left}
+.orow b{font-weight:700;white-space:nowrap}.orow span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:flex;background:var(--seg);border-radius:12px;padding:3px;gap:2px}
+.seg .opt{flex:1;border:0;background:none;border-radius:9px;min-height:36px;padding:0 10px;font-weight:600;font-size:13.5px;color:var(--ink-2);white-space:nowrap}
+.seg .opt.on{background:var(--card);color:var(--sig);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.row2{display:grid;gap:10px}
+.card-sheet .panel{max-width:820px;max-height:calc(100% - 20px - var(--sat))}
+.sheet section{margin-top:22px}
+.sheet section h3{margin:0 0 8px}
+.sheet section p{color:var(--ink-2);margin:0 0 10px;font-size:14.5px}
+.gs{color:var(--ink-2);font-size:14.5px;margin-bottom:12px}
+.gs a{color:var(--sig);font-weight:600}
+.chk{display:flex;align-items:center;gap:10px;margin:8px 0 12px;font-size:14.5px}
+.chk input{width:20px;height:20px;accent-color:var(--sig)}
+.thrRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-weight:600}
+.thrRow .seg{flex:0 1 300px}
+.about{font-size:12.5px;color:var(--muted);line-height:1.5}
+.about a{color:var(--sig)}
+@media (min-width:700px){ .sheet{align-items:center} .sheet .panel{border-radius:22px;padding-bottom:28px} }
+
+/* ---------------- Lexicon picker */
+.lx{position:fixed;inset:0;z-index:55;display:none;background:rgba(20,10,14,.45);align-items:flex-end;justify-content:center}
+.lx.show{display:flex;animation:fade .2s ease}
+.lxp{width:100%;height:calc(100% - 10px - var(--sat));background:var(--paper);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -20px 60px rgba(0,0,0,.25);animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+.lx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:4px 18px 10px}
+.lx-hd h2{margin:0;font:700 26px/1.05 var(--serif)}
+.lx-hd .tt span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.lx-search{display:flex;align-items:center;gap:9px;height:44px;margin:0 18px;border-radius:12px;background:var(--seg);padding:0 12px;color:var(--muted)}
+.lx-search svg{width:16px;height:16px;flex:none}
+.lx-search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px}
+.lx-picks{display:flex;align-items:center;gap:12px;padding:12px 18px 10px}
+.lx-picks .tks{flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;min-height:34px}
+.lx-picks .tks::-webkit-scrollbar{display:none}
+.lx-picks .tok{flex:none;background:var(--sig-tint);color:var(--ink)}
+.lx-picks .tok:before{display:none}
+.lx-picks .tok.own{background:none;box-shadow:inset 0 0 0 1px var(--line-2)}
+.ph0{color:var(--faint);font-size:13.5px;align-self:center}
+.lx-picks .lnk{flex:none;font-size:13.5px}
+.lx-main{flex:1;min-height:0;display:flex;flex-direction:column}
+.lx-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 18px 10px;border-bottom:1px solid var(--line);flex:none}
+.lx-tabs::-webkit-scrollbar{display:none}
+.lx-tabs button{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--card);border-radius:18px;padding:7px 12px;font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.lx-tabs button b{min-width:18px;height:18px;border-radius:9px;background:var(--sig);color:var(--on-sig);font-size:11px;display:grid;place-items:center;padding:0 5px}
+.lx-tabs button.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.lx-tabs button.on b{background:var(--paper);color:var(--ink)}
+.lx.searching .lx-tabs{display:none}
+.lx-body{flex:1;overflow:auto;padding:0 18px calc(24px + var(--sab));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.lx-sec{padding:18px 0 8px}
+.lx-sec+.lx-sec{border-top:1px solid var(--line)}
+.lx-sec h3{margin:0 0 12px;font:700 21px/1.1 var(--serif)}
+.lx-sec .cap{margin:-6px 0 12px;color:var(--muted);font-size:13px}
+.lx-end{height:40vh}
+.cl{margin-bottom:16px}
+.cl-h{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.cl-h img{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none}
+.cl-h b{font-weight:600;font-size:14.5px}
+.cl-h .org{font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.cl-h small{margin-left:auto;min-width:20px;height:20px;border-radius:10px;background:var(--sig-tint);color:var(--sig);font-weight:700;font-size:11.5px;display:grid;place-items:center;padding:0 6px}
+.lcs{display:flex;flex-wrap:wrap;gap:7px}
+.lc{display:inline-flex;align-items:center;gap:6px;min-height:38px;border:1px solid var(--line-2);background:var(--card);border-radius:19px;padding:0 14px;font-size:14.5px;font-weight:500;line-height:1.1;transition:background .12s,border-color .12s}
+.lc.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig);font-weight:600}
+.lc.on:before{content:"";width:9px;height:5px;border:2px solid currentColor;border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg);margin-left:-2px}
+.lc small{font-size:11.5px;color:var(--muted);font-weight:500}
+.lc.on small{color:inherit;opacity:.8}
+.lc:active{transform:scale(.97)}
+.ripe{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
+.ripe>span{font-weight:500;color:var(--ink-2);font-size:14px}
+.ripe .seg{flex:0 1 300px}.ripe .opt{min-height:32px;font-size:13px;padding:0 8px}
+.more{display:flex;width:100%;align-items:center;gap:10px;border:1px dashed var(--line-2);border-radius:12px;background:none;padding:12px 14px;text-align:left;margin:2px 0 10px}
+.more span{font-weight:600;color:var(--sig)}
+.more small{color:var(--muted);font-size:12.5px;flex:1}
+.more i{font-style:normal;font-size:20px;color:var(--sig);line-height:1}
+.srch .lcs{padding-top:4px}
+.none{color:var(--muted);margin:4px 0 0}
+.addown{display:flex;align-items:center;gap:10px;margin-top:16px;border:1px dashed var(--faint);background:none;border-radius:12px;padding:13px 14px;width:100%;text-align:left;color:var(--sig);font-weight:600}
+.addown i{font-style:normal;font-size:19px;line-height:1}
+@media (min-width:900px){
+  .lx{align-items:center}
+  .lxp{max-width:1000px;height:min(800px, calc(100% - 60px));border-radius:22px}
+  .lx-hd{padding:22px 26px 12px}
+  .lx-search{margin:0 26px}
+  .lx-picks{padding:12px 26px}
+  .lx-main{flex-direction:row;border-top:1px solid var(--line)}
+  .lx-tabs{flex-direction:column;width:210px;padding:14px 12px;border-bottom:0;border-right:1px solid var(--line);overflow:auto;gap:2px}
+  .lx-tabs button{border:0;background:none;border-radius:10px;padding:10px 12px;justify-content:space-between;font-size:14.5px}
+  .lx-tabs button.on{background:var(--sig-tint);color:var(--sig)}
+  .lx-tabs button.on b{background:var(--sig);color:var(--on-sig)}
+  .lx-body{padding:0 30px 30px}
+}
+@keyframes rise{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* lightbox, toast, modal */
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:20px}
+.lightbox.show{display:flex}.lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+.toast{position:fixed;left:50%;bottom:calc(84px + var(--sab));z-index:90;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;transition:all .25s;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;z-index:85;background:rgba(20,10,14,.5);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal .box{background:var(--paper);border-radius:18px;padding:22px;max-width:420px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+.modal p{margin:0 0 18px;font-size:15.5px;line-height:1.5}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+/* welcome: a full page in the 2.0 style — serif title, grouped lists, one button at the bottom */
+.welcome{position:fixed;inset:0;z-index:65;display:none;overflow:auto;background:var(--paper);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.welcome.show{display:block;animation:fade .25s ease}
+.welcome [hidden]{display:none !important}
+.welcome::before{content:"";display:block;height:calc(var(--sat) + 6px);background:var(--bar)}
+.welcome .wc{max-width:560px;margin:0 auto;min-height:calc(100% - var(--sat) - 6px);display:flex;flex-direction:column;padding:34px max(20px,env(safe-area-inset-left,0px)) calc(24px + var(--sab))}
+.welcome .wc>.eyebrow{color:var(--gold);text-align:left}
+.welcome h2{margin:10px 0 0;font:700 34px/1.05 var(--serif);letter-spacing:-.015em;color:var(--ink);text-align:left;text-wrap:balance}
+.welcome .rule{display:none}
+.welcome .wlead{margin:10px 0 8px;color:var(--muted);font-size:15.5px;text-align:left}
+.wstep{padding:24px 0 0;border:0}
+.wsh{display:flex;align-items:center;gap:10px;margin:0 2px 10px}
+.wsh h3{margin:0;font:700 20px/1.2 var(--serif);font-variant-numeric:lining-nums}
+.wn{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--gold);color:var(--gold-ink);background:none;font:700 12px/1 var(--sans)}
+.wstep.done .wn{border-color:var(--ok-ink);background:var(--ok-ink);font-size:0}
+.wstep.done .wn:after{content:"";width:8px;height:4px;border:2px solid var(--paper);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
+.wopts{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 16px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;transition:background .12s}
+.wopt:first-child{border-top:0}
+.wopt:active{background:var(--seg)}
+.wopt:disabled{opacity:.55}
+.wopt .wt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wopt b{font:600 16px/1.25 var(--sans);color:var(--ink)}
+.wopt .wt>span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.wopt .chev{flex:none;width:15px;height:15px;color:var(--faint)}
+#wCreate{background:none}
+#wCreate b{color:var(--sig)}
+#wCreate .wt>span:after{content:"Recommended";display:inline-block;margin-left:8px;padding:2px 7px;border-radius:6px;background:var(--sig-tint);color:var(--sig);font:600 10.5px/1.4 var(--sans);letter-spacing:.04em;vertical-align:1px}
+.wok{display:flex;flex-direction:column;gap:4px;padding:15px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);position:relative;padding-left:46px}
+.wok:before{content:"";position:absolute;left:16px;top:17px;width:18px;height:18px;border-radius:50%;background:var(--ok-ink)}
+.wok:after{content:"";position:absolute;left:21px;top:22px;width:8px;height:4px;border:2px solid var(--card);border-top:0;border-right:0;transform:rotate(-45deg)}
+.wok b{font:600 15.5px/1.3 var(--sans);color:var(--ink)}
+.wok span{font-size:13.5px;line-height:1.45;color:var(--muted)}
+.wchange{border:0;background:none;padding:0;margin-left:4px;font:600 13.5px/1 var(--sans);color:var(--sig)}
+.welcome .wsub{font-size:14.5px;margin:0 2px 10px;color:var(--ink-2)}
+.welcome .steps{margin:0;padding:0 16px;list-style:none;counter-reset:s;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.welcome .steps li{counter-increment:s;display:flex;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--line);font-size:14.5px;line-height:1.4;color:var(--ink)}
+.welcome .steps li:first-child{border-top:0}
+.welcome .steps li:before{content:counter(s);flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold-ink);display:grid;place-items:center;font:700 11px/1 var(--sans)}
+.welcome .steps svg{width:17px;height:17px;vertical-align:-3px;color:#0A7AFF}
+.welcome .fine{font-size:13px;color:var(--muted);line-height:1.5;margin:10px 2px 0}
+.welcome .err{color:var(--no-ink);font-size:13.5px;margin:8px 2px 0;min-height:0}
+.welcome .err:empty{display:none}
+.welcome .btn{width:100%}
+#wS2 .btn{margin-top:4px}
+#wFinish{margin-top:auto;position:sticky;bottom:calc(12px + var(--sab));min-height:52px;font-size:16.5px;border-radius:14px;box-shadow:0 10px 24px -12px rgba(109,26,54,.6)}
+.wstep:last-of-type{margin-bottom:28px}
+#wFinish:disabled{opacity:1;background:var(--seg);border-color:var(--seg);color:var(--muted);box-shadow:none}
+@media (min-width:700px){ .welcome .wc{padding-top:64px} .welcome h2{font-size:40px} }
+/* ---------------- design pass: sheets, settings, notebook, taste details */
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line-2);margin:8px auto 10px;flex:none;touch-action:none}
+.sheet.show{animation:fade .2s ease}
+.sheet.show .panel{animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+.sheet .panel{padding-top:2px}
+.panel.dragging,.lxp.dragging{transition:none !important;animation:none !important}
+/* settings as an inset grouped list */
+#settings .panel section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px 0;margin-top:16px;overflow:hidden}
+#settings .panel section h3{margin:0 0 8px}
+#settings .panel section>p,#settings .gs{font-size:14px;margin-bottom:12px}
+#settings .row2{gap:0;margin:0 -16px}
+#settings .row2 .btn{border:0;border-top:1px solid var(--line);border-radius:0;background:none;justify-items:start;padding:0 16px;min-height:50px;color:var(--sig);font-weight:600}
+#settings .row2 .btn.pri{color:var(--sig);font-weight:700}
+#settings .chk{margin:0 0 14px}
+#settings .thrRow{padding-bottom:12px}
+#settings .about{margin:16px 4px 0 !important}
+#settings section>.about{margin:0 0 14px !important;padding:0}
+/* notebook large title */
+.nb-title{background:var(--paper)}
+.nb-title .in{display:flex;align-items:baseline;justify-content:space-between;padding-top:18px;padding-bottom:2px}
+.nb-title h2{margin:0;font:700 30px/1.05 var(--serif);letter-spacing:-.01em}
+.nb-title span{color:var(--muted);font-size:13.5px}
+.nb-tools{border-bottom:0}
+.grp{position:sticky;top:calc(56px + 62px + var(--sat));z-index:5;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.row{transition:background .12s}
+.row:active{background:var(--seg)}
+.row+.grp{margin-top:6px}
+.grp+.row{border-top:0}
+@media (min-width:900px){ .nb-title{display:none} }
+.hbtn{display:inline-flex;align-items:center;gap:6px}.hbtn svg{width:14px;height:14px}
+/* taste details */
+.chip{min-height:38px}
+#saveBtn.quiet{color:var(--muted);border-color:var(--line)}
+.stage .sh h2{font-size:24px}
+.f>label{font-size:14px}
+.desc{border-radius:16px}
+.toast{bottom:calc(92px + var(--sab))}
+.tc-foot .btn{display:inline-flex;gap:7px}
+.tc-foot svg{width:15px;height:15px}
+.tok:before{display:none}
+.tok{padding-left:11px}
+.tok.own{background:none;box-shadow:inset 0 0 0 1px var(--line-2)}
+@media (max-width:559px){ .ripe{flex-direction:column;align-items:stretch;gap:8px} .ripe .seg{flex:none} }
+.showing:empty{display:none}
+/* rails: bigger dots, spelled-out labels may wrap to two lines */
+.rail:before,.rail:after{top:15px;height:4px}
+.rail button{min-height:52px;gap:7px}
+.rail button:before{width:18px;height:18px;margin-top:8px;border-width:2px}
+.rail button.f1:before{width:13px;height:13px;margin-top:10.5px}
+.rail button.on:before{width:30px;height:30px;margin-top:2px;box-shadow:0 0 0 5px var(--sig-tint)}
+.rail button em{white-space:normal;text-align:center;line-height:1.15;font-size:11.5px;max-width:100%;hyphens:manual;overflow-wrap:normal}
+.prof>div{grid-template-columns:82px minmax(0,1fr) 92px}
+.tok.same{background:var(--gold-tint);color:var(--gold-ink);font-weight:600}
+.rail button em{hyphens:manual;-webkit-hyphens:manual}
+@media (max-width:400px){ .rail[style*="--n:6"] button em{font-size:10.5px} }
+.dft{flex-wrap:wrap;row-gap:6px}
+.dft .lnk{white-space:nowrap}
+/* rails v2.0.2: every rail the same length, the line runs through the centre of every dot, filled from the left */
+.rail{--n:5;--p:0;display:block;position:relative;height:66px;margin:0 32px;padding:0}
+.rail:before,.rail:after{content:"";position:absolute;top:15px;height:4px;border-radius:2px;left:0}
+.rail:before{right:0;background:var(--line-2)}
+.rail:after{width:calc(100% * var(--p));background:var(--sig)}
+.rail.unset:after{display:none}
+.rail button{position:absolute;top:0;left:calc(100% * var(--j) / (var(--n) - 1));transform:translateX(-50%);width:min(74px, calc(100% / (var(--n) - 1)));min-height:0;height:66px;padding:0;gap:0;display:flex;flex-direction:column;align-items:center;z-index:1}
+.rail button:before{flex:none;width:18px;height:18px;margin-top:8px;border-width:2px}
+.rail button.f1:before{width:12px;height:12px;margin-top:11px}
+.rail button.on:before{width:30px;height:30px;margin-top:2px}
+.rail button em{margin-top:auto;padding-bottom:2px;height:30px;display:flex;align-items:flex-start;justify-content:center}
+.rail button.f1 em,.rail button:not(.on) em{}
+.rail button:before{position:relative}
+.rail button.f1:before{margin-bottom:3px}.rail button:not(.on):not(.f1):before{margin-bottom:0}
+@media (min-width:560px){ .rail{margin:0 32px 0 28px} }
+/* card structure lines match the rails */
+.prof .line{position:relative;height:14px;display:block;margin:0 6px}
+.prof .line:before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--line-2)}
+.prof .line:after{content:"";position:absolute;left:0;top:6px;height:2px;width:calc(100% * var(--p));background:var(--sig)}
+.prof .line i{position:absolute;top:7px;left:calc(100% * var(--j) / (var(--n) - 1));transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--faint);z-index:1}
+.prof .line i.fl{width:7px;height:7px;background:var(--sig)}
+.prof .line i.on{width:13px;height:13px;background:var(--sig)}
+#taste .f .rail,#taste .f.rw .rail{margin:0 34px}
+/* folding stages */
+.stage .sh{cursor:default;border-radius:10px;margin-left:-8px;margin-right:-8px;padding:4px 8px}
+.stage.done .sh{cursor:pointer}
+.stage .sh .chev{display:none;flex:none;width:10px;height:10px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(-135deg) translate(-2px,-2px);margin-left:2px;align-self:center}
+.stage.done .sh .chev{display:block}
+.stage.folded .sh .chev{transform:rotate(45deg) translate(-2px,-2px)}
+.stage .sh small{margin-left:auto}
+.stage.folded{padding:14px 0 12px;border-bottom:1px solid var(--line)}
+.stage.folded .sb{display:none}
+.stage.folded .sh h2{font-size:20px}
+.stage.folded .sh small{color:var(--ink-2);font-size:13.5px;font-weight:500;text-align:right;max-width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage.folded .sh:active{background:var(--seg)}
+.stage.folded+.stage{padding-top:22px}
+/* swipe actions on Notebook rows */
+.rw2{position:relative;overflow:hidden;border-top:1px solid var(--line)}
+.grp+.rw2{border-top:0}
+.rw2 .row{border-top:0;position:relative;z-index:1;background:var(--paper);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.rw2 .row.sel{background:var(--sig-tint)}
+.ract{position:absolute;top:0;right:0;bottom:0;display:flex;visibility:hidden}
+.rw2.open .ract{visibility:visible}
+.ra{width:74px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff}
+.ra svg{width:18px;height:18px}
+.ra.edit{background:#7D7378}.ra.share{background:var(--gold)}.ra.del{background:#B3261E}
+:root[data-theme="dim"] .ra.edit{background:#5C5357}:root[data-theme="dim"] .ra.del{background:#9C2A24}
+.btn.danger{color:#B3261E;border-color:var(--line-2);margin-left:auto}
+:root[data-theme="dim"] .btn.danger{color:#F0A9AF}
+.welcome .steps li:before{content:counter(s, upper-alpha)}
+.welcome .steps svg{color:var(--ink-2)}
+.welcome .steps li svg:last-of-type{color:#0A7AFF}
+
+/* v2.2 Clear selections */
+
+/* v2.3 smaller selected dot */
+.rail button.on:before{width:24px;height:24px;margin-top:5px;box-shadow:0 0 0 4px var(--sig-tint)}
+
+/* v2.4 Clear sits in the Save bar */
+.bar .btn.clr{flex:none;max-width:none;padding:0 13px;gap:5px;grid-auto-flow:column;color:#B3261E;margin-right:auto}
+.bar .btn.clr svg{width:17px;height:17px}
+:root[data-theme="dim"] .bar .btn.clr{color:#F0A9AF}
+
+@media (max-width:759px){
+  .bar .in{gap:8px}
+  .bar .btn{padding:0 12px;white-space:nowrap;font-size:15px}
+  .bar #saveBtn{flex:0 1 92px}
+  .bar .btn.pri{flex:1 1 auto;max-width:none}
+  .bar .btn.clr{padding:0 11px;gap:4px}
+}
+@media (max-width:374px){ .bar .btn{font-size:14px;padding:0 10px} .bar .btn.clr svg{display:none} }
+
+/* v2.6 quality line stands out; comments flow in the same voice */
+.prose .q{display:block;font-weight:700;font-size:17.5px;line-height:1.4;color:var(--ink);margin-bottom:4px}
+.prose .c{color:inherit}
+
+/* v2.10 Lexicon and Same as the nose are real buttons */
+.dft{gap:10px;padding-top:12px}
+.dbtn{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:0 16px;border-radius:999px;border:1.5px solid var(--sig);background:var(--card);color:var(--sig);font:600 14.5px/1 var(--sans);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dbtn svg{width:17px;height:17px;flex:none}
+.dbtn:active{transform:scale(.98)}
+.dbtn.same{border-color:var(--line-2);color:var(--ink)}
+.dbtn.same.on{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+
+
+
+/* v2.17 iPad in either orientation: a wine opens full screen, sized to the screen, with Done */
+@media (min-width:700px){
+  .card-sheet{align-items:stretch;background:var(--paper)}
+  .card-sheet .panel{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;box-shadow:none;padding:0 0 calc(48px + var(--sab));overflow-x:hidden}
+  .card-sheet .grab{display:none}
+  .card-sheet .ph{position:sticky;top:0;z-index:3;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(12px + var(--sat)) max(32px, calc((100% - 1100px) / 2 + 44px)) 12px;margin:0 0 26px}
+  #cardBody{max-width:1100px;margin:0 auto;padding:0 32px}
+  .card-sheet.show .panel{animation:fade .2s ease}
+}
+@media (min-width:900px){ #cardBody{padding:0 44px} }
+/* nothing in a card may be wider than the screen */
+.card,.tc-head>div{min-width:0}
+.tc-head h2,.prose p{overflow-wrap:break-word}
+.tc-foot{flex-wrap:wrap;row-gap:8px}
+@media (max-width:350px){ .mast h1{font-size:17px} .tabs button{padding:7px 9px;font-size:13px} }
+html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms out to fit */
+
+/* v2.18 long notebooks: rows off screen aren't laid out until scrolled near */
+.rw2{content-visibility:auto;contain-intrinsic-size:auto 82px}
+/* selection bar on phones: count, All and Done on one line; the two ways to share below, PDF in front */
+@media (max-width:599px){
+  .selbar .in{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+  .selbar #selSend,.selbar #selPdf{grid-row:2}
+  .selbar #selSend{grid-column:1 / 2}
+  .selbar #selPdf{grid-column:2 / 4}
+}
+/* destructive confirmations */
+.modal .btn.pri.danger{background:#B3261E;border-color:#B3261E;color:#fff}
+:root[data-theme="dim"] .modal .btn.pri.danger{background:#C9463E;border-color:#C9463E}
+
+/* v2.20 one-tap sync prompt (Google's sign-in lasts an hour; renewing it needs a tap) */
+.syncnote{background:var(--gold-tint);border-bottom:1px solid var(--line)}
+.syncnote .in{display:flex;align-items:center;gap:12px;padding-top:9px;padding-bottom:9px;font-size:14px;color:var(--ink)}
+.syncnote span{flex:1}
+.syncnote .btn{min-height:36px;padding:0 14px;font-size:14px;flex:none}
+@media (min-width:760px){ .syncnote .in{max-width:796px} }
+/* unattached photos */
+.orph-help{color:var(--ink-2);font-size:14.5px;margin:0 0 14px}
+.orph{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.orph button{border:1px solid var(--line-2);border-radius:10px;padding:0;overflow:hidden;background:var(--card);aspect-ratio:3/4}
+.orph img{width:100%;height:100%;object-fit:cover;display:block}
+.orph-del{margin-top:18px;color:#B3261E;font-size:14px}
+:root[data-theme="dim"] .orph-del{color:#F0A9AF}
+
+/* v2.21 photo viewer: a clear Done, swipe down to close, nothing underneath moves */
+.lightbox{flex-direction:column;padding:0;background:#0B0709;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.lb-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:flex-end;padding:calc(10px + var(--sat)) max(16px, env(safe-area-inset-right, 0px)) 10px 16px;z-index:2}
+.lb-done{border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:600 16px/1 var(--sans);padding:11px 20px;min-height:44px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lb-done:active{background:rgba(255,255,255,.28)}
+.lightbox img{max-width:calc(100% - 32px);max-height:calc(100% - 150px - var(--sat) - var(--sab));border-radius:8px;-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:auto;transition:transform .2s ease,opacity .2s ease}
+.lightbox img.drag{transition:none}
+.lb-hint{position:absolute;bottom:calc(18px + var(--sab));left:0;right:0;margin:0;text-align:center;color:rgba(255,255,255,.55);font-size:13px}
+/* v2.22 the score is the blind-tasting guess, not a quality rating */
+.score span{max-width:92px;text-align:center;line-height:1.35}
+
+/* v2.24 detail page: the header is just the wine (wider, less wrapping) and stays pinned while the note scrolls;
+   the blind-tasting guess moves to the end */
+.card .tc-head{grid-template-columns:auto minmax(0,1fr)}
+.card-sheet .panel{--cpad:20px}
+.card-sheet .ph{position:sticky;top:0;z-index:4;background:var(--paper)}
+.card-sheet .tc-head{position:sticky;top:var(--phh,0px);z-index:3;background:var(--paper);padding:6px 0 14px;border-bottom:1px solid var(--line)}
+.card-sheet .tc-body{margin-top:22px}
+.tc-guess{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.tc-guess span{font:600 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tc-guess b{font:700 32px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.tc-guess b small{font:500 14px var(--sans);color:var(--muted)}
+.tc-guess b.op{font:600 14px/1.3 var(--sans);color:var(--muted)}
+.tc-guess+.tc-foot{margin-top:18px}
+@media (min-width:700px){ .card-sheet .panel{--cpad:32px} .card-sheet .tc-head{padding-top:14px} .card-sheet .ph{margin-bottom:0} }
+@media (min-width:900px){ .card-sheet .panel{--cpad:44px} }
+
+/* professional reviews: search links on the wine's page */
+.revs .rv-lock{padding:12px 14px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:13.5px}
+.rv-q{font-size:12.5px;color:var(--muted);margin:14px 0 8px}
+.rv-q b{color:var(--ink-2);font-weight:600}
+.rv-links{display:flex;flex-wrap:wrap;gap:8px}
+.rvl{display:grid;gap:1px;padding:8px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--card);text-decoration:none;color:var(--ink);min-width:0}
+.rvl b{font-size:13.5px;font-weight:600}
+.rvl small{font-size:11px;color:var(--muted)}
+/* v2.31 two review links */
+.rv-links.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rv-links.two .rvl{padding:11px 14px}
+.rv-links.two+.rv-q{margin:8px 0 0}
+/* v2.32 approximate retail price in the wine's header */
+.tc-head .pr{margin-top:4px;font-size:13.5px;color:var(--ink-2)}
+.tc-head .pr b{font-weight:700;color:var(--ink)}
+.tc-head .pr a{color:var(--muted);font-size:12.5px;text-decoration:none;margin-left:4px}
+.tc-head .pr span{color:var(--muted);font-size:12.5px;margin-left:4px}
+/* v2.33 reviews found online */
+.rv-found{display:grid;gap:10px;margin-bottom:12px}
+.rvi{display:block;padding:12px 14px;border:1px solid var(--line-2);border-radius:12px;background:var(--card);color:var(--ink);text-decoration:none}
+.rvi-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rvi-h b{font-weight:700;font-size:14.5px}
+.rvi-h em{font-style:normal;font:700 17px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums;white-space:nowrap}
+.rvi p{margin:5px 0 6px;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.rvi small{font-size:12px;color:var(--sig);font-weight:600}
+.rv-warn{color:#B3261E}
+:root[data-theme="dim"] .rv-warn{color:#F0A9AF}
+.rv-note,.rv-state{font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.45}
+.rv-note .lnk,.rv-state .lnk{font-size:inherit}
+.rv-spin{display:inline-block;width:12px;height:12px;margin-right:8px;vertical-align:-1px;border:2px solid var(--line-2);border-top-color:var(--sig);border-radius:50%;animation:rvspin .8s linear infinite}
+@keyframes rvspin{to{transform:rotate(360deg)}}
+/* v2.34 price cell */
+.gx .prc-s{color:var(--muted)}
+.prc-again{border:0;background:none;padding:0;font:inherit;color:var(--sig);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+/* v2.37 Tavily key */
+.tk-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin:4px 0 10px}
+/* ============================================================ v2.40 design pass */
+/* tasting: the reveal group, live check marks, photo pill, comfortable tap targets */
+.subh{margin:26px 0 2px;padding-top:18px;border-top:1px solid var(--line);font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.subh+.f{border-top:0;padding-top:8px}
+.scoreline+.subh{margin-top:18px}
+.gtab input.hit,.gtab input.miss{padding-right:30px;background-repeat:no-repeat;background-position:right 10px center;background-size:14px 14px}
+.gtab input.hit{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%232F6B2A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3L13 4.5'/%3E%3C/svg%3E")}
+.gtab input.miss{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239A2B38' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4.5 4.5l7 7M11.5 4.5l-7 7'/%3E%3C/svg%3E")}
+.gtab input.hit,.gtab input.miss{transition:background-color .25s,border-color .25s}
+.dbtn input[type=file]{display:none}
+.ph-add{cursor:pointer}
+.addc{min-height:44px;padding:0;display:inline-flex;align-items:center}
+.idline .lnk#idChange{min-height:44px;padding:0 2px;display:inline-flex;align-items:center}
+.phbox .lnk{min-height:44px;display:inline-flex;align-items:center}
+.rail button em{overflow:visible}
+/* notebook detail */
+.tc-head .id .idp{white-space:nowrap}
+.side>.tc-guess{margin-top:-6px}
+.prc-src{margin-left:6px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap}
+.prc-s{font-weight:500}
+.rvi.slim{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:4px 10px;padding:10px 14px}
+.rvi.slim b{font-weight:700;font-size:14px}
+.rvi.slim small{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rvi.slim em{font-style:normal;font:700 15px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums;white-space:nowrap}
+.rv-found{display:grid;gap:8px}
+.rv-more{margin:12px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
+.rv-more a{color:var(--sig);font-weight:600;text-decoration:none}
+.rv-more .lnk{font-size:inherit;font-weight:600;min-height:0;padding:0}
+.rv-state{margin:0}
+@keyframes arrive{0%{box-shadow:0 0 0 0 transparent;background-color:var(--sig-tint)}100%{background-color:transparent}}
+.arrive{animation:arrive 1.6s ease-out;border-radius:8px}
+.rv-found.arrive{animation:none}
+.rv-found.arrive>*{animation:rvin .5s ease-out both}
+.rv-found.arrive>*:nth-child(2){animation-delay:.08s}.rv-found.arrive>*:nth-child(3){animation-delay:.16s}
+@keyframes rvin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* notebook list: sync status, flight summary link */
+#showing .sy{white-space:nowrap}
+#showing .sy.warn{color:var(--sig)}
+.grp .fsum{font-size:12.5px;font-weight:600;color:var(--sig);margin-right:8px;min-height:32px;padding:0}
+/* the save moment and the flight summary */
+.mo{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,10,14,0);transition:background .25s;pointer-events:none}
+.mo.full{pointer-events:auto}
+.mo.full.show{background:rgba(20,10,14,.45)}
+.mo.quick{align-items:flex-end;padding-bottom:calc(92px + var(--sab))}
+.mo-card{pointer-events:auto;background:var(--paper);border-radius:20px;padding:22px 24px 20px;width:100%;max-width:360px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.3);transform:translateY(14px) scale(.98);opacity:0;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.mo.show .mo-card{transform:none;opacity:1}
+.mo.quick .mo-card{max-width:320px;padding:16px 20px 14px}
+.mo-k{font:600 11px/1.3 var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+.mo-card h3{margin:6px 0 14px;font:700 22px/1.15 var(--serif);text-wrap:balance}
+.mo.quick .mo-card h3{font-size:18px;margin-bottom:10px}
+.mo-dots{display:grid;grid-template-columns:repeat(4,1fr);justify-items:center;max-width:240px;margin:0 auto}
+.mo-dots i{width:16px;height:16px;border-radius:50%;background:var(--line-2);transform:scale(.6);opacity:.5}
+.mo.show .mo-dots i{animation:dotin .42s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
+.mo-dots i.y{--c:#4E8F43}.mo-dots i.n{--c:#B8475A}.mo-dots i.x{--c:var(--faint)}
+@keyframes dotin{to{transform:scale(1);opacity:1;background:var(--c)}}
+.mo-lab{display:grid;grid-template-columns:repeat(4,1fr);max-width:240px;margin:6px auto 0;font-size:11px;color:var(--muted)}
+.mo-score{margin-top:12px;opacity:0}
+.mo.show .mo-score{animation:fadein .5s ease-out 1.25s forwards}
+.mo-score b{font:700 40px/1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.mo.quick .mo-score b{font-size:30px}
+.mo-score small{font-size:15px;color:var(--muted)}
+.mo-card.perfect .mo-score b{background:linear-gradient(100deg,var(--gold) 40%,#F3DFA6 50%,var(--gold) 60%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:glint 1.6s ease-in-out 1.8s 1}
+@keyframes glint{from{background-position:100% 0}to{background-position:-50% 0}}
+@keyframes fadein{to{opacity:1}}
+.mo-next{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.mo-btns{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.mo-btns .btn{flex:1;max-width:160px}
+.mo-card.sum{max-width:440px;text-align:left;max-height:calc(100dvh - 40px);overflow:auto}
+.mo-card.sum h3{margin-bottom:12px}
+.fs-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.fs-stats div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.fs-stats b{display:block;font:700 22px/1.1 var(--serif);color:var(--gold);font-variant-numeric:lining-nums}
+.fs-stats b small{font:500 13px var(--sans);color:var(--muted)}
+.fs-stats b.t{font:700 14.5px/1.3 var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fs-stats span{display:block;margin-top:4px;font-size:11.5px;color:var(--muted)}
+.fs-list{border-top:1px solid var(--line)}
+.fs-row{width:100%;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;color:var(--ink);min-height:44px}
+.fs-row .n{font:700 14px var(--serif);color:var(--muted)}
+.fs-row .w b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-row .w small{font-size:12px;color:var(--muted)}
+.fs-row .sc{display:grid;justify-items:end;gap:4px}
+.fs-row .sc b{font:700 17px/1 var(--serif);color:var(--gold)}
+.fs-row .sc b small{font:500 11px var(--sans);color:var(--muted)}
+.fs-row .sc em{font-style:normal;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){ .mo-card,.mo{transition:none} .mo.show .mo-dots i{animation-duration:.01s;animation-delay:0s} .mo.show .mo-score{animation-delay:0s;animation-duration:.01s} .mo-card.perfect .mo-score b{animation:none} .arrive,.rv-found.arrive>*{animation:none} }
+/* identity line: separators fall away at line starts, so no line begins or ends on a dot */
+.tc-head .id{overflow:hidden}
+.tc-head .id .idw{display:flex;flex-wrap:wrap;margin-left:-.9em}
+.tc-head .id .idp{position:relative;padding-left:.9em;white-space:nowrap}
+.tc-head .id .idp:before{content:"\00b7";position:absolute;left:.28em}
+/* six-point rails (Quality): two-word labels wrap between words, never inside one */
+.rail[style*="--n:6"] button em{white-space:normal;text-align:center;line-height:1.15;height:auto;min-height:28px;align-items:flex-start}
+@media (max-width:430px){ .rail[style*="--n:6"] button em{font-size:10.5px} }
+/* v2.41 half points: one grape of a blend */
+.dots i.h{background:linear-gradient(90deg,#4E8F43 50%,var(--line-2) 50%)}
+.gx .g.hf:after{content:" ½";color:var(--gold);font-weight:700}
+.gtab input.half{border-color:#E2CF9F;background-color:#FBF3DE;color:#7A5A14;font-weight:600;padding-right:30px;background-repeat:no-repeat;background-position:right 10px center;background-size:14px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='8' y='13' font-family='Arial' font-size='13' font-weight='700' text-anchor='middle' fill='%239A7438'%3E%C2%BD%3C/text%3E%3C/svg%3E")}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .gtab input.half{border-color:#5A4A22;background-color:#2E2716;color:#E5CC8A} }
+:root[data-theme="dark"] .gtab input.half{border-color:#5A4A22;background-color:#2E2716;color:#E5CC8A}
+.mo-dots i.h{--c:linear-gradient(90deg,#4E8F43 50%,var(--line-2) 50%)}
+.mo.show .mo-dots i.h{animation:dotinh .42s cubic-bezier(.3,1.5,.5,1) var(--d) forwards}
+@keyframes dotinh{to{transform:scale(1);opacity:1;background:linear-gradient(90deg,#4E8F43 50%,var(--line-2) 50%)}}
+/* v2.43: the wine page never scrolls sideways (iOS let it drift when any line ran a pixel wide) */
+.card-sheet .panel{overflow-x:hidden;overscroll-behavior-x:none}
+.card-sheet .card{max-width:100%}
+.prc-src{white-space:normal;overflow-wrap:anywhere}
+.rvi p,.rvi small,.rv-more{overflow-wrap:anywhere}
+/* v2.44 community and critics' average ratings (only when no critic has reviewed the wine) */
+.rv-agg{display:grid;gap:6px;margin-top:10px}
+.rva{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 10px;padding:10px 14px;border:1px dashed var(--line-2);border-radius:12px;color:var(--ink);text-decoration:none}
+.rva b{font-weight:600;font-size:14px}
+.rva em{font-style:normal;font:700 15px/1 var(--sans);color:var(--gold);white-space:nowrap}
+.rva small{grid-column:1/-1;font-size:12px;color:var(--muted)}
+/* v2.48: sheets (wine page, Settings, Change) scroll on their own; reaching the top or bottom never hands the swipe to the page behind */
+.sheet .panel,.card-sheet .panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.card-sheet .panel{overflow-y:auto}
+.rv-found+.rv-agg{margin-top:8px}
+
+</style>
+</head>
+<body data-view="notebook">
+<header class="mast"><div class="in">
+  <h1>Tasting Notes</h1>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button type="button" role="tab" data-view="notebook" aria-selected="true">Notebook</button>
+    <button type="button" role="tab" data-view="taste" aria-selected="false">Tasting</button>
+  </nav>
+  <div class="mtools"><button type="button" class="hbtn" id="selBtn">Select</button><button type="button" class="hbtn" id="pdfBtn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 4.8L8 2l3 2.8M4.5 7H3.5v7h9V7h-1"/></svg>Share PDF</button></div>
+  <button class="gear" id="gear" type="button" data-s="off" aria-label="Settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg><i></i></button>
+</div></header>
+<div class="syncnote" id="syncNote" hidden><div class="in"><span>Google needs a tap before your notes can sync.</span><button type="button" class="btn pri" id="syncNow">Sync now</button></div></div>
+
+<!-- ============================================================ TASTE -->
+<div id="tasteView">
+  <div class="idline"><div class="in"><b id="idWine">Wine 1</b><span id="idSub"></span><span class="state" id="state">New</span><button type="button" class="lnk" id="idChange">Change</button></div></div>
+  <nav class="stages" id="stages"><div class="in">
+    <button type="button" data-s="0" class="on"><i></i>Appearance</button><button type="button" data-s="1"><i></i>Nose</button><button type="button" data-s="2"><i></i>Palate</button><button type="button" data-s="3"><i></i>Conclusions</button><button type="button" data-s="4"><i></i>Identity</button>
+  </div></nav>
+  <main class="in" id="taste"><div class="loading">Opening your tasting notebook…</div></main>
+  <div class="foot">Tasting Notes <span id="verLabel"></span> · <a href="#" class="opensettings">Settings</a></div>
+  <div class="bar"><div class="in"><button class="btn clr" id="clearSel" type="button" aria-label="Clear selections"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5a5.5 5.5 0 1 1 1.6 3.9"/><path d="M4.2 5.2v4.4h4.4"/></svg>Clear</button><button class="btn" id="saveBtn" type="button">Save</button><button class="btn pri" id="nextBtn" type="button">Save &amp; Next Wine</button></div></div>
+</div>
+
+<!-- ============================================================ NOTEBOOK -->
+<div id="nbView">
+  <div class="nb-title"><div class="in"><h2>Notebook</h2><span id="nbCount"></span></div></div>
+  <div class="nb-tools"><div class="in">
+    <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="q" placeholder="Search your notes" autocomplete="off"></div>
+    <button type="button" class="fbtn" id="filterBtn">Filter</button>
+  </div></div>
+  <div class="nb-split">
+    <div class="nb-list"><div class="showing" id="showing"></div><div id="list"><div class="loading">Opening your tasting notebook…</div></div></div>
+  </div>
+  <div class="selbar" id="selbar"><div class="in">
+    <span class="n" id="selN">0 selected</span>
+    <button class="btn" id="selAll" type="button">All Shown</button>
+    <button class="btn" id="selSend" type="button">Send to a Friend</button>
+    <button class="btn pri" id="selPdf" type="button">Share PDF</button>
+    <button class="btn" id="selDone" type="button">Done</button>
+  </div></div>
+</div>
+
+<!-- ============================================================ SHEETS -->
+<div class="sheet" id="changeSheet" role="dialog" aria-labelledby="chTitle"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><h2 id="chTitle">This wine</h2><button class="x" type="button" id="changeDone">Done</button></div>
+  <div class="frm">
+    <label for="cDate">Date</label><input type="date" id="cDate">
+    <label>Wine number</label><div class="stepper"><button type="button" id="cDn" aria-label="Previous number">−</button><span id="cNo">1</span><button type="button" id="cUp" aria-label="Next number">+</button></div>
+    <label for="cEvent">Tasting or event</label><input type="text" id="cEvent" list="dl-event" placeholder="e.g. Diploma class" autocomplete="off" autocapitalize="words">
+  </div>
+  <button class="btn" id="cNew" type="button">Start a New Wine</button>
+  <h3 class="eyebrow">Open a saved wine</h3>
+  <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="openQ" placeholder="Producer, grape, event" autocomplete="off"></div>
+  <div class="olist" id="openList"></div>
+</div></div>
+
+<div class="sheet" id="filterSheet" role="dialog" aria-labelledby="fTitle"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><h2 id="fTitle">Filter and sort</h2><button class="x" type="button" id="filterDone">Done</button></div>
+  <div class="frm">
+    <label for="fField">Filter by</label><select id="fField"></select>
+    <label for="fValue">Show</label><select id="fValue"></select>
+    <label for="sField">Sort by</label><select id="sField"></select>
+    <label>Order</label><div class="seg" id="ordSeg"><button type="button" class="opt" data-o="a">Ascending</button><button type="button" class="opt" data-o="d">Descending</button></div>
+  </div>
+  <button class="lnk" id="fReset" type="button">Reset to all wines, by date</button>
+  <h3 class="eyebrow">Share</h3>
+  <div class="row2"><button class="btn" id="fSelect" type="button">Select Wines</button><button class="btn" id="fPdf" type="button">Share PDF of These Wines</button></div>
+</div></div>
+
+<div class="sheet" id="orphSheet" role="dialog" aria-label="Photos on this device"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><h2>Photos on this device</h2><button class="x" type="button" id="orphClose">Done</button></div>
+  <p class="orph-help">These label photos are saved on this device but aren't attached to any wine. Tap one to attach it to this wine.</p>
+  <div class="orph" id="orphGrid"></div>
+  <button type="button" class="lnk orph-del" id="orphDel">Delete the photos left over</button>
+</div></div>
+<div class="sheet card-sheet" id="cardSheet" role="dialog" aria-label="Tasting card"><div class="panel"><div class="grab" aria-hidden="true"></div>
+  <div class="ph"><span></span><button class="x" type="button" id="cardClose">Done</button></div>
+  <div id="cardBody"></div>
+</div></div>
+
+<div class="lx" id="lx" role="dialog" aria-labelledby="lxTitle"><div class="lxp">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="lx-hd"><div class="tt"><h2 id="lxTitle">Aromas</h2><span id="lxSub"></span></div><button class="x" type="button" id="lxDone">Done</button></div>
+  <div class="lx-search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input type="search" id="lxQ" placeholder="Search the Lexicon, or type your own" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
+  <div class="lx-picks"><div class="tks" id="lxPicks"></div><button type="button" class="lnk" id="lxSame" hidden>Same as the nose</button></div>
+  <div class="lx-main"><nav class="lx-tabs" id="lxTabs" aria-label="Aroma families"></nav><div class="lx-body" id="lxBody"></div></div>
+</div></div>
+
+<div class="sheet" id="settings" role="dialog" aria-labelledby="setTitle"><div class="panel">
+  <div class="grab" aria-hidden="true"></div><div class="ph"><h2 id="setTitle">Settings</h2><button class="x" type="button" id="setClose">Done</button></div>
+  <section>
+    <h3 class="eyebrow">Google Sheet</h3>
+    <div class="gs" id="gsStatus"></div>
+    <div class="row2" id="gsButtons"></div>
+  </section>
+  <section>
+    <h3 class="eyebrow">Backup &amp; Files</h3>
+    <p>Your notes live on this device. Keep a backup in iCloud Drive or email it to yourself; Restore also opens flights friends send you.</p>
+    <label class="chk"><input type="checkbox" id="bkPhotos" checked> Include label photos</label>
+    <div class="row2">
+      <button class="btn" id="bkMake" type="button">Back Up Everything</button>
+      <button class="btn" id="bkRestore" type="button">Restore or Import a File</button>
+      <button class="btn" id="bkCsv" type="button">Download for Excel</button>
+    </div>
+    <input type="file" id="bkFile" accept=".json,application/json,.tasting" hidden>
+  </section>
+  <section>
+    <h3 class="eyebrow">Prices &amp; Reviews</h3>
+    <p>Prices and critics’ reviews come from Tavily web search. Without a key, every device on your network shares a small free daily allowance. With your own free Tavily key (1,000 searches a month) there’s no daily limit.</p>
+    <input class="tk-in" id="tvKey" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="tvly-…  (paste your key)">
+    <div class="row2"><button class="btn" id="tvSave" type="button">Save and Test</button><button class="btn" id="tvClear" type="button">Remove Key</button></div>
+    <p class="about" id="tvState" style="margin:8px 2px 0"></p>
+  </section>
+  <section>
+    <h3 class="eyebrow">Appearance</h3>
+    <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
+  </section>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.51. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+</div></div>
+
+<div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
+  <div class="eyebrow">WSET Level 4 · SAT</div>
+  <h2 id="wTitle">Welcome to Tasting Notes</h2>
+  <div class="rule"></div>
+  <p class="wlead">Two quick steps and you're ready to taste.</p>
+  <section class="wstep" id="wS1">
+    <div class="wsh"><span class="wn">1</span><h3>Set up your Tasting Notes database</h3></div>
+    <div class="wopts" id="wOpts">
+      <button class="wopt" type="button" id="wCreate"><span class="wt"><b>Create a new Google Sheet</b><span>Access your notes from any device. The Sheet lives in your own Google Drive.</span></span><svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
+      <button class="wopt" type="button" id="wPick"><span class="wt"><b>Connect an existing Google Sheet</b><span>Pick a Tasting Notes Sheet you already have in Google Drive.</span></span><svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
+      <button class="wopt" type="button" id="wLocal"><span class="wt"><b>Keep notes on this device only</b><span>No account needed. You can connect a Google Sheet any time in Settings.</span></span><svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
+    </div>
+    <div class="wok" id="wS1Done" hidden></div>
+    <div class="err" id="wErr"></div>
+  </section>
+  <section class="wstep" id="wS2">
+    <div class="wsh"><span class="wn">2</span><h3>Add an icon to your Home Screen</h3></div>
+    <div id="wS2Body"></div>
+  </section>
+  <button class="btn pri" type="button" id="wFinish" disabled>Choose an option in step 1</button>
+</div></div>
+
+<div class="modal" id="ready"><div class="box">
+  <p id="readyMsg"></p>
+  <div class="acts"><button class="btn" id="readyClose" type="button">Close</button><button class="btn pri" id="readyGo" type="button">Share</button></div>
+</div></div>
+<div class="modal" id="modal"><div class="box"><p id="mMsg"></p><div class="acts">
+  <button class="btn" id="mNo" type="button">Cancel</button><button class="btn pri" id="mYes" type="button">OK</button></div></div></div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Label photo"><div class="lb-bar"><button type="button" class="lb-done" id="lbDone">Done</button></div><img id="lbImg" alt="Label photo" draggable="false"><p class="lb-hint">Tap Done or swipe down to close</p></div>
+<div class="toast" id="toast"></div>
+<datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
+
+<script>var BUILD = 'v2.51';</script>
+<script src="logic.js?v=2.51"></script>
+<script src="store.js?v=2.51"></script>
+<script src="google.js?v=2.51"></script>
+<script src="lexicon.js?v=2.51"></script>
+<script src="app.js?v=2.51"></script>
+<script src="app2.js?v=2.51"></script>
+<script>
+function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
+document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
+$('gear').onclick = openSettings;
+$('setClose').onclick = function(){ $('settings').classList.remove('show'); };
+$('settings').onclick = function(e){ if (e.target === this) this.classList.remove('show'); };
+var DARKQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+function themePref(){ var t = recall('btn-theme2'); return t === 'light' || t === 'dark' ? t : 'auto'; }
+function applyTheme(){
+  var p = themePref(), dark = p === 'dark' || (p === 'auto' && DARKQ && DARKQ.matches), r = document.documentElement;
+  if (dark) r.setAttribute('data-theme', 'dim'); else r.removeAttribute('data-theme');
+  r.style.colorScheme = dark ? 'dark' : 'light';
+  var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#2A0A16' : '#5A1229');
+}
+function paintThemeSeg(){ var p = themePref(); [].forEach.call(document.querySelectorAll('#themeSeg .opt'), function(b){ b.classList.toggle('on', b.getAttribute('data-t') === p); }); }
+$('themeSeg').onclick = function(e){ var b = e.target.closest('.opt'); if (!b) return; store('btn-theme2', b.getAttribute('data-t')); applyTheme(); paintThemeSeg(); };
+if (DARKQ) { if (DARKQ.addEventListener) DARKQ.addEventListener('change', applyTheme); else if (DARKQ.addListener) DARKQ.addListener(applyTheme); }
+$('bkMake').onclick = function(){
+  var withPh = $('bkPhotos').checked, d = new Date(), stamp = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  Backup.make(null, withPh, 'Backup').then(function(file){
+    return shareFile(new Blob([JSON.stringify(file)], { type: 'application/json' }), 'Tasting Notes backup ' + stamp + '.json', 'Tasting Notes backup');
+  }).catch(function(err){ toast(err.message || 'Could not make the backup'); });
+};
+$('bkCsv').onclick = function(){ shareFile(Backup.csv(), 'Tasting Notes.csv', 'Tasting Notes'); };
+$('bkRestore').onclick = function(){ $('bkFile').value = ''; $('bkFile').click(); };
+$('bkFile').onchange = function(){
+  var f = this.files && this.files[0]; if (!f) return;
+  f.text().then(function(t){ var j; try { j = JSON.parse(t); } catch (e) { throw new Error("That file isn't a Tasting Notes backup."); } return Backup.restore(j); })
+    .then(function(r){ return refreshPhotoIds().then(function(){ setData(appAllSync()); toast('Added ' + r.added + ' wine' + (r.added === 1 ? '' : 's') + (r.updated ? ', updated ' + r.updated : '')); }); })
+    .catch(function(err){ toast(err.message || 'Could not read that file'); });
+};
+
+
+function afterSync(){ refreshPhotoIds().then(function(){ setData(appAllSync()); findOrphans(); }); }
+window.onSynced = afterSync;
+function paintGoogle(){
+  var c = Sync.config(), st = Sync.state();
+  if (!Sync.connected()) {
+    $('gsStatus').innerHTML = 'Optional. Connect a Google Sheet to keep a copy in your own Google Drive and to share notes between your iPhone, iPad and computer. Notes are always saved on this device first, so it works offline.';
+    $('gsButtons').innerHTML = '<button class="btn pri" type="button" id="gsCreate">Create a New Google Sheet</button><button class="btn" type="button" id="gsPick">Use My Existing Sheet</button>';
+  } else {
+    var when = c.lastSync ? new Date(c.lastSync).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet';
+    $('gsStatus').innerHTML = 'Connected to <a href="' + esc(c.sheetUrl || '#') + '" target="_blank" rel="noopener">' + esc(c.sheetName || 'your Sheet') + '</a>. Last synced ' + esc(when) + '.' +
+      (st === 'signin' ? '<br>Google needs you to sign in again to keep syncing.' : st === 'error' ? '<br>The last sync had a problem — try Sync Now.' : '');
+    $('gsButtons').innerHTML = '<button class="btn pri" type="button" id="gsSync">Sync Now</button><button class="btn" type="button" id="gsOff">Disconnect</button>';
+  }
+}
+$('gsButtons').onclick = function(e){
+  var b = e.target.closest('button'); if (!b) return;
+  var busy = function(t){ b.disabled = true; b.textContent = t; };
+  var done = function(msg){ paintGoogle(); afterSync(); if (msg) toast(msg); };
+  var oops = function(err){ paintGoogle(); if (!err || !err.quiet) toast(err && err.message === 'signin' ? 'Google sign-in is needed' : (err && err.message) || 'Something went wrong'); };
+  if (b.id === 'gsCreate') { busy('Creating…'); Sync.createSheet().then(function(){ done('Your Google Sheet is ready'); }, oops); }
+  if (b.id === 'gsPick') { busy('Opening Google Drive…'); Sync.pickSheet().then(function(){ done('Connected to your Sheet'); }, oops); }
+  if (b.id === 'gsSync') { busy('Syncing…'); Sync.sync(true).then(function(){ done('Synced'); }, oops); }
+  if (b.id === 'gsOff') ask('Disconnect the Google Sheet? Your notes stay on this device and in the Sheet; they just stop syncing.', 'Disconnect', 'Cancel', true)
+    .then(function(go){ if (go) { Sync.disconnect(); paintGoogle(); } });
+};
+
+
+
+/* ---- self-heal: every script carries the build it belongs to. If any came from an old cache, or start-up
+   hits a missing function, clear the caches and load fresh (at most once a minute, so it can never loop) */
+var SCRIPTS = ['logic', 'store', 'google', 'lexicon', 'app', 'app2'];
+function staleScripts() { var v = window.__V || {}; return SCRIPTS.filter(function (f) { return v[f] !== BUILD; }); }
+function healOnce() {
+  if (!window.caches) return false;
+  var last = null; try { last = JSON.parse(localStorage.getItem('btn-healed') || 'null'); } catch (e) {}
+  if (last && last.b === BUILD && Date.now() - last.t < 60000) return false;
+  try { localStorage.setItem('btn-healed', JSON.stringify({ b: BUILD, t: Date.now() })); } catch (e) {}
+  var q = '?v=' + BUILD.slice(1);
+  caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })
+    // fetch every script fresh so whichever service worker answers the reload has the current copies
+    .then(function () { return Promise.all(SCRIPTS.map(function (f) { return fetch(f + '.js' + q, { cache: 'reload' }).catch(function(){}); })); })
+    .then(function () { return navigator.serviceWorker && navigator.serviceWorker.getRegistration(); })
+    .then(function (r) { if (r) return r.update().catch(function(){}); }).catch(function(){})
+    .then(function () { setTimeout(function () { location.reload(); }, 300); });
+  return true;
+}
+var HEALING = staleScripts().length ? healOnce() : false;
+/* ---- offline app shell */
+if ('serviceWorker' in navigator) {
+  var hadSW = !!navigator.serviceWorker.controller, swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if (!hadSW || swReloaded) { hadSW = true; return; }
+    swReloaded = true;
+    safeReload('update');
+  });
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
+      var check = function(){ dailyCheck(reg); }; check();
+      document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') check(); });
+      setInterval(check, 60 * 60 * 1000);
+    }).catch(function(){});
+  });
+}
+applyTheme();
+
+
+var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+var STANDALONE = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+var BIP = null, INSTALLED = false, W1 = '';
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); BIP = e; paintInstall(); });
+window.addEventListener('appinstalled', function(){ BIP = null; INSTALLED = true; paintInstall(); });
+function welcomeShow(on){ $('welcome').classList.toggle('show', !!on); if (on) { paintS1(); paintInstall(); } }
+function welcomeDone(){ store('btn-welcome', 'done'); welcomeShow(false); }
+function maybeWelcome(){
+  var q = new URLSearchParams(location.search);
+  if (q.get('setup') === 'local' && (STANDALONE || !IOS)) {   // in Safari the link stays, so Add to Home Screen still carries it
+    history.replaceState(null, '', location.pathname);
+    if (recall('btn-welcome') !== 'done' && !Sync.connected()) { store('btn-welcome', 'done'); toast('Notes will be saved on this device'); return; }
+  }
+  if (recall('btn-welcome') === 'done' || Sync.connected()) return;
+  welcomeShow(true);
+}
+function chosen1(kind){
+  W1 = kind; store('btn-welcome', 'done'); paintS1(); paintInstall();
+  if (kind === 'local' && IOS && !STANDALONE) {
+    // Safari and the Home Screen app keep separate storage: hand the choice over in the Home Screen link
+    history.replaceState(null, '', location.pathname + '?setup=local');
+    var ml = $('manifestLink'); if (ml) ml.href = 'manifest-local.webmanifest';
+  }
+  if (STANDALONE || INSTALLED) setTimeout(function(){ if ($('welcome').classList.contains('show') && W1) $('wFinish').click(); }, 1400);
+  else setTimeout(function(){ var f = $('wFinish'); if (f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 120);
+}
+function paintS1(){
+  var done = !!W1, c = Sync.config();
+  $('wOpts').hidden = done; $('wS1Done').hidden = !done;
+  $('wS1').classList.toggle('done', done);
+  if (W1 === 'local') $('wS1Done').innerHTML = '<b>Notes will be kept on this device.</b><span>You can connect a Google Sheet any time in Settings. <button type="button" class="wchange" id="wChange">Change</button></span>';
+  else if (W1) $('wS1Done').innerHTML = '<b>' + (W1 === 'create' ? 'Your new Google Sheet is ready.' : 'Connected to your Google Sheet.') + '</b><span>' + esc(c.sheetName || 'Blind Tasting Notes') +
+    ' in your Google Drive. Your notes sync to it as you save.</span>';
+  var f = $('wFinish'); f.disabled = !done; f.textContent = done ? 'Start Tasting' : 'Choose an option in step 1';
+}
+function paintInstall(){
+  var b = $('wS2Body'); if (!b) return;
+  if (STANDALONE || INSTALLED) { $('wS2').classList.add('done'); b.innerHTML = '<div class="wok"><b>You\'re all set.</b><span>Tasting Notes is on your Home Screen and works offline.</span></div>'; return; }
+  if (IOS) {
+    b.innerHTML = '<ol class="steps">' +
+      '<li><span>In Safari, tap the menu icon <span style="white-space:nowrap"><b>(three lines)</b> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg>,</span> then <b>Share</b> <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13V2.5M6.5 6L10 2.5 13.5 6M5 9H4v8.5h12V9h-1"/></svg></span></li>' +
+      '<li><span>Choose <b>Add to Home Screen</b>, then tap <b>Add</b></span></li>' +
+      '<li><span>Open <b>Tasting Notes</b> from your Home Screen. It opens full-screen and works offline.</span></li></ol>' +
+      '<p class="fine">Safari and the Home Screen app keep separate notebooks on your device.' +
+      (W1 && W1 !== 'local' ? ' When you first open the Home Screen app, choose <b>Connect an existing Google Sheet</b> and pick the same Sheet. Your notes will be there.' :
+        ' Your choice carries over to the Home Screen app. Add the icon before you start entering notes.') + '</p>';
+    return;
+  }
+  if (BIP) { b.innerHTML = '<p class="wsub">Install Tasting Notes like an app. It opens in its own window and works offline.</p><button class="btn" type="button" id="wInstallBtn">Add to Home Screen</button>'; return; }
+  b.innerHTML = '<p class="wsub">On Android, open Chrome\'s <b>⋮</b> menu and choose <b>Add to Home screen</b>. On a computer, choose <b>Install</b> from your browser\'s address bar or menu, or bookmark this page.</p>';
+}
+document.addEventListener('click', function(e){
+  if (e.target.closest('#wInstallBtn') && BIP) {
+    var ev = BIP; BIP = null; ev.prompt();
+    (ev.userChoice || Promise.resolve({})).then(function(r){ if (r && r.outcome === 'accepted') INSTALLED = true; paintInstall(); });
+  }
+  if (e.target.closest('#wChange')) { W1 = ''; store('btn-welcome', null); history.replaceState(null, '', location.pathname);
+    var ml = $('manifestLink'); if (ml) ml.href = 'manifest.webmanifest'; paintS1(); paintInstall(); }
+});
+function wBusy(b, on, t){ ['wCreate','wPick','wLocal'].forEach(function(id){ $(id).disabled = on; }); if (t) b.querySelector('b').textContent = t; }
+function wFail(b, was, err){ wBusy(b, false, was); if (!err || !err.quiet) $('wErr').textContent = err && err.message === 'signin' ? 'Google sign-in is needed. Please try again.' : (err && err.message) || 'Something went wrong. Please try again.'; }
+$('wCreate').onclick = function(){
+  var b = this, was = b.querySelector('b').textContent; $('wErr').textContent = ''; wBusy(b, true, 'Creating your Sheet…');
+  Sync.createSheet().then(function(){ wBusy(b, false, was); chosen1('create'); afterSync(); }, function(err){ wFail(b, was, err); });
+};
+$('wPick').onclick = function(){
+  var b = this, was = b.querySelector('b').textContent; $('wErr').textContent = ''; wBusy(b, true, 'Opening Google Drive…');
+  Sync.pickSheet().then(function(){ wBusy(b, false, was); chosen1('pick'); afterSync(); }, function(err){ wFail(b, was, err); });
+};
+$('wLocal').onclick = function(){ $('wErr').textContent = ''; chosen1('local'); };
+$('wFinish').onclick = function(){
+  if (!W1) return;
+  welcomeDone();
+  toast(W1 === 'local' ? 'Notes will be saved on this device' : 'Ready. Your notes will sync to your Google Sheet');
+};
+
+
+if (Sync.connected() || recall('btn-welcome') !== 'done') Sync.preload();   // so Google's sign-in window can open the moment it's tapped
+refreshPhotoIds().then(function(){ return api('appInit'); }).then(function(init){
+  start(init);
+  if (Sync.connected()) Sync.soon();
+  maybeWelcome();
+}).catch(function(err){
+  var fixing = HEALING || ((err instanceof ReferenceError || staleScripts().length) && healOnce());
+  var m = '<div class="loading">' + (fixing ? 'Updating Tasting Notes…' : 'Could not open your tasting notebook. ' + esc(err && err.message || err) + ' Close the app and open it again.') + '</div>';
+  $('taste').innerHTML = m; $('list').innerHTML = m;
+});
+
+$('verLabel').textContent = VERSION_LABEL;
+</script>
+</body>
+</html>
