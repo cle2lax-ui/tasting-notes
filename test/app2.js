@@ -944,8 +944,12 @@ function tavily(query, opts) {
     if (e.cap) throw e;
     if (e.status === 400 || e.status === 422) { if (!opts || ext) throw e; var o = { max_results: Math.min((opts || {}).max_results || 10, 10) }; return go(o); }   // option not allowed without a key
     if (e.status && e.status !== 429 && e.status < 500) throw e;
-    return new Promise(function (ok) { setTimeout(ok, 2500); }).then(function () { return go(opts || {}); }); }); });
-  TV_Q = run.catch(function () {}).then(function () { return new Promise(function (ok) { setTimeout(ok, 400); }); });
+    // too many searches in a minute (or a hiccup): wait and try again, twice, longer each time
+    var wait = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); };
+    return wait(e.status === 429 ? 6000 : 2500).then(function () { return go(opts || {}); }).catch(function (e2) {
+      if (e2.cap || (e2.status && e2.status !== 429 && e2.status < 500)) throw e2;
+      return wait(e2.status === 429 ? 20000 : 5000).then(function () { return go(opts || {}); }); }); }); });
+  TV_Q = run.catch(function () {}).then(function () { return new Promise(function (ok) { setTimeout(ok, 750); }); });   // about 80 searches a minute at most
   return run;
 }
 document.addEventListener('click', function (e) {
@@ -1109,4 +1113,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51f';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51g';
