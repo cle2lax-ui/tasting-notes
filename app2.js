@@ -294,6 +294,9 @@ function prose(w) {
   return out;
 }
 var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'five'], ['Tannin', 'tannin', 'five'], ['Alcohol', 'alcohol', 'alcohol'], ['Body', 'body', 'body'], ['Flavor int.', 'flavInt', 'intensity'], ['Finish', 'finish', 'finish']];
+function profRows(w) {                                                 // white wines leave out Tannin unless the taster gave it a level
+  return PROF.filter(function (p) { return !(p[1] === 'tannin' && w.type === 'White' && !w.tannin); });
+}
 function cardHTML(w) {
   var pr = prose(w), when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
   var h = '<article class="card"><header class="tc-head">' + labHTML(w, 'big') + '<div><div class="k">' + esc([when, 'Wine ' + w.wineNo, w.event].filter(Boolean).join(' · ')) + '</div>' +
@@ -301,7 +304,7 @@ function cardHTML(w) {
   h += '<div class="tc-body"><div class="prose">' + (pr.length ? pr.map(function (p) {
     return '<p><b>' + p.h + '</b>' + (p.q ? '<strong class="q">' + esc(p.q) + '</strong>' : '') + esc(p.m) + '</p>';
   }).join('') : '<p class="hint">No tasting note yet.</p>') + '</div><div class="side">';
-  h += '<div><h6>Structure</h6><div class="prof">' + PROF.map(function (p) {
+  h += '<div><h6>Structure</h6><div class="prof">' + profRows(w).map(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
     return '<div' + (i < 0 ? ' class="na"' : '') + '><span>' + p[0] + '</span><span class="line" style="--n:' + list.length + ';--p:' + (i < 0 ? 0 : i / (list.length - 1)).toFixed(3) + '">' + list.map(function (_, j) { return '<i style="--j:' + j + '"' + (j === i ? ' class="on"' : j < i ? ' class="fl"' : '') + '></i>'; }).join('') + '</span><em>' + esc(i < 0 ? '–' : SHORTR[w[p[1]]] || w[p[1]]) + '</em></div>';
   }).join('') + '</div></div>';
@@ -382,7 +385,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   // right: fingerprint, structure, guess and actual
   var rx = x + LW + 22 * K, RW = W - LW - 22 * K, ry = top + 4 * K;
   var sx = rx, sy = ry + 6 * K;
-  PROF.forEach(function (p) {
+  profRows(w).forEach(function (p) {
     var list = S[p[2]] || [], i = list.indexOf(w[p[1]]);
     font('Archivo', 'normal', 6.6, i < 0 ? PC.faint : PC.ink2); txt(p[0], sx, sy);
     font('Archivo', 'bold', 6.4, i < 0 ? PC.faint : PC.ink); txt(i < 0 ? '–' : (SHORTR[w[p[1]]] || w[p[1]]), right, sy, { align: 'right' });
@@ -1039,4 +1042,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.45';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.46';
