@@ -751,7 +751,7 @@ function rvScore(text, labelOnly) {
   var tw = t.match(/\b(1\d(?:\.5)?|20)\s?\/\s?20\b/); if (tw) return tw[1] + '/20';
   return '';
 }
-function rvPick(w, results) {
+function rvPick(w, results, bare) {                                    // bare: also return critic pages about this wine whose score and note weren't in the passage
   var toks = prToks(w), need = toks.length >= 4 ? toks.length - 1 : toks.length, vin = String(w.aVintage || '').trim(), got = {};
   (results || []).forEach(function (r) {
     if (!r || PR_SKIP.test(r.url || '')) return;
@@ -768,7 +768,7 @@ function rvPick(w, results) {
       // Wine Enthusiast pages show the wine's own score only as "Rating NN"; anything else there belongs to other wines
       var sc = rvScore((r.title || '') + ' ' + text + ' ' + String(r.raw_content || '').slice(0, 8000), /wineenthusiast|winemag/.test(rvHost(r.url))), ex = rvExcerpt(text, w);
       if (!rvProse(ex)) ex = '';
-      if (!sc && !ex) return;
+      if (!sc && !ex) { if (bare && !got[site]) got[site] = { critic: site, score: '', vintage: rv, text: '', url: r.url, bare: 1 }; return; }
       var item = { critic: site, score: sc, vintage: rv, text: ex, url: r.url };
       if (!got[site] || (vin && rv === vin && got[site].vintage !== vin)) got[site] = item;
       return;
@@ -814,7 +814,7 @@ function findReviews(w, force) {
     .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' wine review score points', { max_results: 15 }); })
     .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
   chain = chain.then(function () {                                       // a critic's page about this wine whose score wasn't in the passage the search returned:
-    var miss = function () { return rvPick(w, all).filter(function (x) { return !x.score && rvSite(x.url); }); };  // ask again, worded the way review pages read
+    var miss = function () { return rvPick(w, all, true).filter(function (x) { return !x.score && rvSite(x.url) && (!vin || !x.vintage || x.vintage === vin); }); };  // ask again, worded the way review pages read
     if (!miss().length || cap) return;
     var hosts = miss().map(function (x) { return rvHost(x.url); }).filter(function (h, i, a) { return a.indexOf(h) === i; }).slice(0, 4);
     var titled = miss().map(function (x) { var r0 = all.filter(function (y) { return y.url === x.url; })[0]; return r0 && r0.title ? r0.title.replace(/\s*[|\u2013-]\s*[^|\u2013-]*$/, '').replace(/rating and review/i, '').trim() : ''; }).filter(Boolean)[0];
@@ -1021,9 +1021,12 @@ function findPrice(w, force) {
   if (!force && (/^auto:/.test(src) && w.price || src === 'none:' + q)) return;   // already found, or already searched for this wine
   if (!force && PR_TRIED[w.id + q]) return; PR_TRIED[w.id + q] = 1;
   PR_BUSY[w.id] = 1; repaintPrice(w.id);
-  tavily(q.replace(/[‘’'`]/g, '') + ' price 750ml')
-    .then(function (j) {
-      var got = prPick(w, j.results);
+  var qn = q.replace(/[‘’'`]/g, '');
+  tavily(qn + ' price 750ml')
+    .then(function (j) { var g = prPick(w, j.results); if (g) return { got: g };       // nothing? ask once more, worded the way shop pages read
+      return tavily(qn + ' wine buy online 750 ml bottle').then(function (j2) { return { got: prPick(w, (j.results || []).concat(j2.results || [])) }; }, function () { return { got: null }; }); })
+    .then(function (jj) {
+      var got = jj.got;
       var price = got ? String(got.price) : '', src = got ? 'auto:' + got.url : 'none:' + q;
       return api('appSetPrice', w.id, price, src).then(function (x) {
         if (!x) return; setData(x.all);
@@ -1106,4 +1109,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51e';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51f';
