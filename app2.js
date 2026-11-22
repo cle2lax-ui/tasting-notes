@@ -413,7 +413,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   // right, below guess and actual: professional reviews
   var rv = reviewsPdf(w), agg = !rv.length;
   if (agg) rv = rvAggs(rvParse(w.reviews).query.toLowerCase() === rvQuery(w).toLowerCase() ? rvParse(w.reviews).items : []).map(function (x) { var viv = x.critic === 'Vivino community', v = String(w.aVintage || '').trim();
-    return { critic: viv ? 'Vivino community' : 'Wine-Searcher critics\u2019 average', score: viv ? x.score.replace('/5', ' / 5') : x.score, text: '', url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v), note: viv ? x.text : '' }; });
+    return { critic: viv ? 'Vivino community' : 'Wine-Searcher critics\u2019 average', score: viv ? x.score.replace('/5', ' / 5') : x.score, text: '', url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v), note: viv ? x.text + (x.vintage ? '' : ', all vintages') : '' }; });
   if (rv.length) {
     // keep the two columns in balance: when the critics would run well past the written note, set their quotes smaller and shorter
     function quoteLines(x, size) { font('Archivo', 'normal', size, PC.ink2); return x.text ? D.splitTextToSize(pdfText('“' + x.text.replace(/[.\s]+$/, '') + '.”'), RW).length : 0; }
@@ -653,7 +653,7 @@ function rvParse(text) {
 }
 function rvFormat(q, items) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (v4) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v5) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -689,14 +689,18 @@ function rvAggPick(w, results) {
   var key = prKey(w), vin = String(w.aVintage || '').trim(), got = {};
   (results || []).forEach(function (r) {
     if (!r || !r.url) return;
-    var host = rvHost(r.url), text = String(r.content || '').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
+    var host = rvHost(r.url), text = (String(r.content || '') + ' ' + String(r.raw_content || '').slice(0, 5000)).replace(/[*_#>\[\]]+/g, ' ').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
     if (key && head.indexOf(key) < 0) return;
     if (RV_LISTPAGE.test(r.url) || RV_LISTTITLE.test(r.title || '')) return;
     var yr = (String(r.url).match(/[?&]year=(\d{4})/) || [])[1] || ((r.title || '').match(/\b(19[5-9]\d|20[0-4]\d)\b/) || [])[1] || '';
     if (/(^|\.)vivino\.com$/.test(host)) {
-      var m = text.match(/(\d\.\d)\s*(?:\/\s*5|out of 5|stars?|★)?[^0-9]{0,60}?([\d,.]+\s*k?)\s+ratings/i) || text.match(/average rating(?: of)?\s*(\d\.\d)[^0-9]{0,60}?([\d,.]+\s*k?)\s+ratings/i);
+      // the wine's own line reads "3.5 4789 ratings"; the winery's footer ("3.5 42,494 total ratings") and vintage rows ("3.6 count ratings") don't match
+      var m = text.match(/\b([1-5]\.\d)\s*(?:\/\s*5|out of 5|stars?|\u2605)?\s*\(?\s*([\d][\d,.]*\s*k?)\s+ratings\b/i) ||
+        text.match(/average rating(?: of)?\s*([1-5]\.\d)[^0-9]{0,60}?([\d][\d,.]*\s*k?)\s+ratings\b/i) ||
+        text.match(/\b([\d][\d,.]*)\s+ratings?[^0-9]{0,40}?average(?: rating)?(?: of)?\s*([1-5]\.\d)/i);
+      if (m && /^\d[\d,.]*$/.test(m[1]) && !/\./.test(m[1].replace(/,/g, '')) && m[2] && /\./.test(m[2])) m = [m[0], m[2], m[1]];   // count first, rating second
       if (!m || +m[1] < 1 || +m[1] > 5) return;
-      var it = { critic: 'Vivino community', score: m[1] + '/5', vintage: yr, text: m[2].replace(/\s+/g, '') + ' ratings', url: r.url };
+      var it = { critic: 'Vivino community', score: m[1] + '/5', vintage: yr, text: (/^\d+$/.test(m[2].replace(/[,\s]/g, '')) ? Number(m[2].replace(/[,\s]/g, '')).toLocaleString('en-US') : m[2].replace(/\s+/g, '')) + ' ratings', url: r.url };
       if (!got.v || (vin && yr === vin && got.v.vintage !== vin)) got.v = it;
     } else if (/(^|\.)wine-searcher\.com$/.test(host)) {
       var c = text.match(/critic(?:s'?|s)?\s*(?:score|rating)s?[^0-9]{0,24}(\d{2})\s*(?:\/\s*100)?/i) || text.match(/avg\.?\s*(?:critic\s*)?score[^0-9]{0,12}(\d{2})\s*\/\s*100/i);
@@ -755,7 +759,7 @@ function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v4/.test(r.when || '') || (/v3/.test(r.when || '') && r.items.filter(rvGood).length))) return;     // searched with today's rules (older results are re-checked once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v5/.test(r.when || '') || (/v[34]/.test(r.when || '') && r.items.filter(rvGood).length))) return;     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -770,7 +774,8 @@ function findReviews(w, force) {
     .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
   chain = chain.then(function () {                                       // no critic at all: Wine-Searcher's critics' average and Vivino's community rating
     if (rvPick(w, all).length || rvAggPick(w, all).length >= 2) return;
-    return one(qq + ' rating', { include_domains: ['vivino.com', 'wine-searcher.com'], max_results: 10 });
+    // Vivino's wine page covers every vintage, so search by name; ask for the page text, since the rating sits at the top of the page, not in the snippet
+    return one(name + ' rating', { include_domains: ['vivino.com', 'wine-searcher.com'], max_results: 10, include_raw_content: true });
   });
   chain.then(function () {
     var pro = rvPick(w, all), agg = pro.length ? [] : rvAggPick(w, all);
@@ -812,7 +817,7 @@ function reviewsHTML(w) {
       var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim(), viv = x.critic === 'Vivino community';
       return '<a class="rva" href="' + esc(x.url) + '" target="_blank" rel="noopener"><b>' + (viv ? 'Vivino community' : 'Wine-Searcher critics\u2019 average') + '</b>' +
         '<em>' + esc(viv ? x.score.replace('/5', '') + ' \u2605' : x.score) + '</em>' +
-        '<small>' + (viv ? esc(x.text) + (x.vintage ? ' \u00b7 ' : '') : '') + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span>' : x.vintage ? esc(x.vintage) : '') + ' \u203a</small></a>';
+        '<small>' + (viv ? esc(x.text) + (x.vintage ? ' \u00b7 ' : ' \u00b7 all vintages') : '') + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span>' : x.vintage ? esc(x.vintage) : '') + ' \u203a</small></a>';
     }).join('') + '</div>';
   }
   return h + more + '</div>';
@@ -1034,4 +1039,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.44';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.45';
