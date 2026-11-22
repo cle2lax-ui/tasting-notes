@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.52';
+var VERSION_LABEL = 'v2.53';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -200,7 +200,7 @@ function identityHTML() {
 function score() {
   if (rec.open) return null;
   var pairs = [['gGrape', 'aGrape'], ['gCountry', 'aCountry'], ['gRegion', 'aRegion'], ['gVintage', 'aVintage']], of = 0, hits = 0, per = [];
-  pairs.forEach(function (p, i) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var pt = answerPoints(rec[p[0]], rec[p[1]], i === 0); hits += pt; per.push(pt === 1 ? true : pt === 0.5 ? 0.5 : false); });
+  pairs.forEach(function (p, i) { if (!low(rec[p[1]])) { per.push(null); return; } of++; var pt = answerPoints(rec[p[0]], rec[p[1]], i === 0 ? 'grape' : i === 2 ? 'region' : ''); hits += pt; per.push(pt === 1 ? true : pt === 0.5 ? 0.5 : false); });
   return of ? { hits: hits, per: per } : null;
 }
 function paintScore() {
@@ -523,4 +523,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.52';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.53';
