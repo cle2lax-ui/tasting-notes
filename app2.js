@@ -411,13 +411,15 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
   });
   if (w.price) { font('Archivo', 'normal', 6.6, PC.muted); txt('Approx. price', c1, gy); font('Archivo', 'bold', 7, PC.sig); txt(pdfText(priceText(w.price)), c3, gy); gy += 10 * K; }   // as on the wine page
   // right, below guess and actual: professional reviews
-  var rv = reviewsPdf(w);
+  var rv = reviewsPdf(w), agg = !rv.length;
+  if (agg) rv = rvAggs(rvParse(w.reviews).query.toLowerCase() === rvQuery(w).toLowerCase() ? rvParse(w.reviews).items : []).map(function (x) { var viv = x.critic === 'Vivino community', v = String(w.aVintage || '').trim();
+    return { critic: viv ? 'Vivino community' : 'Wine-Searcher critics\u2019 average', score: viv ? x.score.replace('/5', ' / 5') : x.score, text: '', url: x.url, vintage: x.vintage, other: !!(x.vintage && v && x.vintage !== v), note: viv ? x.text : '' }; });
   if (rv.length) {
     // keep the two columns in balance: when the critics would run well past the written note, set their quotes smaller and shorter
     function quoteLines(x, size) { font('Archivo', 'normal', size, PC.ink2); return x.text ? D.splitTextToSize(pdfText('“' + x.text.replace(/[.\s]+$/, '') + '.”'), RW).length : 0; }
     var est = 16.5 * K + rv.reduce(function (t, x) { return t + 18.6 * K + quoteLines(x, 6.6) * 8.4 * K; }, 0);
     var tight = gy + est > ly + 12 * K, qs = tight ? 6 : 6.6, qh = tight ? 7.6 * K : 8.4 * K, maxL = tight ? 2 : 9;
-    gy += 7 * K; font('Archivo', 'bold', 5.4, PC.muted); txt('PROFESSIONAL REVIEWS', c1, gy, { charSpace: .6 }); gy += 9.5 * K;
+    gy += 7 * K; font('Archivo', 'bold', 5.4, PC.muted); txt(agg ? 'RATINGS' : 'PROFESSIONAL REVIEWS', c1, gy, { charSpace: .6 }); gy += 9.5 * K;
     rv.forEach(function (x) {
       font('Archivo', 'bold', 7, PC.ink); txt(D.splitTextToSize(pdfText(x.critic), RW - 40 * K)[0], c1, gy);
       if (x.score) { font('Archivo', 'bold', 7.4, PC.gold); txt(pdfText(x.score), right, gy, { align: 'right' }); }
@@ -425,7 +427,7 @@ function pdfCard(D, w, x, y, W, draw, K, img) {
       if (x.text) { font('Archivo', 'normal', qs, PC.ink2); var ql = D.splitTextToSize(pdfText('“' + x.text.replace(/[.\s]+$/, '') + '.”'), RW);
         if (ql.length > maxL) { ql = ql.slice(0, maxL); ql[maxL - 1] = ql[maxL - 1].replace(/[\s,;:.”]*\S*$/, '') + '…”'; }
         ql.forEach(function (line) { txt(line, c1, gy); gy += qh; }); }
-      font('Archivo', 'normal', 5.8, x.other ? PC.no : PC.muted); txt(pdfText((x.other ? x.vintage + ' vintage  ·  ' : '') + (rvSite(x.url) ? '' : 'via ') + rvHost(x.url)), c1, gy); gy += 10 * K;
+      font('Archivo', 'normal', 5.8, x.other ? PC.no : PC.muted); txt(pdfText((x.note ? x.note + '  ·  ' : '') + (x.other ? x.vintage + ' vintage  ·  ' : '') + (rvSite(x.url) || agg ? '' : 'via ') + rvHost(x.url)), c1, gy); gy += 10 * K;
     });
   }
   return Math.max(ly, gy) - y + 4 * K;
@@ -651,7 +653,7 @@ function rvParse(text) {
 }
 function rvFormat(q, items) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (v3) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v4) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -679,7 +681,32 @@ function rvProse(t) {
 // pages that list many wines (ratings tables, A–Z winery indexes, "best of" roundups, search and tag pages)
 var RV_LISTPAGE = /\/(wineries|producers|search|tags?|categor(y|ies)|lists?|a-z|index|page\/\d)(\/|$|\?)|wine-ratings\/[a-z-]+\/?$|[?&](page|s|q)=/i;
 var RV_LISTTITLE = /\b(wineries|producers|a\s?[-–]\s?z|index|ratings:|best\b|top \d+|under \$|\d+ wines|buying guide|search results|archives?)\b/i;
-function rvGood(x) { return !!(x && (x.score || rvProse(x.text))); }
+var RV_AGG = { 'Vivino community': 1, 'Wine-Searcher critics': 1 };   // ratings that are not one critic's review
+function rvGood(x) { return !!(x && !RV_AGG[x.critic] && (x.score || rvProse(x.text))); }
+function rvAggs(items) { return (items || []).filter(function (x) { return RV_AGG[x.critic]; }); }
+// Vivino's community average and Wine-Searcher's average of critics' scores, for wines no critic has reviewed
+function rvAggPick(w, results) {
+  var key = prKey(w), vin = String(w.aVintage || '').trim(), got = {};
+  (results || []).forEach(function (r) {
+    if (!r || !r.url) return;
+    var host = rvHost(r.url), text = String(r.content || '').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
+    if (key && head.indexOf(key) < 0) return;
+    if (RV_LISTPAGE.test(r.url) || RV_LISTTITLE.test(r.title || '')) return;
+    var yr = (String(r.url).match(/[?&]year=(\d{4})/) || [])[1] || ((r.title || '').match(/\b(19[5-9]\d|20[0-4]\d)\b/) || [])[1] || '';
+    if (/(^|\.)vivino\.com$/.test(host)) {
+      var m = text.match(/(\d\.\d)\s*(?:\/\s*5|out of 5|stars?|★)?[^0-9]{0,60}?([\d,.]+\s*k?)\s+ratings/i) || text.match(/average rating(?: of)?\s*(\d\.\d)[^0-9]{0,60}?([\d,.]+\s*k?)\s+ratings/i);
+      if (!m || +m[1] < 1 || +m[1] > 5) return;
+      var it = { critic: 'Vivino community', score: m[1] + '/5', vintage: yr, text: m[2].replace(/\s+/g, '') + ' ratings', url: r.url };
+      if (!got.v || (vin && yr === vin && got.v.vintage !== vin)) got.v = it;
+    } else if (/(^|\.)wine-searcher\.com$/.test(host)) {
+      var c = text.match(/critic(?:s'?|s)?\s*(?:score|rating)s?[^0-9]{0,24}(\d{2})\s*(?:\/\s*100)?/i) || text.match(/avg\.?\s*(?:critic\s*)?score[^0-9]{0,12}(\d{2})\s*\/\s*100/i);
+      if (!c || +c[1] < 70 || +c[1] > 100) return;
+      var it2 = { critic: 'Wine-Searcher critics', score: c[1] + '/100', vintage: yr, text: 'average of critics\u2019 scores', url: r.url };
+      if (!got.s || (vin && yr === vin && got.s.vintage !== vin)) got.s = it2;
+    }
+  });
+  return [got.s, got.v].filter(Boolean);
+}
 function rvScore(text) {
   var m = String(text).match(/\b(\d{2})(?:\+)?\s?(?:pts|points|\/100|-point)\b/i) || String(text).match(/\bscore[d:]?\s*(\d{2})\b/i);
   if (m && +m[1] >= 80 && +m[1] <= 100) return m[1] + '/100';
@@ -728,7 +755,7 @@ function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && /v3/.test(r.when || '')) return;     // searched with today's rules (older results are re-checked once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v4/.test(r.when || '') || (/v3/.test(r.when || '') && r.items.filter(rvGood).length))) return;     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -741,11 +768,16 @@ function findReviews(w, force) {
   var chain = one(qq + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 })
     .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' wine review score points', { max_results: 15 }); })
     .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
+  chain = chain.then(function () {                                       // no critic at all: Wine-Searcher's critics' average and Vivino's community rating
+    if (rvPick(w, all).length || rvAggPick(w, all).length >= 2) return;
+    return one(qq + ' rating', { include_domains: ['vivino.com', 'wine-searcher.com'], max_results: 10 });
+  });
   chain.then(function () {
-    if ((cap || fails) && !rvPick(w, all).length) { var e = new Error('search busy'); e.cap = cap; throw e; }
-    return api('appSetReviews', w.id, rvFormat(q, rvPick(w, all))).then(function (x) { if (x) setData(x.all); });
+    var pro = rvPick(w, all), agg = pro.length ? [] : rvAggPick(w, all);
+    if ((cap || fails) && !pro.length && !agg.length) { var e = new Error('search busy'); e.cap = cap; throw e; }
+    return api('appSetReviews', w.id, rvFormat(q, pro.concat(agg))).then(function (x) { if (x) setData(x.all); });
   })
-    .catch(function () { delete RV_TRIED[w.id + q]; if (force) toast('Couldn’t search for reviews right now'); })
+    .catch(function (e) { delete RV_TRIED[w.id + q]; if (force && !(e && e.cap)) toast('Couldn\u2019t search for reviews right now'); })
     .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
 }
 function arrive(el) { if (!el) return; el.classList.remove('arrive'); void el.offsetWidth; el.classList.add('arrive'); }   // new information fades in with a soft glow
@@ -773,7 +805,16 @@ function reviewsHTML(w) {
     }).join('') + '</div>';
   } else if (RV_BUSY[w.id]) h += '<p class="rv-state"><i class="rv-spin"></i>Looking for professional reviews\u2026</p>';
   else if (tvPaused()) h += '<p class="rv-state">The free web search has reached today\u2019s limit for this network. Reviews will be looked up again after ' + tvResume() + '.</p>';
-  else if (fresh) h += '<p class="rv-state">The critics haven\u2019t weighed in on this one yet.</p>';
+  else if (fresh) {
+    h += '<p class="rv-state">The critics haven\u2019t weighed in on this one yet.</p>';
+    var ag = rvAggs(r.items);
+    if (ag.length) h += '<div class="rv-agg">' + ag.map(function (x) {
+      var other = x.vintage && w.aVintage && x.vintage !== String(w.aVintage).trim(), viv = x.critic === 'Vivino community';
+      return '<a class="rva" href="' + esc(x.url) + '" target="_blank" rel="noopener"><b>' + (viv ? 'Vivino community' : 'Wine-Searcher critics\u2019 average') + '</b>' +
+        '<em>' + esc(viv ? x.score.replace('/5', '') + ' \u2605' : x.score) + '</em>' +
+        '<small>' + (viv ? esc(x.text) + (x.vintage ? ' \u00b7 ' : '') : '') + (other ? '<span class="rv-warn">' + esc(x.vintage) + ' vintage</span>' : x.vintage ? esc(x.vintage) : '') + ' \u203a</small></a>';
+    }).join('') + '</div>';
+  }
   return h + more + '</div>';
 }
 function reviewsPdf(w) {                                                // the PDF's review list, beside the structure and guess
@@ -993,4 +1034,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.43';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.44';
