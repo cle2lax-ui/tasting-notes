@@ -654,9 +654,9 @@ function rvParse(text) {
   });
   return out;
 }
-function rvFormat(q, items) {
+function rvFormat(q, items, note) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (v5) for: ' + q].concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v6) for: ' + q].concat(note ? ['Note: ' + note] : []).concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -687,16 +687,27 @@ var RV_LISTTITLE = /\b(wineries|producers|a\s?[-–]\s?z|index|ratings:|best\b|t
 var RV_AGG = { 'Vivino community': 1, 'Wine-Searcher critics': 1 };   // ratings that are not one critic's review
 function rvGood(x) { return !!(x && !RV_AGG[x.critic] && (x.score || rvProse(x.text))); }
 function rvAggs(items) { return (items || []).filter(function (x) { return RV_AGG[x.critic]; }); }
+// every word of the wine's name, grape included (Tilia Chardonnay, not Tilia Malbec), must be in the page's title or address
+function rvNameOk(w, r) {
+  var head = prNorm((r.title || '') + ' ' + String(r.url || '').replace(/[\/+_?=&-]/g, ' '));
+  var words = prNorm(w.producer).split(' ').filter(function (t) { return t.length > 1 && !PR_STOP[t]; });
+  return words.length && words.every(function (t) { return head.indexOf(t) >= 0; });
+}
+function rvVivinoUrl(w, results) {                                      // this wine's own Vivino page among the results
+  var hit = (results || []).filter(function (r) { return r && /(^|\.)vivino\.com$/.test(rvHost(r.url)) && /\/w\/\d+/.test(r.url) && rvNameOk(w, r); })[0];
+  return hit ? hit.url : '';
+}
 // Vivino's community average and Wine-Searcher's average of critics' scores, for wines no critic has reviewed
 function rvAggPick(w, results) {
   var key = prKey(w), vin = String(w.aVintage || '').trim(), got = {};
   (results || []).forEach(function (r) {
     if (!r || !r.url) return;
-    var host = rvHost(r.url), text = (String(r.content || '') + ' ' + String(r.raw_content || '').slice(0, 5000)).replace(/[*_#>\[\]]+/g, ' ').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
+    var host = rvHost(r.url), text = (String(r.content || '') + ' ' + String(r.raw_content || '').slice(0, 20000)).replace(/[*_#>\[\]]+/g, ' ').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
     if (key && head.indexOf(key) < 0) return;
     if (RV_LISTPAGE.test(r.url) || RV_LISTTITLE.test(r.title || '')) return;
     var yr = (String(r.url).match(/[?&]year=(\d{4})/) || [])[1] || ((r.title || '').match(/\b(19[5-9]\d|20[0-4]\d)\b/) || [])[1] || '';
     if (/(^|\.)vivino\.com$/.test(host)) {
+      if (!rvNameOk(w, r)) return;
       // the wine's own line reads "3.5 4789 ratings"; the winery's footer ("3.5 42,494 total ratings") and vintage rows ("3.6 count ratings") don't match
       var m = text.match(/\b([1-5]\.\d)\s*(?:\/\s*5|out of 5|stars?|\u2605)?\s*\(?\s*([\d][\d,.]*\s*k?)\s+ratings\b/i) ||
         text.match(/average rating(?: of)?\s*([1-5]\.\d)[^0-9]{0,60}?([\d][\d,.]*\s*k?)\s+ratings\b/i) ||
@@ -762,7 +773,7 @@ function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v5/.test(r.when || '') || (/v[34]/.test(r.when || '') && r.items.filter(rvGood).length))) return;     // searched with today's rules (older results are re-checked once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v6/.test(r.when || '') || (/v[345]/.test(r.when || '') && r.items.filter(rvGood).length))) return;     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -779,11 +790,24 @@ function findReviews(w, force) {
     if (rvPick(w, all).length || rvAggPick(w, all).length >= 2) return;
     // Vivino's wine page covers every vintage, so search by name; ask for the page text, since the rating sits at the top of the page, not in the snippet
     return one(name + ' rating', { include_domains: ['vivino.com', 'wine-searcher.com'], max_results: 10, include_raw_content: true });
+  }).then(function () {                                                  // still no Vivino rating: find the wine's Vivino page and read the page itself
+    var viv = function (x) { return x.critic === 'Vivino community'; };
+    if (rvPick(w, all).length || rvAggPick(w, all).some(viv) || cap) return;
+    return (rvVivinoUrl(w, all) ? Promise.resolve() : one(name + ' vivino', { include_domains: ['vivino.com'], max_results: 5, include_raw_content: true }))
+      .then(function () {
+        var u = rvVivinoUrl(w, all); if (!u || rvAggPick(w, all).some(viv)) return;
+        return tavily('', { urls: [u] }).then(function (j) {
+          var page = (j && j.results || [])[0]; if (!page || !page.raw_content) return;
+          all.forEach(function (x) { if (x.url === u) x.raw_content = page.raw_content; });
+        }, function (e) { if (e && e.cap) cap = true; });
+      });
   });
   chain.then(function () {
-    var pro = rvPick(w, all), agg = pro.length ? [] : rvAggPick(w, all);
+    var pro = rvPick(w, all), agg = pro.length ? [] : rvAggPick(w, all), vu = rvVivinoUrl(w, all);
+    // a line for troubleshooting, kept in the Sheet's Professional Reviews cell (not shown in the app)
+    var note = pro.length ? '' : agg.some(function (x) { return x.critic === 'Vivino community'; }) ? '' : !vu ? 'no Vivino page for this wine was found' : 'Vivino page found (' + vu + ') but its rating could not be read';
     if ((cap || fails) && !pro.length && !agg.length) { var e = new Error('search busy'); e.cap = cap; throw e; }
-    return api('appSetReviews', w.id, rvFormat(q, pro.concat(agg))).then(function (x) { if (x) setData(x.all); });
+    return api('appSetReviews', w.id, rvFormat(q, pro.concat(agg), note)).then(function (x) { if (x) setData(x.all); });
   })
     .catch(function (e) { delete RV_TRIED[w.id + q]; if (force && !(e && e.cap)) toast('Couldn\u2019t search for reviews right now'); })
     .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
@@ -870,9 +894,10 @@ document.addEventListener('focusin', function (e) { if (e.target.id === 'tvKey' 
 function tvPaused() { if (tvKey()) return 0; var t = 0; try { t = +localStorage.getItem('btn-tv-pause') || 0; } catch (x) {} return t > Date.now() ? t : 0; }
 function tvResume() { var t = tvPaused(); return t ? new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''; }
 function tavily(query, opts) {
-  function go(o) { var body = { query: query, max_results: 10, search_depth: 'basic' }; for (var k in o) body[k] = o[k];
+  var ext = !!(opts && opts.urls);                                       // { urls: [...] } reads whole pages (Tavily Extract) instead of searching
+  function go(o) { var body = ext ? { urls: o.urls, extract_depth: 'basic' } : { query: query, max_results: 10, search_depth: 'basic' }; if (!ext) for (var k in o) body[k] = o[k];
     var key = tvKey(), hd = { 'Content-Type': 'application/json' }; if (key) hd.Authorization = 'Bearer ' + key; else hd['X-Tavily-Access-Mode'] = 'keyless';
-    return fetch('https://api.tavily.com/search', { method: 'POST', headers: hd, body: JSON.stringify(body) })
+    return fetch('https://api.tavily.com/' + (ext ? 'extract' : 'search'), { method: 'POST', headers: hd, body: JSON.stringify(body) })
       .then(function (r) { if (r.ok) return r.json(); var e = new Error('search ' + r.status); e.status = r.status;
         if (r.status !== 429) throw e;
         return r.json().catch(function () { return {}; }).then(function (j) {                // the free search's daily allowance for this network is used up
@@ -881,7 +906,7 @@ function tavily(query, opts) {
             e.cap = true; } throw e; }); }); }
   var run = TV_Q.then(function () { if (tvPaused()) { var c = new Error('daily limit'); c.cap = true; throw c; } return go(opts || {}).catch(function (e) {
     if (e.cap) throw e;
-    if (e.status === 400 || e.status === 422) { if (!opts) throw e; var o = { max_results: Math.min((opts || {}).max_results || 10, 10) }; return go(o); }   // option not allowed without a key
+    if (e.status === 400 || e.status === 422) { if (!opts || ext) throw e; var o = { max_results: Math.min((opts || {}).max_results || 10, 10) }; return go(o); }   // option not allowed without a key
     if (e.status && e.status !== 429 && e.status < 500) throw e;
     return new Promise(function (ok) { setTimeout(ok, 2500); }).then(function () { return go(opts || {}); }); }); });
   TV_Q = run.catch(function () {}).then(function () { return new Promise(function (ok) { setTimeout(ok, 400); }); });
@@ -1042,4 +1067,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.46';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.47';
