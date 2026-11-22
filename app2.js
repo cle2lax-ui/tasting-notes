@@ -656,7 +656,7 @@ function rvParse(text) {
 }
 function rvFormat(q, items, note) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (v7) for: ' + q].concat(note ? ['Note: ' + note] : []).concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v8) for: ' + q].concat(note ? ['Note: ' + note] : []).concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -667,7 +667,7 @@ function rvExcerpt(text, w) {                                            // one 
   var sents = t.match(/[^.!?]+[.!?]+/g) || [t], ex = '';
   for (var i = 0; i < sents.length && ex.split(' ').length < 22; i++) {
     var sn = sents[i].trim();
-    if (/cookie|subscribe|sign in|log in|newsletter|javascript|all rights reserved|privacy/i.test(sn) || sn.length < 20) continue;
+    if (/cookie|subscribe|sign in|log in|newsletter|javascript|all rights reserved|privacy|deemed unacceptable|not reviewed|rating below|our (?:scores|ratings|scale)|tasted blind|tasting policy|about the scores|\bpaywall|members? only/i.test(sn) || sn.length < 20) continue;
     if (!ex && sn.split(/\s+/).length <= 10 && /\b(19|20)\d\d\b/.test(sn) && !/\b(is|are|has|shows|offers|with|of)\b/i.test(sn)) continue;   // the wine's own heading
     ex += (ex ? ' ' : '') + sn;
   }
@@ -725,10 +725,24 @@ function rvAggPick(w, results) {
   });
   return [got.s, got.v].filter(Boolean);
 }
-function rvScore(text) {
-  var m = String(text).match(/\b(\d{2})(?:\+)?\s?(?:pts|points|\/100|-point)\b/i) || String(text).match(/\bscore[d:]?\s*(\d{2})\b/i);
-  if (m && +m[1] >= 80 && +m[1] <= 100) return m[1] + '/100';
-  var t = String(text).match(/\b(1\d(?:\.5)?|20)\s?\/\s?20\b/); if (t) return t[1] + '/20';
+// the wine's own score on a critic's page. A labelled rating ("Rating 88", "Score: 93") comes first; a bare "NN points" counts
+// only when it isn't the site's scale note ("a rating below 80 points"), a range ("80-100 points") or a list of other wines ("94Points Girlan…")
+function rvScore(text, labelOnly) {
+  var t = String(text || '').replace(/\s+/g, ' ');
+  var lab = t.match(/\b(?:rating|score|rated)\s*[:\-]?\s*(\d{2})(?:\s*(?:pts|points|\/\s*100))?(?![\d.])(?!\s*(?:or|and|to|-|–)\s*\d)/i);
+  if (lab && +lab[1] >= 80 && +lab[1] <= 100) return lab[1] + '/100';
+  if (!labelOnly) {
+    var re = /(\d{2})(\+)?(\s?)(pts|points|\/100|-point)\b/gi, m;
+    while ((m = re.exec(t))) {
+      var n = +m[1], before = t.slice(Math.max(0, m.index - 32), m.index), after = t.slice(m.index + m[0].length, m.index + m[0].length + 16);
+      if (n < 80 || n > 100) continue;
+      if (/(below|under|above|over|least|minimum|maximum|scale|range|between|from|of)\s*$/i.test(before)) continue;   // the scale note
+      if (/\d\s*[-–]\s*$/.test(before) || /^\s*(?:[-–]|to)\s*\d/.test(after) || /^\s*(?:or (?:higher|more|above)|and (?:up|above))/i.test(after)) continue;   // ranges
+      if (!m[3] && /^Points$/.test(m[4])) continue;                                 // "94Points Girlan 2023…": a list of other wines
+      return n + '/100';
+    }
+  }
+  var tw = t.match(/\b(1\d(?:\.5)?|20)\s?\/\s?20\b/); if (tw) return tw[1] + '/20';
   return '';
 }
 function rvPick(w, results) {
@@ -743,7 +757,8 @@ function rvPick(w, results) {
       // it must be a page about this wine: its name in the title or address, and not a list of many wines
       var head = prNorm((r.title || '') + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' ')), key = prKey(w);
       if (RV_LISTPAGE.test(r.url || '') || RV_LISTTITLE.test(r.title || '') || (key && head.indexOf(key) < 0)) return;
-      var sc = rvScore((r.title || '') + ' ' + text), ex = rvExcerpt(text, w);
+      // Wine Enthusiast pages show the wine's own score only as "Rating NN"; anything else there belongs to other wines
+      var sc = rvScore((r.title || '') + ' ' + text + ' ' + String(r.raw_content || '').slice(0, 8000), /wineenthusiast|winemag/.test(rvHost(r.url))), ex = rvExcerpt(text, w);
       if (!rvProse(ex)) ex = '';
       if (!sc && !ex) return;
       var item = { critic: site, score: sc, vintage: rv, text: ex, url: r.url };
@@ -773,7 +788,7 @@ function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v7/.test(r.when || '') || (/v[3456]/.test(r.when || '') && r.items.filter(rvGood).length >= 3))) return;     // searched with today's rules (older results are re-checked once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v8/.test(r.when || '') || (/v[34567]/.test(r.when || '') && r.items.filter(rvGood).length >= 3 && !r.items.some(function (x) { return x.score && rvSite(x.url); })))) return;   // scores read from critics' pages are re-checked once (v8)     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -786,7 +801,14 @@ function findReviews(w, force) {
   var chain = one(qq + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 })
     .then(function () { if (rvPick(w, all).length < 3) return one(qq + ' wine review score points', { max_results: 15 }); })
     .then(function () { if (vin && !rvPick(w, all).length) return one(name + ' review points', { include_domains: RV_DOMAINS.concat(RV_SHOPS), max_results: 20 }); });
-  chain = chain.then(function () {                                       // no critic at all: Wine-Searcher's critics' average and Vivino's community rating
+  chain = chain.then(function () {                                       // a critic's page about this wine whose score wasn't in the search snippet: read the page
+    var need = rvPick(w, all).filter(function (x) { return !x.score && rvSite(x.url); }).map(function (x) { return x.url; }).slice(0, 5);
+    if (!need.length || cap) return;
+    return tavily('', { urls: need }).then(function (j) {
+      (j && j.results || []).forEach(function (pg) { all.forEach(function (x) { if (x.url === pg.url && pg.raw_content) x.raw_content = pg.raw_content; }); });
+    }, function (e) { if (e && e.cap) cap = true; });
+  });
+  chain = chain.then(function () {                                       // fewer than three critics: Wine-Searcher's critics' average and Vivino's community rating
     if (rvPick(w, all).length >= 3 || rvAggPick(w, all).length >= 2) return;
     // Vivino's wine page covers every vintage, so search by name; ask for the page text, since the rating sits at the top of the page, not in the snippet
     return one(name + ' rating', { include_domains: ['vivino.com', 'wine-searcher.com'], max_results: 10, include_raw_content: true });
@@ -1068,4 +1090,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.49';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.50';
