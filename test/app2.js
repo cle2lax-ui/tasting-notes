@@ -669,6 +669,8 @@ function rvExcerpt(text, w) {                                            // one 
     var sn = sents[i].trim();
     if (/cookie|subscribe|sign in|log in|newsletter|javascript|all rights reserved|privacy|deemed unacceptable|not reviewed|rating below|pinnacle of quality|great achievement|\b(?:classic|superb|excellent|very good|good|acceptable)\s+[A-Z][a-z]+ (?:of|a|the)\b|\d{2}\s*-\s*\d{2,3}\.|our (?:scores|ratings|scale)|tasted blind|tasting policy|about the scores|\bpaywall|members? only/i.test(sn) || sn.length < 20) continue;
     if (!ex && sn.split(/\s+/).length <= 10 && /\b(19|20)\d\d\b/.test(sn) && !/\b(is|are|has|shows|offers|with|of)\b/i.test(sn)) continue;   // the wine's own heading
+    var key0 = sn.toLowerCase().replace(/[^a-z]+/g, ' ').trim().slice(0, 36), exl = ex.toLowerCase().replace(/[^a-z]+/g, ' ');
+    if (ex && exl.indexOf(key0) >= 0) continue;                         // the same sentence from two passages
     ex += (ex ? ' ' : '') + sn;
   }
   var words = ex.split(' '); if (words.length > 32) ex = words.slice(0, 30).join(' ').replace(/[,;:]$/, '') + '\u2026';
@@ -1103,4 +1105,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51c';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.51d';
