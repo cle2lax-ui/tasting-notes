@@ -695,7 +695,7 @@ function lev1(a, b) {                                                   // true 
   var i = 0, j = 0, d = 0; while (i < la && j < lb) { if (a[i] === b[j]) { i++; j++; continue; } if (++d > 1) return false; if (la > lb) i++; else if (lb > la) j++; else { i++; j++; } }
   return d + (la - i) + (lb - j) <= 1;
 }
-function hasWord(hay, t) {                                               // the word is on the page, or a one-letter variant of it (spelling differences)
+function rvHasWord(hay, t) {                                               // the word is on the page, or a one-letter variant of it (spelling differences)
   if (hay.indexOf(t) >= 0) return true; if (t.length < 7) return false;
   return hay.split(' ').some(function (x) { return x.length >= 6 && lev1(x, t); });
 }
@@ -705,8 +705,8 @@ function rvNameOk(w, r) {
   if (!words.length) return false;
   var plain = /^(red|white|rose|rouge|sec|brut|blanco|tinto|bianco|rosso)$/;
   var grapes = words.filter(function (t) { return PR_GRAPE[t] && !plain.test(t); }), rest = words.filter(function (t) { return !PR_GRAPE[t]; });
-  var missing = rest.filter(function (t) { return !hasWord(head, t); }).length;
-  if (!grapes.every(function (t) { return hasWord(head, t); }) || missing > (rest.length >= 3 ? 1 : 0)) return false;
+  var missing = rest.filter(function (t) { return !rvHasWord(head, t); }).length;
+  if (!grapes.every(function (t) { return rvHasWord(head, t); }) || missing > (rest.length >= 3 ? 1 : 0)) return false;
   // a page about the same producer's other grape (Ridge Monte Bello Chardonnay for Ridge Monte Bello Cabernet): reject
   var mine = prNorm([w.producer, w.aGrape].join(' ')).split(' ');
   var theirs = head.split(' ').filter(function (t) { return PR_GRAPE[t] && !plain.test(t) && t.length > 3 && !/^(blanc|noir|gris|grigio|franc)$/.test(t); });
@@ -726,7 +726,7 @@ function rvAggPick(w, results) {
   (results || []).forEach(function (r) {
     if (!r || !r.url) return;
     var host = rvHost(r.url), text = (String(r.content || '') + ' ' + String(r.raw_content || '').slice(0, 20000)).replace(/[*_#>\[\]]+/g, ' ').replace(/\s+/g, ' '), head = prNorm((r.title || '') + ' ' + String(r.url).replace(/[\/+_?=&-]/g, ' '));
-    if ((key && !hasWord(head, key)) || !rvNameOk(w, r)) return;
+    if ((key && !rvHasWord(head, key)) || !rvNameOk(w, r)) return;
     if (RV_LISTPAGE.test(r.url) || (RV_LISTTITLE.test(r.title || '') && !/wine-searcher\.com/.test(host))) return;   // Wine-Searcher titles all start "Best local price for …"
     var yr = (String(r.url).match(/[?&]year=(\d{4})/) || [])[1] || (/wine-searcher/.test(host) && (String(r.url).match(/\/((?:19|20)\d\d)(?:[\/?#]|$)/) || [])[1]) || ((r.title || '').match(/\b(19[5-9]\d|20[0-4]\d)\b/) || [])[1] || '';
     if (/(^|\.)vivino\.com$/.test(host)) {
@@ -774,7 +774,7 @@ function rvPick(w, results, bare) {                                    // bare: 
   (results || []).forEach(function (r) {
     if (!r || PR_SKIP.test(r.url || '')) return;
     var text = String(r.content || ''), hay = prNorm((r.title || '') + ' ' + text + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' '));
-    if (!toks.length || toks.filter(function (t) { return hasWord(hay, t); }).length < need) return;    // a page about a different wine
+    if (!toks.length || toks.filter(function (t) { return rvHasWord(hay, t); }).length < need) return;    // a page about a different wine
     var hd = (r.title || '') + ' ' + String(r.url || ''), hm = hd.match(/\b(19[5-9]\d|20[0-4]\d)\b/), vm = hay.match(/\b(19[5-9]\d|20[0-4]\d)\b/);
     var rv = hm ? (vin && hd.indexOf(vin) >= 0 ? vin : hm[1]) : vin && hay.indexOf(vin) >= 0 ? vin : (vm ? vm[1] : '');
     var site = rvSite(r.url);
@@ -782,7 +782,7 @@ function rvPick(w, results, bare) {                                    // bare: 
     if (site) {                                                         // the critic's own page
       // it must be a page about this wine: its name in the title or address, and not a list of many wines
       var head = prNorm((r.title || '') + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' ')), key = prKey(w);
-      if (RV_LISTPAGE.test(r.url || '') || RV_LISTTITLE.test(r.title || '') || (key && !hasWord(head, key))) return;
+      if (RV_LISTPAGE.test(r.url || '') || RV_LISTTITLE.test(r.title || '') || (key && !rvHasWord(head, key))) return;
       // Wine Enthusiast pages show the wine's own score only as "Rating NN"; anything else there belongs to other wines
       var sc = rvScore((r.title || '') + ' ' + text + ' ' + String(r.raw_content || '').slice(0, 8000), /wineenthusiast|winemag/.test(rvHost(r.url))), ex = rvExcerpt(text, w);
       if (!rvProse(ex)) ex = '';
@@ -1013,7 +1013,7 @@ function prPick(w, results) {                                           // the p
     var u0 = String(r.url || ''), shopish = RV_SHOPS.indexOf(rvHost(u0)) >= 0 || /\/(products?|p|shop|store|item|buy|wines?|catalog|detail)\b/i.test(u0) || /add to (cart|bag)|in stock|out of stock|buy now|sold out|ships? (to|from)|per bottle/i.test(r.content || '');
     if (!shopish || /\/(blog|news|articles?|stories|story|magazine|recipes?|events?)\b|tuesdays?|-review\b/i.test(u0)) return;
     var text = String(r.content || ''), hay = prNorm((r.title || '') + ' ' + text + ' ' + String(r.url || '').replace(/[\/+_-]/g, ' '));
-    var hits = toks.filter(function (t) { return hasWord(hay, t); }).length;
+    var hits = toks.filter(function (t) { return rvHasWord(hay, t); }).length;
     if (!toks.length || hits < need) return;                            // a page about a different wine
     var vinOk = !vin || hay.indexOf(vin) >= 0;
     if (/\b(1\.5\s?l|magnum|375\s?ml|half bottle|3\s?l|jeroboam|case of|6 pack|12 pack)\b/i.test(text) && !/750\s?ml/i.test(text)) return;
@@ -1134,4 +1134,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.54';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.55';
