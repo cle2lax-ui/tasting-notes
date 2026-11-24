@@ -172,6 +172,11 @@ function answerPoints(g, a, kind) {
     if (gn && an && gn.key === an.key) return 1;            // the same place, spelled a little differently
     return gn && an && gn.country === an.country && gn.sub === an.sub ? 0.5 : 0;
   }
+  if (kind === 'vintage') {                                 // within two years either way is close (half a point)
+    const yr = v => { const m = String(v).match(/\b(\d{4}|\d{2})\b/); if (!m) return NaN; const n = +m[1]; return m[1].length === 4 ? n : n + (n <= 50 ? 2000 : 1900); };
+    const gy = yr(g), ay = yr(a);
+    return !isNaN(gy) && !isNaN(ay) && Math.abs(gy - ay) <= 2 ? (gy === ay ? 1 : 0.5) : 0;
+  }
   if (kind !== 'grape') return 0;
   const gs = grapeSet(g), as = grapeSet(a);
   if (!gs.length || !as.length) return 0;
@@ -242,7 +247,7 @@ function normalize(rows) {
     w.mode = w.open ? 'Open' : 'Blind';
     if (w.open) { w.gGrape = w.gCountry = w.gRegion = w.gVintage = ''; }
     // a hit is true (right), 0.5 (one grape of a blend) or false; null when there is no actual answer
-    w.hits = pairs.map(([g, a], i) => { if (w.open || w[a] === '') return null; const pt = answerPoints(w[g], w[a], i === 0 ? 'grape' : i === 2 ? 'region' : ''); return pt === 1 ? true : pt === 0.5 ? 0.5 : false; });
+    w.hits = pairs.map(([g, a], i) => { if (w.open || w[a] === '') return null; const pt = answerPoints(w[g], w[a], i === 0 ? 'grape' : i === 2 ? 'region' : i === 3 ? 'vintage' : ''); return pt === 1 ? true : pt === 0.5 ? 0.5 : false; });
     const scored = w.hits.filter(h => h !== null);
     w.score = scored.length ? scored.reduce((t, h) => t + (h === true ? 1 : h === 0.5 ? 0.5 : 0), 0) : '';
     w.scoreLabel = w.open ? 'Tasted open' : scored.length ? fmtScore(w.score) + ' of ' + pairs.length : '';
@@ -329,4 +334,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.57';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.58';
