@@ -172,10 +172,10 @@ function answerPoints(g, a, kind) {
     if (gn && an && gn.key === an.key) return 1;            // the same place, spelled a little differently
     return gn && an && gn.country === an.country && gn.sub === an.sub ? 0.5 : 0;
   }
-  if (kind === 'vintage') {                                 // within two years either way is close (half a point)
+  if (kind === 'vintage') {                                 // one year either way is close (half a point)
     const yr = v => { const m = String(v).match(/\b(\d{4}|\d{2})\b/); if (!m) return NaN; const n = +m[1]; return m[1].length === 4 ? n : n + (n <= 50 ? 2000 : 1900); };
     const gy = yr(g), ay = yr(a);
-    return !isNaN(gy) && !isNaN(ay) && Math.abs(gy - ay) <= 2 ? (gy === ay ? 1 : 0.5) : 0;
+    return !isNaN(gy) && !isNaN(ay) && Math.abs(gy - ay) <= 1 ? (gy === ay ? 1 : 0.5) : 0;
   }
   if (kind !== 'grape') return 0;
   const gs = grapeSet(g), as = grapeSet(a);
@@ -334,4 +334,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.58';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.59';

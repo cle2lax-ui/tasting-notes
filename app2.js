@@ -1136,4 +1136,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.58';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.59';
