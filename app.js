@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.56';
+var VERSION_LABEL = 'v2.57';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -40,14 +40,17 @@ function fail(err) { toast('Something went wrong: ' + (err && err.message ? err.
 // while body.locked is set, the page is fixed at its scroll position and put back exactly there afterwards
 (function () {
   var y = null, OPEN = '.sheet.show, .lx.show, .welcome.show, .lightbox.show';
-  new MutationObserver(function () {
+  var mo = new MutationObserver(function () {
     var on = !!document.querySelector(OPEN), st = document.body.style;      // any open sheet (Settings, wine page, Change, Lexicon, photo viewer)
     if (document.body.classList.contains('locked') !== on) document.body.classList.toggle('locked', on);
     if (on && y === null) { y = window.scrollY || 0; st.position = 'fixed'; st.top = -y + 'px'; st.left = '0'; st.right = '0'; st.width = '100%'; }
     else if (!on && y !== null) { st.position = st.top = st.left = st.right = st.width = ''; window.scrollTo(0, y); y = null; }
-  }).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+  });
+  // watch only the overlays themselves, so ordinary class changes while scrolling cost nothing
+  [].forEach.call(document.querySelectorAll('.sheet, .lx, .welcome, .lightbox'), function (el) { mo.observe(el, { attributes: true, attributeFilter: ['class'] }); });
   // a drag on the dimmed backdrop (outside the panel) must not move anything
-  document.addEventListener('touchmove', function (e) { if (e.target.classList && (e.target.classList.contains('sheet') || e.target.classList.contains('modal'))) e.preventDefault(); }, { passive: false });
+  // (attached to each backdrop, not the whole page, so ordinary page scrolling stays passive and smooth)
+  [].forEach.call(document.querySelectorAll('.sheet, .modal'), function (el) { el.addEventListener('touchmove', function (e) { if (e.target === el) e.preventDefault(); }, { passive: false }); });
 })();
 function sheet(id, on) { $(id).classList.toggle('show', on !== false); document.body.classList.toggle('locked', !!document.querySelector('.sheet.show, .lx.show, .welcome.show, .lightbox.show')); }
 
@@ -418,7 +421,7 @@ function openWine(d, n) {
   }).catch(fail);
 }
 function save(force, next) {
-  if (PHOTO_BUSY) { var bb = next ? $('nextBtn') : $('saveBtn'); bb.disabled = true; bb.textContent = 'Adding photo…'; var lbl = next ? 'Save & Next Wine' : 'Save';
+  if (PHOTO_BUSY) { var bb = next ? $('nextBtn') : $('saveBtn'); bb.disabled = true; bb.textContent = 'Adding photo…'; var lbl = next ? 'Save & Next Wine' : 'Save and View Entry';
     PHOTO_BUSY.then(function () { bb.disabled = false; bb.textContent = lbl; save(force, next); }); return; }   // wait for the photo, then save it with the wine
   if (!rec.date) { toast('Choose a date first'); return; }
   if (!rec.wineNo) { toast('Set the wine number'); return; }
@@ -427,10 +430,14 @@ function save(force, next) {
     b.disabled = false; b.textContent = was;
     if (r.conflict) return ask(r.conflict + ' Replace it with this note?', 'Replace', 'Cancel').then(function (go) { if (go) save(true, next); });
     rec.id = r.id; setData(r.all); orig = { date: rec.date, wineNo: rec.wineNo }; dirty = false; clearDraft(); paintId();
-    var sw = ALL.filter(function (x) { return x.id === r.id; })[0]; if (sw && window.findPrice) { findPrice(sw); findReviews(sw); }   // look up a retail price once the wine is revealed
+    var sw = ALL.filter(function (x) { return x.id === r.id; })[0]; if (sw && next && window.findPrice) { findPrice(sw); findReviews(sw); }   // look up a retail price once the wine is revealed (the detail page does this itself)
     if (next) { var d = rec.date, ev = rec.event || '', saved = label(); show({ date: d, wineNo: nextNo(d), event: ev }, null, false); window.scrollTo(0, 0);
       if (!(window.saveMoment && saveMoment(sw, true, rec.wineNo))) toast('Saved ' + saved + ' · now Wine ' + rec.wineNo); }
-    else if (!(window.saveMoment && saveMoment(sw, false))) toast('Saved ' + label());
+    else {                                         // Save and View Entry: open the wine's page in the Notebook
+      var lb = label();
+      if (sw) { setView('notebook'); openCard(sw); } 
+      if (!(window.saveMoment && saveMoment(sw, false))) toast('Saved ' + lb);
+    }
   }).catch(function (err) { b.disabled = false; b.textContent = was; fail(err); });
 }
 $('saveBtn').onclick = function () { save(false); };
@@ -523,4 +530,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.56';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.57';
