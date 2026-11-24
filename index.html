@@ -24,7 +24,7 @@
 :root{
   --sig:#6D1A36;--sig-hi:#86274A;--sig-lo:#4D0F25;--sig-tint:#F5EAED;--on-sig:#fff;--bar:#5A1229;
   --gold:#9A7438;--gold-ink:#7E5C26;--gold-tint:#F4ECDD;
-  --ink:#1F1A1D;--ink-2:#4A4146;--muted:#857A7F;--faint:#C2B8AF;
+  --ink:#1F1A1D;--ink-2:#4A4146;--muted:#716669;--faint:#C2B8AF;
   --paper:#F8F5EF;--card:#FFFFFF;--line:#ECE5DA;--line-2:#DDD3C5;--seg:#EFE8DE;
   --ok:#E3EFDC;--ok-ink:#2F5A22;--ok-line:#C2DBB5;--no:#F7DDDD;--no-ink:#8A2430;--no-line:#EBBDBD;
   --f-fruit:#C23B57;--f-floral:#B85CA0;--f-green:#5F9445;--f-spice:#C47324;--f-oak:#8A5530;--f-yeast:#C9A24F;--f-nut:#A9823A;--f-earth:#5E4334;
@@ -35,7 +35,7 @@
 :root[data-theme="dim"]{
   --sig:#E3A0B7;--sig-hi:#EDB4C8;--sig-lo:#C9839C;--sig-tint:#3A1F2A;--on-sig:#2A0A16;--bar:#22070F;
   --gold:#C9A35E;--gold-ink:#D8B676;--gold-tint:#33281B;
-  --ink:#F1E8E2;--ink-2:#D3C7C1;--muted:#A3959A;--faint:#5E5257;
+  --ink:#F1E8E2;--ink-2:#D3C7C1;--muted:#A3959A;--faint:#6E6267;
   --paper:#141013;--card:#1E171B;--line:#30262B;--line-2:#45393E;--seg:#2A2125;
   --ok:#23331E;--ok-ink:#A9D79A;--ok-line:#35502C;--no:#3A1D21;--no-ink:#F0A9AF;--no-line:#5A2A30;
   --f-fruit:#E06A82;--f-floral:#D58BC2;--f-green:#8FC071;--f-spice:#E59A50;--f-oak:#C08A5E;--f-yeast:#E2C27A;--f-nut:#D2AE66;--f-earth:#B0907D;
@@ -798,6 +798,32 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 .card-sheet .panel{overflow-y:auto}
 .rv-found+.rv-agg{margin-top:8px}
 
+/* v2.56 usability pass: bigger touch targets, small-phone layout */
+.search input,.lx-search input{align-self:stretch;height:100%}          /* the whole search pill takes the tap, not a 25px strip */
+.search{min-width:0}                                                    /* never pushes Filter off the screen */
+.tok button{position:relative}
+.tok button::after{content:"";position:absolute;inset:-8px -6px}       /* 22px × is now about a 38px target */
+.prc-again,.opensettings,.prc a,.lnk{position:relative}
+.prc-again::after,.opensettings::after,.prc a::after{content:"";position:absolute;inset:-12px -6px}
+.lnk{min-height:40px;display:inline-flex;align-items:center}
+.seg{min-width:0}
+@media (max-width:400px){
+  .mast .in{gap:8px}
+  .mast h1{font-size:18px}
+  .tabs button{padding:7px 10px;font-size:13px}
+  .gear{width:34px;height:34px}
+  .frm{grid-template-columns:84px minmax(0,1fr);gap:12px 10px}
+  .seg .opt{padding:0 6px;font-size:13px}
+  .f{grid-template-columns:96px minmax(0,1fr);gap:10px 10px}
+  .chip{padding:8px 12px}
+}
+@media (max-width:350px){ .mast .in{gap:6px} .mast h1{font-size:16px} .tabs button{padding:7px 8px;font-size:12.5px} .gear{width:32px;height:32px} .f{grid-template-columns:84px minmax(0,1fr)} }
+.tc-head .k{color:var(--gold-ink)}                                     /* small gold type meets 4.5:1 */
+.prof>div.na span:first-child{color:var(--muted)}                      /* "not recorded" rows stay readable */
+#list .row{content-visibility:auto;contain-intrinsic-size:auto 76px}  /* long notebooks: rows off screen cost nothing to draw */
+.stages .in::after{content:"";flex:0 0 14px}                           /* the last stage tab can scroll fully into view */
+@media (pointer:coarse){ input[type=text],input[type=search],input[type=date],input:not([type]),textarea,select{font-size:16px} }   /* iPhone Safari zooms the page into any field under 16px */
+
 </style>
 </head>
 <body data-view="notebook">
@@ -917,7 +943,7 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.55. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.56. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -953,13 +979,13 @@ html,body{overflow-x:clip}   /* never wider than the screen, so iOS never zooms 
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.55';</script>
-<script src="logic.js?v=2.55"></script>
-<script src="store.js?v=2.55"></script>
-<script src="google.js?v=2.55"></script>
-<script src="lexicon.js?v=2.55"></script>
-<script src="app.js?v=2.55"></script>
-<script src="app2.js?v=2.55"></script>
+<script>var BUILD = 'v2.56';</script>
+<script src="logic.js?v=2.56"></script>
+<script src="store.js?v=2.56"></script>
+<script src="google.js?v=2.56"></script>
+<script src="lexicon.js?v=2.56"></script>
+<script src="app.js?v=2.56"></script>
+<script src="app2.js?v=2.56"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
@@ -979,8 +1005,11 @@ $('themeSeg').onclick = function(e){ var b = e.target.closest('.opt'); if (!b) r
 if (DARKQ) { if (DARKQ.addEventListener) DARKQ.addEventListener('change', applyTheme); else if (DARKQ.addListener) DARKQ.addListener(applyTheme); }
 $('bkMake').onclick = function(){
   var withPh = $('bkPhotos').checked, d = new Date(), stamp = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  toast('Making the backup\u2026');
   Backup.make(null, withPh, 'Backup').then(function(file){
-    return shareFile(new Blob([JSON.stringify(file)], { type: 'application/json' }), 'Tasting Notes backup ' + stamp + '.json', 'Tasting Notes backup');
+    var blob = new Blob([JSON.stringify(file)], { type: 'application/json' }), name = 'Tasting Notes backup ' + stamp + '.json';
+    if (typeof readyToShare === 'function') { readyToShare(blob, name, 'Tasting Notes backup', 'Your backup is ready (' + Math.max(1, Math.round(blob.size / 1024)) + ' KB). Tap Share to save it to Files or iCloud Drive, or email it to yourself.'); return; }
+    return shareFile(blob, name, 'Tasting Notes backup');
   }).catch(function(err){ toast(err.message || 'Could not make the backup'); });
 };
 $('bkCsv').onclick = function(){ shareFile(Backup.csv(), 'Tasting Notes.csv', 'Tasting Notes'); };

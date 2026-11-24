@@ -329,7 +329,7 @@ function fileSafe(t) { return String(t || 'Tasting notes').replace(/[\\/:*?"<>|]
 
 /* ---- share sheet: files are prepared first, then offered from a fresh tap (Safari's rule) */
 var READY = null;
-function readyToShare(blob, name, title, msg) { READY = { blob: blob, name: name, title: title }; $('readyMsg').textContent = msg; $('ready').classList.add('show'); }
+function readyToShare(blob, name, title, msg) { READY = { blob: blob, name: name, title: title }; $('readyMsg').textContent = msg; $('toast').classList.remove('show'); $('ready').classList.add('show'); }   // the "Making PDF…" toast goes when the PDF is ready
 $('readyClose').onclick = function () { $('ready').classList.remove('show'); READY = null; };
 $('readyGo').onclick = function () { var r = READY; if (!r) return; $('ready').classList.remove('show'); shareFile(r.blob, r.name, r.title).catch(function (err) { toast(err.message || 'Could not open the share sheet'); }); };
 
@@ -522,9 +522,11 @@ document.addEventListener('click', function (e) {
   ask('Delete ' + name + '? ' + (Sync.connected() ? 'It will also be removed from your Google Sheet. ' : '') + 'This can’t be undone.', 'Delete', 'Cancel', true).then(function (go) {
     if (!go) { closeSwipe(); return; }
     api('appDelete', id).then(function (r) {
-      if (rec.id === id) { clearDraft(); var dd = today(); show({ date: dd, wineNo: 1 }, null, false); }
+      var wasOpen = rec.id === id;
       sheet('cardSheet', false); closeSwipe();
-      setData(r.all); if (rec.id !== id && !orig) { rec.wineNo = rec.wineNo || nextNo(rec.date); paintId(); }
+      setData(r.all);
+      if (wasOpen) { clearDraft(); var dd = today(); show({ date: dd, wineNo: nextNo(dd) }, null, false); }   // next free number, never one already saved
+      else if (!orig) { rec.wineNo = rec.wineNo || nextNo(rec.date); paintId(); }
       toast('Deleted');
     }).catch(fail);
   });
@@ -1134,4 +1136,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.55';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.56';
