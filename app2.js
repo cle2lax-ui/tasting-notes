@@ -165,8 +165,9 @@ var ORIGIN_WORD = { p: 'primary', s: 'secondary', t: 'tertiary' };
 /* ---- the written note, following the WSET L4 Tasting Guidance (Issue 1.4, 2023):
    - every structural component is named with its single SAT level ("The acidity is Medium Plus.")
    - clarity and condition carry no marks (exam wines are clear and clean), so they are only written when they point to a fault
-   - aromas and flavors follow the Lexicon: specific descriptors introduced by their cluster and grouped by type
-     ("primary aromas of black fruit (blackcurrant, black cherry) and herbal (mint); secondary aromas of oak (vanilla)"),
+   - aromas and flavors follow the Lexicon: specific descriptors grouped by type, in Lexicon order, without cluster names
+     ("primary aromas of blackcurrant, black cherry and mint; secondary aromas of vanilla"); "autolysis" is never
+     written for a still wine (say "lees contact"),
      "simple" is stated when chosen, and fruit character (ripe, cooked…) follows
    - order follows the SAT: Nose = intensity, aromas, development; Palate = sweetness … flavor intensity, flavors, other
      observations, finish
@@ -174,7 +175,7 @@ var ORIGIN_WORD = { p: 'primary', s: 'secondary', t: 'tertiary' };
 var CLUSTER_NAME = { 'Red fruit': 'red fruit', 'Black fruit': 'black fruit', 'Citrus fruit': 'citrus fruit', 'Green fruit': 'green fruit',
   'Stone fruit': 'stone fruit', 'Tropical fruit': 'tropical fruit', 'Dried and cooked fruit': 'dried fruit', 'Flowers': 'floral',
   'Herbaceous': 'herbaceous', 'Herbal': 'herbal', 'Pepper and licorice': 'spice', 'Sweet spice': 'sweet spice', 'Oak': 'oak',
-  'Lees and autolysis': 'autolysis', 'Malolactic': 'malolactic', 'Earth and savory': 'bottle age', 'Nut, honey and caramel': 'nut and honey',
+  'Lees and autolysis': 'lees contact', 'Malolactic': 'malolactic', 'Earth and savory': 'bottle age', 'Nut, honey and caramel': 'nut and honey',
   'Mineral': 'mineral', 'Flor': 'flor', 'Fruit style': '' };
 var CLUSTER_ORDER = []; LEXFAM.forEach(function (f) { f.clusters.forEach(function (c) { CLUSTER_ORDER.push(c[0]); }); });
 function descParts(raw, noun) {                                        // noun: 'aromas' or 'flavors'
@@ -184,13 +185,13 @@ function descParts(raw, noun) {                                        // noun: 
     var k = t.toLowerCase();
     if (k === 'simple') { simple = true; return; }
     if (RIPE[k]) { ripe.push(RIPE[k]); return; }
-    var h = WORDHOME[k]; if (!h) { own.push(t.charAt(0) === t.charAt(0).toUpperCase() && t.slice(1) === t.slice(1).toLowerCase() ? t.toLowerCase() : t); return; }
+    var h = WORDHOME[k]; if (!h) { own.push(t.split(' ').every(function (x) { return x.charAt(0) === x.charAt(0).toUpperCase() && x.slice(1) === x.slice(1).toLowerCase(); }) ? t.toLowerCase() : t); return; }
     var lab = wordLabel(h.w).toLowerCase(); (byType[h.t][h.c] = byType[h.t][h.c] || []).push(lab); words[h.t].push(lab);
   });
   var used = ['p', 's', 't'].filter(function (o) { return Object.keys(byType[o]).length; });
   var groups = used.map(function (o) {
     var cl = Object.keys(byType[o]).sort(function (a, b) { return CLUSTER_ORDER.indexOf(a) - CLUSTER_ORDER.indexOf(b); });
-    return cl.map(function (c) { var n = CLUSTER_NAME[c] != null ? CLUSTER_NAME[c] : c.toLowerCase(); return n ? n + ' (' + byType[o][c].join(', ') + ')' : byType[o][c].join(', '); });
+    return [].concat.apply([], cl.map(function (c) { return byType[o][c]; }));   // descriptors only, no cluster names
   });
   var list = '';
   if (used.length > 1 || (used.length === 1 && used[0] !== 'p')) {
@@ -1136,4 +1137,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.59';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.60';
