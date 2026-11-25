@@ -213,7 +213,7 @@ function rank(v, list) { return (S[list] || []).indexOf(v); }
 function low1(v) { return term(v); }
 function qualityReasons(w) {                                           // specific evidence for each reason the taster ticked
   var bl = String(w.blic || '').split(/\s*,\s*/).filter(Boolean).map(function (x) { return x.toLowerCase(); }), R = [];
-  var a = descParts(w.aromas, 'aromas'), f = descParts(String(w.flavors || '').split(/\s*,\s*/).filter(function (x) { return !isSame(x); }).join(', '), 'flavors');
+  var a = descParts(w.aromas, 'aromas'), fl0 = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), f = descParts((fl0.some(isSame) ? [String(w.aromas || '')] : []).concat(fl0.filter(function (x) { return !isSame(x); })).join(', '), 'flavors');
   var fruitInt = w.flavInt || w.noseInt;
   if (bl.indexOf('balance') >= 0) {
     var struct = [w.acidity && term(w.acidity) + ' acidity', w.tannin && term(w.tannin) + ' tannins'].filter(Boolean);
@@ -275,11 +275,8 @@ function prose(w) {
   if (w.body) P.push('The body is ' + term(w.body) + '.');
   if (w.flavInt) P.push('The flavor intensity is ' + term(w.flavInt) + '.');
   var fl = String(w.flavors || '').split(/\s*,\s*/).filter(Boolean), same = fl.some(isSame), more = fl.filter(function (x) { return !isSame(x); }).join(', ');
-  if (same) {                                                           // the taster's phrase, then the flavors written out (marks go to named flavors)
-    var d = descParts([String(w.aromas || ''), more].filter(Boolean).join(', '), 'flavors');
-    P.push(SAME + (d.list ? ': ' + d.list : '') + '.');
-    if (d.own.length) P.push('There are also notes of ' + andList(d.own) + '.');
-  } else { var fs = descSentences(more, 'flavors'); if (fs) P.push(fs); }
+  // "Same as the nose" re-lists the aromas as flavors (plus any extra flavors), written like any other flavor list
+  var fs = descSentences(same ? [String(w.aromas || ''), more].filter(Boolean).join(', ') : more, 'flavors'); if (fs) P.push(fs);
   if (w.palate) P.push(sent(w.palate));                                 // other observations (texture, pétillance…)
   if (w.finish) P.push('The finish is ' + term(w.finish) + '.');
   if (P.length) out.push({ h: 'Palate', m: P.join(' ') });
@@ -1137,4 +1134,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.60';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.61';
