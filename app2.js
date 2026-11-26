@@ -27,6 +27,7 @@ function setData(all) {
     var seen = {}, all = (LISTS[k] || []).concat(WSET_LISTS[k] || []).filter(function (v) { var key = answerKey(v); if (seen[key]) return false; seen[key] = 1; return true; });
     $('dl-' + k).innerHTML = all.map(function (v) { return '<option value="' + esc(v) + '">'; }).join(''); });
   if (view === 'notebook') renderNotebook();
+  if (ALL.length && typeof rvSweepStart === 'function') rvSweepStart();
 }
 function refreshPhotoIds() { return DB.keys('photos').then(function (k) { PHOTO_IDS = {}; (k || []).forEach(function (id) { PHOTO_IDS[id] = true; }); }); }
 function fillThumbs(wines) {
@@ -640,7 +641,7 @@ var RV_ALIAS = { 'Robert Parker': 'Wine Advocate', 'William Kelley': 'Wine Advoc
 var RV_ABBR = { JS: 'James Suckling', WS: 'Wine Spectator', WA: 'Wine Advocate', RP: 'Wine Advocate', WE: 'Wine Enthusiast', JD: 'Jeb Dunnuck', VM: 'Vinous', AG: 'Vinous',
   'W&S': 'Wine & Spirits', BH: 'Burghound', DEC: 'Decanter', TA: 'Tim Atkin', JH: 'Halliday', LPB: 'The Wine Independent', OB: 'Owen Bargreen' };
 // Steve's order of preference; everyone else after, quoted reviews first, then by score
-var RV_ORDER = ['James Suckling', 'Jeb Dunnuck', 'Jancis Robinson', 'Wine Spectator', 'Decanter', 'Vinous', 'Wine Enthusiast'];
+var RV_ORDER = ['James Suckling', 'Jeb Dunnuck', 'Jancis Robinson', 'Wine Spectator', 'Wine Advocate', 'Tim Atkin', 'Burghound', 'Decanter', 'Vinous', 'Wine Enthusiast'];
 function rvTop(list, n) {
   function rank(x) { var i = RV_ORDER.indexOf(x.critic); return i < 0 ? 99 : i; }
   return list.slice().sort(function (a, b) { return rank(a) - rank(b) || (b.text ? 1 : 0) - (a.text ? 1 : 0) || (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0); }).slice(0, n || 3);
@@ -656,7 +657,7 @@ function rvParse(text) {
 }
 function rvFormat(q, items, note) {
   var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return ['Searched ' + d + ' (v10) for: ' + q].concat(note ? ['Note: ' + note] : []).concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
+  return ['Searched ' + d + ' (v11) for: ' + q].concat(note ? ['Note: ' + note] : []).concat(items.map(function (r) { return [r.critic, r.score, r.vintage, r.text, r.url].map(function (x) { return String(x || '').replace(/\s*\|\s*/g, ' / ').replace(/\n/g, ' '); }).join(' | '); })).join('\n');
 }
 function rvHost(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#]/)[0]; }
 function rvSite(u) { var h = rvHost(u); for (var d in RV_SITES) if (h === d || h.slice(-d.length - 1) === '.' + d) return RV_SITES[d]; return ''; }
@@ -810,11 +811,35 @@ function rvPick(w, results, bare) {                                    // bare: 
   if (vin && list.some(function (x) { return x.vintage === vin; })) list = list.filter(function (x) { return x.vintage === vin || !x.vintage; });
   return rvTop(list, 5);
 }
+/* ---- re-search every wine in the Notebook once (v11: Wine Advocate, Tim Atkin and Burghound moved up the order).
+   One wine at a time in the background; progress is kept on this device, so a closed app or a used-up daily search
+   allowance just picks up where it left off next time. */
+var RV_SWEEP = { on: false, key: 'btn-rv-sweep-v11' };
+function rvSweepStart() {
+  if (RV_SWEEP.on || !navigator.onLine) return;
+  var done; try { done = JSON.parse(localStorage.getItem(RV_SWEEP.key) || '{}'); } catch (x) { done = {}; }
+  if (done._all) return;
+  RV_SWEEP.on = true;
+  function save() { try { localStorage.setItem(RV_SWEEP.key, JSON.stringify(done)); } catch (x) {} }
+  function next() {
+    if (!navigator.onLine || tvPaused()) { RV_SWEEP.on = false; return; }      // offline or out of searches: carry on next time
+    var w = ALL.filter(function (x) { return x.id && String(x.producer || '').trim() && !done[x.id]; })[0];
+    if (!w) { done._all = 1; save(); RV_SWEEP.on = false; return; }
+    var t0 = Date.now();
+    if (!RV_BUSY[w.id]) findReviews(w, true);
+    (function wait() {
+      if (RV_BUSY[w.id] && Date.now() - t0 < 120000) return setTimeout(wait, 600);
+      if (!RV_TRIED[w.id + rvQuery(w)]) { RV_SWEEP.on = false; return; }   // the search failed (daily limit, network): this one is tried again next time
+      done[w.id] = 1; save(); setTimeout(next, 1200);
+    })();
+  }
+  setTimeout(next, 4000);                                                // let the app finish loading first
+}
 function findReviews(w, force) {
   if (!w || !w.id || !String(w.producer || '').trim() || RV_BUSY[w.id] || !navigator.onLine) return;
   var q = rvQuery(w), r = rvParse(w.reviews);
   // already searched for this wine (an empty result from the older, narrower search is tried again once)
-  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v10\)/.test(r.when || '') || (/v[3-9]\)/.test(r.when || '') && r.items.filter(rvGood).length >= 3 && !r.items.some(function (x) { return x.score && rvSite(x.url); })))) return;   // scores read from critics' pages are re-checked once (v8)     // searched with today's rules (older results are re-checked once)
+  if (!force && r.query && r.query.toLowerCase() === q.toLowerCase() && (/v11\)/.test(r.when || '') || (/v[3-9]\)/.test(r.when || '') && r.items.filter(rvGood).length >= 3 && !r.items.some(function (x) { return x.score && rvSite(x.url); })))) return;   // scores read from critics' pages are re-checked once (v8)     // searched with today's rules (older results are re-checked once)
   if (!force && RV_TRIED[w.id + q]) return; RV_TRIED[w.id + q] = 1;
   RV_BUSY[w.id] = 1; repaintReviews(w.id);
   var name = String(w.producer || '').trim().replace(/[‘’'`]/g, ''), vin = String(w.aVintage || '').trim(), qq = q.replace(/[‘’'`]/g, '');
@@ -865,7 +890,7 @@ function findReviews(w, force) {
     if ((cap || fails) && !pro.length && !agg.length) { var e = new Error('search busy'); e.cap = cap; throw e; }
     return api('appSetReviews', w.id, rvFormat(q, pro.concat(agg), note)).then(function (x) { if (x) setData(x.all); });
   })
-    .catch(function (e) { delete RV_TRIED[w.id + q]; if (force && !(e && e.cap)) toast('Couldn\u2019t search for reviews right now'); })
+    .catch(function (e) { delete RV_TRIED[w.id + q]; if (force && !RV_SWEEP.on && !(e && e.cap)) toast('Couldn\u2019t search for reviews right now'); })
     .then(function () { delete RV_BUSY[w.id]; repaintReviews(w.id); });
 }
 function arrive(el) { if (!el) return; el.classList.remove('arrive'); void el.offsetWidth; el.classList.add('arrive'); }   // new information fades in with a soft glow
@@ -1134,4 +1159,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.61';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.62';
