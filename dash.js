@@ -177,7 +177,7 @@ function renderDash() {
   DW = el.clientWidth || 1000;
   var W = dashWines(), B = W.filter(isBlind);
   var h = '<div class="db-top"><div><p class="db-eb">' + (W.length ? shortDate(W[0].ymd) + ' – ' + shortDate(W[W.length - 1].ymd) + ', ' + W[W.length - 1].ymd.slice(0, 4) + ' · ' : '') + W.length + ' wine' + (W.length === 1 ? '' : 's') + '</p>' +
-    '<h2 class="db-title">How your palate is tracking</h2></div><div class="db-filters">' +
+    '<h2 class="db-title">How your palate is tracking</h2>' + (W.length ? '<button type="button" class="btn db-pdf" data-db-pdf><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v7.5M5 7l3 3 3-3"/><path d="M3 11v2.5h10V11"/></svg>Share as PDF</button>' : '') + '</div><div class="db-filters">' +
     chipRow('scope', [['all', 'All wines'], ['blind', 'Blind only'], ['recent', 'Last 30 days']], DASH.scope) +
     chipRow('style', [['all', 'All styles'], ['Red', 'Red'], ['White', 'White'], ['Rosé', 'Rosé'], ['Sparkling', 'Sparkling'], ['Fortified', 'Fortified'], ['Sweet', 'Sweet']], DASH.style) + '</div></div>';
   if (!W.length) { el.innerHTML = h + '<div class="db-empty">' + (ALL.length ? 'No wines match these filters.' : 'Taste a few wines and your dashboard fills in here.') + '</div>'; return; }
@@ -488,3 +488,194 @@ document.addEventListener('click', function (e) {
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
 /*build*/(window.__V = window.__V || {})['dash'] = 'v2.71';
+
+/* ====================================================================== the Dashboard as a one-page infographic PDF (US Letter), drawn as vector shapes and text */
+function dhex(hex, a) { var n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) { return Math.round(v * a + 255 * (1 - a)); }); return '#' + c.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join(''); }
+var DP = { sig: '#6D1A36', bar: '#5A1229', gold: '#9A7438', goldInk: '#7E5C26', ink: '#1F1A1D', ink2: '#4A4146', muted: '#716669', seg: '#EFE8DE', line: '#E7E0D6', card: '#FFFFFF', paper: '#F8F5EF',
+  tint: '#F5EAED', ok: '#2F5A22', no: '#8A2430', lv: ['#EFE8DE', '#E7C9D3', '#C28A9C', '#86274A', '#3A0A1A'],
+  fam: { fruit: '#C23B57', floral: '#B85CA0', green: '#5F9445', spice: '#C47324', oak: '#8A5530', yeast: '#C9A24F', age: '#5E4334', other: '#A9823A' } };
+function dashPdf() {
+  var W = dashWines(), B = W.filter(isBlind);
+  if (!W.length) return Promise.reject(new Error('No wines to put in the PDF.'));
+  return Promise.all([loadLib('lib/jspdf.min.js'), pdfFonts()]).then(function (r) {
+    var D = new jspdf.jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter', compress: true });
+    r[1].forEach(function (f) { D.addFileToVFS(f.file, f.data); D.addFont(f.file, f.fam, f.st); });
+    var PW = 612, PH = 792, M = 30, CW = PW - 2 * M;
+    function T(t) { return pdfText(t).replace(/ /g, ' '); }
+    function font(st, sz, col) { D.setFont(st === 'serif' ? 'Playfair' : 'Archivo', st === 'n' ? 'normal' : 'bold'); D.setFontSize(sz); D.setTextColor(col || DP.ink); }
+    function txt(t, x, y, o) { D.text(T(t), x, y, o || {}); }
+    function fit(t, w) { t = T(t); if (D.getTextWidth(t) <= w) return t; while (t.length > 1 && D.getTextWidth(t + '…') > w) t = t.slice(0, -1); return t + '…'; }
+    function fill(c) { D.setFillColor(c); } function stroke(c, w) { D.setDrawColor(c); D.setLineWidth(w || .6); }
+    function rect(x, y, w, h, c, r) { fill(c); if (r) D.roundedRect(x, y, w, h, r, r, 'F'); else D.rect(x, y, w, h, 'F'); }
+    function panel(x, y, w, h, eb, title) {
+      fill(DP.card); stroke(DP.line, .6); D.roundedRect(x, y, w, h, 7, 7, 'FD');
+      font('b', 6.2, DP.muted); D.setCharSpace(.9); txt(eb.toUpperCase(), x + 11, y + 14); D.setCharSpace(0);
+      if (title) { font('serif', 10.5, DP.ink); txt(title, x + 11, y + 28); }
+      return { x: x + 11, y: y + (title ? 38 : 24), w: w - 22, b: y + h - 9 };
+    }
+    function bars(P, rows, labW, valW, rowH) {                          // rows: [label, fraction, value text, color]
+      var tx = P.x + labW, tw = P.w - labW - valW, y = P.y;
+      rows.forEach(function (rw) { font('n', 7.2, DP.ink2); txt(fit(rw[0], labW - 6), P.x, y + 6);
+        rect(tx, y, tw, 7, DP.seg, 3.5); if (rw[1] > 0) rect(tx, y, Math.max(7, tw * Math.min(1, rw[1])), 7, rw[3] || DP.sig, 3.5);
+        font('b', 7, DP.ink); txt(rw[2], P.x + P.w, y + 6, { align: 'right' }); y += rowH; });
+      return y;
+    }
+    function note(P, t, y, sz) { font('n', sz || 6.8, DP.ink2); var ls = D.splitTextToSize(T(t), P.w); ls.forEach(function (l) { txt(l, P.x, y); y += (sz || 6.8) * 1.35; }); return y; }
+
+    // ---- header band
+    rect(0, 0, PW, 62, DP.bar);
+    font('serif', 21, '#FFFFFF'); txt('How your palate is tracking', M, 33);
+    var range = shortDate(W[0].ymd) + ' – ' + shortDate(W[W.length - 1].ymd) + ', ' + W[W.length - 1].ymd.slice(0, 4);
+    var view = { all: 'All wines', blind: 'Blind only', recent: 'Last 30 days' }[DASH.scope] + (DASH.style !== 'all' ? ' · ' + DASH.style : '');
+    font('n', 8, '#EAD7DD'); txt('Tasting Notes dashboard  ·  ' + range + '  ·  ' + W.length + ' wines  ·  ' + view, M, 49);
+    font('n', 7.2, '#EAD7DD'); txt('Printed ' + new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), PW - M, 49, { align: 'right' });
+    rect(0, 62, PW, 2.2, DP.gold);
+    rect(0, 64.2, PW, PH - 64.2, DP.paper);
+
+    // ---- headline numbers
+    var pts = 0, of = 0; B.forEach(function (w) { wPts(w).forEach(function (p) { if (p !== null) { pts += p; of++; } }); });
+    var cnt = {}; W.forEach(function (w) { var c = countryName(w.aCountry); if (c) cnt[c] = (cnt[c] || 0) + 1; }); var cs = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; });
+    var pr = W.map(priceOf).filter(function (p) { return p !== null; }), md = median(pr);
+    var K = [['Wines tasted', String(W.length), B.length + ' blind · ' + (W.length - B.length) + ' tasted open', DP.ink],
+      ['Blind score', of ? pct(pts, of) + '%' : '–', of ? half(pts) + ' of ' + of + ' points · ' + (pts / B.length).toFixed(1) + ' per wine' : 'No blind wines yet', DP.sig],
+      ['Most tasted country', cs[0] || '–', cs[0] ? cnt[cs[0]] + ' of ' + W.length + ' wines' : '', DP.ink],
+      ['Median bottle', md !== null ? money(Math.round(md)) : '–', pr.length ? money(Math.min.apply(null, pr)) + ' to ' + money(Math.max.apply(null, pr)) + ' · ' + pr.length + ' priced' : '', DP.ink]];
+    var kw = (CW - 3 * 8) / 4, ky = 76;
+    K.forEach(function (k, i) { var x = M + i * (kw + 8); fill(DP.card); stroke(DP.line, .6); D.roundedRect(x, ky, kw, 54, 7, 7, 'FD');
+      font('b', 6.2, DP.muted); D.setCharSpace(.9); txt(k[0].toUpperCase(), x + 11, ky + 14); D.setCharSpace(0);
+      font('b', k[1].length > 9 ? 15 : 21, k[3]); txt(fit(k[1], kw - 22), x + 11, ky + 36); font('n', 6.6, DP.ink2); txt(fit(k[2], kw - 22), x + 11, ky + 47); });
+
+    // ---- blind accuracy | score per session
+    var y2 = 140, h2 = 118, half2 = (CW - 8) / 2;
+    var P = panel(M, y2, half2, h2, 'Blind accuracy', 'Where your points come from');
+    var names = ['Grape', 'Country', 'Region', 'Vintage'], s = [0, 0, 0, 0], n = [0, 0, 0, 0];
+    B.forEach(function (w) { wPts(w).forEach(function (p, i) { if (p !== null) { s[i] += p; n[i]++; } }); });
+    if (B.length) {
+      var order = [0, 1, 2, 3].sort(function (a, b) { return (n[b] ? s[b] / n[b] : 0) - (n[a] ? s[a] / n[a] : 0); });
+      var ya = bars(P, order.map(function (i) { return [names[i], n[i] ? s[i] / n[i] : 0, half(s[i]) + ' / ' + n[i] + ' · ' + pct(s[i], n[i]) + '%', i === order[3] ? DP.gold : DP.sig]; }), 46, 62, 13);
+      var lo = order[3]; if (n[lo] >= 5) note(P, names[lo] + ' is the soft spot: ' + half(s[lo]) + ' of ' + n[lo] + ' points.', ya + 6);
+    } else note(P, 'No blind wines in this view.', P.y + 8);
+    P = panel(M + half2 + 8, y2, half2, h2, 'Blind score per session', 'Points per wine, out of 4');
+    var by = {}; B.forEach(function (w) { var p = wPts(w).reduce(function (a, b) { return a + (b || 0); }, 0); (by[w.ymd] = by[w.ymd] || { n: 0, p: 0 }); by[w.ymd].n++; by[w.ymd].p += p; });
+    var ds = Object.keys(by).sort().slice(-12);
+    if (ds.length >= 2) {
+      var vals = ds.map(function (d) { return by[d].p / by[d].n; }), top = Math.max(2, Math.ceil(Math.max.apply(null, vals)));
+      var gx0 = P.x + 12, gx1 = P.x + P.w - 4, gy0 = P.y + 2, gy1 = P.b - 18, X = function (i) { return gx0 + 8 + (gx1 - gx0 - 16) * i / (ds.length - 1); }, Y = function (v) { return gy1 - (gy1 - gy0) * v / top; };
+      for (var t = 0; t <= top; t++) { stroke(DP.line, .5); D.line(gx0, Y(t), gx1, Y(t)); font('n', 6, DP.muted); txt(String(t), gx0 - 4, Y(t) + 2, { align: 'right' }); }
+      var all = B.reduce(function (a, w) { return a + wPts(w).reduce(function (q, b) { return q + (b || 0); }, 0); }, 0) / B.length;
+      stroke(DP.gold, .7); D.setLineDashPattern([2, 2], 0); D.line(gx0, Y(all), gx1, Y(all)); D.setLineDashPattern([], 0); font('n', 6, DP.goldInk); txt('average ' + all.toFixed(2), gx1, Y(all) - 3, { align: 'right' });
+      stroke(DP.sig, 1.4); for (var i = 1; i < ds.length; i++) D.line(X(i - 1), Y(vals[i - 1]), X(i), Y(vals[i]));
+      var every = Math.max(1, Math.ceil(ds.length / 6));
+      ds.forEach(function (d, i) { fill(DP.sig); D.circle(X(i), Y(vals[i]), 2.4, 'F'); if (i % every === 0 || i === ds.length - 1) { font('n', 6, DP.ink2); txt(shortDate(d), X(i), gy1 + 9, { align: 'center' }); font('n', 5.4, DP.muted); txt(by[d].n + (by[d].n === 1 ? ' wine' : ' wines'), X(i), gy1 + 16, { align: 'center' }); } });
+    } else note(P, 'The line appears after a second blind session.', P.y + 8);
+
+    // ---- SAT habits | go-to descriptors | value finds
+    var y3 = y2 + h2 + 8, h3 = 126, w3a = CW * 0.46, w3b = CW * 0.27, w3c = CW - w3a - w3b - 16;
+    P = panel(M, y3, w3a, h3, 'SAT habits', 'How you spread each scale');
+    var comps = [['acidity', 'Acidity', W], ['tannin', 'Tannin', W.filter(function (w) { return w.tannin; })], ['alcohol', 'Alcohol', W], ['body', 'Body', W], ['finish', 'Finish', W]], LN = ['Low', 'Medium Minus', 'Medium', 'Medium Plus', 'High'];
+    var sy = P.y, flag = null;
+    comps.forEach(function (c) { var nn = [0, 0, 0, 0, 0], tot = 0; c[2].forEach(function (w) { var v = lvOf(w[c[0]]); if (v !== null) { nn[v]++; tot++; } }); if (!tot) return;
+      var mi = nn.indexOf(Math.max.apply(null, nn)), sh = nn[mi] / tot, bx = P.x + 40, bw = P.w - 40 - 66, cx = bx;
+      font('n', 7.2, DP.ink2); txt(c[1], P.x, sy + 7);
+      nn.forEach(function (v, i) { if (!v) return; var ww = bw * v / tot; rect(cx, sy, Math.max(.5, ww - 1), 9, DP.lv[i]); cx += ww; });
+      font('b', 6.6, sh >= .6 && tot >= 10 ? DP.no : DP.ink); txt(pct(nn[mi], tot) + '% ' + LN[mi], P.x + P.w, sy + 7, { align: 'right' });
+      if (tot >= 10 && sh >= .6 && (!flag || sh > flag.sh)) flag = { c: c[1], l: LN[mi], n: nn[mi], tot: tot, sh: sh };
+      sy += 13; });
+    var lx = P.x; ['Low', 'M−', 'Medium', 'M+', 'High'].forEach(function (l, i) { rect(lx, sy + 1, 6, 6, DP.lv[i], 1); font('n', 5.8, DP.ink2); txt(l, lx + 8, sy + 6); lx += D.getTextWidth(T(l)) + 16; });
+    if (flag) note(P, flag.c + ' is ' + flag.l + ' on ' + flag.n + ' of ' + flag.tot + ' wines, which suggests a safe default.', sy + 17, 6.4);
+    P = panel(M + w3a + 8, y3, w3b, h3, 'Go-to descriptors', 'Words you reach for');
+    var wc = {}, home = {}; W.forEach(function (w) { var seen = {}; String(w.aromas || '').split(/\s*,\s*/).forEach(function (t) { var k = t.trim().replace(/[.;:]+$/, '').toLowerCase(); if (!k || seen[k] || !WORDHOME[k] || WORDHOME[k].c === 'Fruit character') return; seen[k] = 1; wc[k] = (wc[k] || 0) + 1; home[k] = WORDHOME[k].f; }); });
+    var tw = Object.keys(wc).sort(function (a, b) { return wc[b] - wc[a]; }).slice(0, 7), wmx = tw.length ? wc[tw[0]] : 1;
+    bars(P, tw.map(function (k) { return [wordLabel(k).toLowerCase(), wc[k] / wmx, String(wc[k]), DP.fam[home[k]] || DP.fam.other]; }), 52, 14, 10.6);
+    P = panel(M + w3a + w3b + 16, y3, w3c, h3, 'Value finds', 'Most quality per dollar');
+    var vf = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 3; }).sort(function (a, b) { return priceOf(a) / (QLEVELS.indexOf(a.quality) - 1) - priceOf(b) / (QLEVELS.indexOf(b.quality) - 1); }).slice(0, 4);
+    var vy = P.y + 2; vf.forEach(function (w) { var cs2 = criticScore(w); font('b', 7.4, DP.ink); txt(fit(String(w.producer || w.aGrape || 'Wine').split(/\s+[-–]\s+/)[0], P.w - 30), P.x, vy + 6); txt(money(priceOf(w)), P.x + P.w, vy + 6, { align: 'right' });
+      font('n', 6.2, DP.muted); txt(fit(w.quality + (cs2 !== null ? ' · critics ' + cs2 : '') + (w.aRegion ? ' · ' + w.aRegion : ''), P.w), P.x, vy + 14); vy += 19; });
+    if (!vf.length) note(P, 'Wines you rate Very Good or better, with a price, show here.', P.y + 8);
+
+    // ---- D3 coverage
+    var y4 = y3 + h3 + 8, h4 = 90;
+    var cov = {}; W.forEach(function (w) { var k = answerKey(String(w.aCountry || '')), hit = D3_COUNTRIES.filter(function (d) { return answerKey(d) === k; })[0]; if (hit) cov[hit] = (cov[hit] || 0) + 1; });
+    var got = Object.keys(cov).length, cmx = Math.max.apply(null, [1].concat(Object.keys(cov).map(function (k) { return cov[k]; })));
+    P = panel(M, y4, CW, h4, 'Diploma coverage', 'D3 countries and styles you’ve tasted');
+    font('b', 7.4, DP.ink2); txt(got + ' of 16 countries', P.x + P.w, P.y - 10, { align: 'right' });
+    var tw8 = (P.w - 7 * 4) / 8, CL = ['#FFFFFF', '#F5EAED', '#E7C9D3', '#86274A', '#6D1A36'];
+    D3_COUNTRIES.slice().sort(function (a, b) { return (cov[b] || 0) - (cov[a] || 0); }).forEach(function (c, i) { var x = P.x + (i % 8) * (tw8 + 4), yy = P.y - 4 + Math.floor(i / 8) * 19, v = cov[c] || 0, lvl = v ? Math.min(4, Math.ceil(v / cmx * 4)) : 0;
+      if (lvl) rect(x, yy, tw8, 16, CL[lvl], 3); else { stroke('#DDD3C5', .6); D.setLineDashPattern([1.5, 1.5], 0); D.roundedRect(x, yy, tw8, 16, 3, 3, 'S'); D.setLineDashPattern([], 0); }
+      var tc = lvl >= 3 ? '#FFFFFF' : lvl ? DP.ink : DP.muted; font('n', 6.4, tc); txt(fit(c, tw8 - 18), x + 4, yy + 10.5); font('b', 7.4, tc); txt(String(v), x + tw8 - 4, yy + 10.8, { align: 'right' }); });
+    var st = {}; W.forEach(function (w) { var k = wStyle(w); st[k] = (st[k] || 0) + 1; });
+    var SO = [['Red', 'Still red', DP.sig, '#FFFFFF'], ['White', 'Still white', '#C9A24F', DP.ink], ['Rosé', 'Rosé', '#E7A0B0', DP.ink], ['Sparkling', 'Sparkling', '#C77DB2', DP.ink], ['Fortified', 'Fortified', '#8A5530', '#FFFFFF'], ['Sweet', 'Sweet', '#D9B36A', DP.ink]];
+    var sx = P.x, syy = P.y + 36; SO.forEach(function (o) { var v = st[o[0]]; if (!v) return; var ww = P.w * v / W.length; rect(sx, syy, Math.max(1, ww - 1.5), 11, o[2]); font('n', 6.2, o[3]); if (ww > 30) txt(fit(o[1] + ' ' + v, ww - 8), sx + 4, syy + 7.8); sx += ww; });
+
+    // ---- grape mix-ups | accuracy by grape
+    var y5 = y4 + h4 + 8, h5 = 150, w5a = CW * 0.58, w5b = CW - w5a - 8;
+    P = panel(M, y5, w5a, h5, 'Grape mix-ups', 'Your most common mix-ups');
+    var R = mixData(B), pairs = {}, lab = {};
+    R.forEach(function (rr) { lab[rr.a.key] = rr.a; lab[rr.g.key] = rr.g; if (rr.a.key === rr.g.key) return; var k = [rr.a.key, rr.g.key].sort().join('|'), Q = pairs[k] = pairs[k] || { x: [rr.a.key, rr.g.key].sort(), n: 0, dir: {}, rows: [] }; Q.n++; Q.dir[rr.a.key] = (Q.dir[rr.a.key] || 0) + 1; Q.rows.push(rr); });
+    var pl = Object.keys(pairs).map(function (k) { return pairs[k]; }).sort(function (a, b) { return b.n - a.n || b.rows[b.rows.length - 1].w.ymd.localeCompare(a.rows[a.rows.length - 1].w.ymd); }).slice(0, 3);
+    var my = P.y; if (!pl.length) note(P, 'Mix-ups appear once you’ve guessed a grape blind and filled in the answer.', my + 6);
+    function dir(was, said, nn, yy) { font('b', 7, DP.ink); var ww = D.getTextWidth(T(was)) + 10; rect(P.x + 14, yy - 6.5, ww, 9.5, DP.seg, 4.5); txt(was, P.x + 19, yy); var ax = P.x + 14 + ww + 4; stroke(DP.muted, .7); D.line(ax, yy - 2, ax + 10, yy - 2); D.line(ax + 7, yy - 4.5, ax + 10, yy - 2); D.line(ax + 7, yy + .5, ax + 10, yy - 2);
+      font('n', 7, DP.ink2); txt('you said ' + said, ax + 14, yy); var dx = ax + 18 + D.getTextWidth(T('you said ' + said)); for (var i = 0; i < Math.min(nn, 8); i++) { fill(DP.sig); D.circle(dx + i * 6, yy - 2.2, 2, 'F'); } font('b', 7, DP.ink); txt(nn + '×', dx + Math.min(nn, 8) * 6 + 2, yy); }
+    pl.forEach(function (Q, ix) { var A = Q.x[0], Bk = Q.x[1], ab = Q.dir[A] || 0, ba = Q.dir[Bk] || 0; if (ba > ab) { var t2 = A; A = Bk; Bk = t2; t2 = ab; ab = ba; ba = t2; }
+      fill(DP.tint); D.circle(P.x + 5, my + 3, 5, 'F'); font('b', 6.4, DP.sig); txt(String(ix + 1), P.x + 5, my + 5.2, { align: 'center' });
+      font('b', 8, DP.ink); txt(lab[A].label + ' and ' + lab[Bk].label, P.x + 14, my + 6);
+      var enc = R.filter(function (rr) { return rr.a.key === A || rr.a.key === Bk; }).slice(-4), right = enc.filter(function (rr) { return rr.p >= 1; }).length;
+      font('n', 6.2, DP.muted); txt(right + ' of your last ' + enc.length + ' right', P.x + P.w, my + 6, { align: 'right' });
+      my += 14; dir(lab[A].label, lab[Bk].label, ab, my); my += 10.5;
+      if (ba) { dir(lab[Bk].label, lab[A].label, ba, my); my += 10.5; } else { font('n', 6, DP.muted); txt('Never the other way round', P.x + 14, my); my += 9; }
+      my += 3; });
+    P = panel(M + w5a + 8, y5, w5b, h5, 'Accuracy by grape', 'Worst first, after 3 blind tastings');
+    var bg = {}; R.forEach(function (rr) { var o = bg[rr.a.key] = bg[rr.a.key] || { k: rr.a.key, n: 0, p: 0 }; o.n++; o.p += Math.min(1, rr.p); });
+    var rk = Object.keys(bg).map(function (k) { return bg[k]; }).filter(function (o) { return o.n >= 3; }).sort(function (a, b) { return a.p / a.n - b.p / b.n || b.n - a.n; }).slice(0, 5);
+    var ay = rk.length ? bars(P, rk.map(function (o) { return [lab[o.k].label, o.p / o.n, half(o.p) + ' of ' + o.n + ' · ' + pct(o.p, o.n) + '%', o.p / o.n < .5 ? DP.gold : DP.sig]; }), 58, 58, 12) : note(P, 'Each grape joins this chart after three blind tastings.', P.y + 6);
+    var fewN = Object.keys(bg).filter(function (k) { return bg[k].n < 3; }).length; if (fewN) note(P, fewN + ' more grape' + (fewN === 1 ? '' : 's') + ' with fewer than three blind tastings.', ay + 6, 6.2);
+
+    // ---- quality calibration | price by your rating
+    var y6 = y5 + h5 + 8, h6 = PH - 26 - y6, w6a = CW * 0.42, w6b = CW - w6a - 8;
+    P = panel(M, y6, w6a, h6, 'Quality calibration', 'Your quality call against the critics');
+    var cp = W.map(function (w) { return { w: w, c: criticScore(w), q: QLEVELS.indexOf(w.quality) }; }).filter(function (o) { return o.c !== null && o.q >= 0; });
+    if (cp.length >= 3) {
+      var lv = QLEVELS.filter(function (q, i) { return cp.some(function (o) { return o.q === i; }); }).reverse();
+      var clo = Math.max(80, Math.floor(Math.min.apply(null, cp.map(function (o) { return o.c; }))) - 1), chi = Math.min(100, Math.ceil(Math.max.apply(null, cp.map(function (o) { return o.c; }))) + 1);
+      var cx0 = P.x + 50, cx1 = P.x + P.w - 4, rh = Math.min(22, (P.b - P.y - 30) / Math.max(1, lv.length)), cy0 = P.y + 6, CX = function (v) { return cx0 + (cx1 - cx0) * (v - clo) / (chi - clo); }, CY = function (q) { return cy0 + rh * lv.indexOf(QLEVELS[q]); };
+      lv.forEach(function (l, i) { var yy = cy0 + rh * i; stroke(DP.line, .5); D.line(cx0, yy, cx1, yy); font('n', 6.6, DP.ink2); txt(l, cx0 - 6, yy + 2.3, { align: 'right' }); });
+      var mn = {}, seen = {}; cp.forEach(function (o) { var k = Math.round(CX(o.c) / 4) + '|' + o.q, nn = seen[k] = (seen[k] || 0) + 1, off = [0, -3, 3, -6, 6][(nn - 1) % 5]; fill(dhex(DP.sig, .75)); D.circle(CX(o.c), CY(o.q) + off, 2.8, 'F'); (mn[o.q] = mn[o.q] || []).push(o.c); });
+      Object.keys(mn).forEach(function (q) { var m = mn[q].reduce(function (a, b) { return a + b; }, 0) / mn[q].length; stroke(DP.gold, 1.6); D.line(CX(m), CY(+q) - 6, CX(m), CY(+q) + 6); });
+      var ay2 = cy0 + rh * (lv.length - 1) + 12, stp = chi - clo > 12 ? 4 : 2; stroke(DP.line, .5); D.line(cx0, ay2 - 5, cx1, ay2 - 5);
+      for (var sc = Math.ceil(clo / stp) * stp; sc <= chi; sc += stp) { font('n', 6, DP.muted); txt(String(sc), CX(sc), ay2 + 2, { align: 'center' }); }
+      font('n', 6, DP.muted); txt('critics’ average score · gold tick = average for that level', (cx0 + cx1) / 2, ay2 + 10, { align: 'center' });
+      var ms = lv.slice().reverse().filter(function (l) { return mn[QLEVELS.indexOf(l)]; }).map(function (l) { var a = mn[QLEVELS.indexOf(l)]; return l + ' ' + (a.reduce(function (x, y) { return x + y; }, 0) / a.length).toFixed(1); });
+      note(P, 'Averages: ' + ms.join(', ') + '.', ay2 + 20, 6.4);
+    } else note(P, 'Fills in once three wines have both your quality call and a critic’s score.', P.y + 8);
+    P = panel(M + w6a + 8, y6, w6b, h6, 'Price by your rating', 'What the wines you rated cost');
+    var priced = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 0; });
+    if (priced.length >= 3) {
+      var lv2 = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); }).reverse();
+      var pmx = Math.max.apply(null, priced.map(priceOf)), pst = pmx > 150 ? 50 : pmx > 60 ? 25 : 10, ptop = Math.ceil(pmx / pst) * pst;
+      var sets = [['All wines', priced], ['Blind', priced.filter(isBlind)], ['Tasted open', priced.filter(function (w) { return !isBlind(w); })]];
+      var labW = 46, pw3 = (P.w - labW - 2 * 8) / 3, prh = Math.min(16, (P.b - P.y - 26) / lv2.length);
+      lv2.forEach(function (q, i) { font('n', 6.6, DP.ink2); txt(q, P.x, P.y + 14 + i * prh + 4); });
+      sets.forEach(function (S, si) { var px = P.x + labW + si * (pw3 + 8), trw = pw3 - 26;
+        font('b', 7, DP.ink); txt(S[0], px, P.y + 4); font('n', 5.8, DP.muted); txt(S[1].length + ' priced', px + pw3, P.y + 4, { align: 'right' });
+        lv2.forEach(function (q, i) { var yy = P.y + 14 + i * prh, ws = S[1].filter(function (w) { return w.quality === q; }), ps = ws.map(priceOf), m = median(ps);
+          rect(px, yy - 1, trw, 8, DP.seg, 2.5); ps.forEach(function (p) { fill(dhex(DP.sig, .72)); D.circle(px + trw * p / ptop, yy + 3, 2.1, 'F'); });
+          if (m !== null && ps.length > 1) { stroke(DP.gold, 1.4); D.line(px + trw * m / ptop, yy - .5, px + trw * m / ptop, yy + 6.5); }
+          font('b', 6.4, DP.ink); txt(m === null ? '–' : money(m), px + pw3, yy + 5, { align: 'right' }); });
+        var ay3 = P.y + 14 + lv2.length * prh + 2; font('n', 5.4, DP.muted); [0, ptop / 2, ptop].forEach(function (tt) { txt('$' + tt, px + trw * tt / ptop, ay3, { align: 'center' }); }); });
+      note(P, 'Each dot is a wine; the gold line is the median.', P.y + 14 + lv2.length * prh + 12, 6.2);
+    } else note(P, 'Fills in once three rated wines have a price.', P.y + 8);
+
+    // ---- footer
+    font('n', 6.2, DP.muted); txt('Tasting Notes ' + VERSION_LABEL + '  ·  critic scores and prices come from web searches and are approximate', M, PH - 12);
+    return D.output('blob');
+  });
+}
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('[data-db-pdf]')) return;
+  toast('Making PDF…');
+  dashPdf().then(function (blob) {
+    var d = new Date(), stamp = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+    readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
+  }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
+});
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.72';
