@@ -228,8 +228,12 @@ function accuracy(B) {
   var order = [0, 1, 2, 3].sort(function (a, b) { return (n[b] ? s[b] / n[b] : 0) - (n[a] ? s[a] / n[a] : 0); });
   var body = '<div class="db-bars">' + order.map(function (i) { return bar(names[i], n[i] ? s[i] / n[i] : 0, half(s[i]) + ' / ' + n[i] + ' · ' + pct(s[i], n[i]) + '%', i === order[3] ? 'gold' : ''); }).join('') + '</div>';
   var lo = order[3], note = '';
-  if (n[lo] >= 5) note = names[lo] === 'Region' ? 'Region is the soft spot: ' + half(s[2]) + ' of ' + n[2] + '. It only scores once the grape and country are right, so the grape is the lever.' :
-    names[lo] + ' is the soft spot: ' + half(s[lo]) + ' of ' + n[lo] + ' points.';
+  if (n[lo] >= 5 && names[lo] === 'Region') {                          // each answer scores on its own; this says where the region points went
+    var cr = 0, crPts = 0, cw = 0;
+    B.forEach(function (w) { var p = wPts(w); if (p[1] === null || p[2] === null) return; if (p[1] >= 1) { cr++; crPts += p[2]; } else cw++; });
+    note = 'Region is the soft spot: ' + half(s[2]) + ' of ' + n[2] + '.' + (cw ? ' On ' + cw + ' of those wines the country was wrong too, which leaves the region little chance.' : '') +
+      (cr ? ' On the ' + cr + ' where you had the country right, you scored ' + half(crPts) + ' for region' + (crPts < cr / 2 ? ', so naming the right region within the country is the next step.' : '.') : '');
+  } else if (n[lo] >= 5) note = names[lo] + ' is the soft spot: ' + half(s[lo]) + ' of ' + n[lo] + ' points.';
   return card('', 'Blind accuracy', 'Where your points come from', body + coach(note));
 }
 
@@ -483,4 +487,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.69';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.70';
