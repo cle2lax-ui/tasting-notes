@@ -183,9 +183,9 @@ function renderDash() {
   if (!W.length) { el.innerHTML = h + '<div class="db-empty">' + (ALL.length ? 'No wines match these filters.' : 'Taste a few wines and your dashboard fills in here.') + '</div>'; return; }
   h += kpis(W, B);
   h += '<div class="db-row">' + accuracy(B) + sessions(B) + '</div>';
-  h += mixups(B);
   h += '<div class="db-row db-35">' + habits(W) + words(W) + '</div>';
   h += coverage(W);
+  h += mixups(B);                                                        // grape mix-ups and accuracy by grape
   h += '<div class="db-row db-35">' + calibration(W) + value(W) + '</div>';   // last: the two that compare with outside sources (critics, prices)
   h += priceByRating(W);
   el.innerHTML = h;
@@ -487,4 +487,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.70';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.71';
