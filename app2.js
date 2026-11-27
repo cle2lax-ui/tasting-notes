@@ -490,7 +490,7 @@ function start(init) {
   findOrphans().then(function (o) { if (o.length && !loadRows.repaired) setTimeout(function () { toast(o.length + ' label photo' + (o.length === 1 ? ' isn\u2019t' : 's aren\u2019t') + ' attached to a wine. Open the wine, then tap Use a photo on this device.'); }, 1800); });
   if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
   var back = ''; try { back = sessionStorage.getItem('btn-view') || ''; sessionStorage.removeItem('btn-view'); } catch (e) {}
-  var want = new URLSearchParams(location.search).get('view') || back || 'notebook';   // always the Notebook; an unsaved note waits in Tasting (back = the view kept across an update reload)
+  var want = new URLSearchParams(location.search).get('view') || back || 'notebook';   // opens on the Notebook; an unsaved note waits in Tasting (back = the view kept across an update reload)
   setView(want === 'taste' || want === 'dash' ? want : 'notebook');
   spy();
 }
@@ -1161,4 +1161,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.65';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.66';

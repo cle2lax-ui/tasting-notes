@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.65';
+var VERSION_LABEL = 'v2.66';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -400,7 +400,9 @@ $('cDate').addEventListener('change', function () { rec.date = this.value; if (!
 $('cEvent').addEventListener('input', function () { rec.event = this.value; touch(true); });
 $('cUp').onclick = function () { rec.wineNo = (+rec.wineNo || 0) + 1; $('cNo').textContent = rec.wineNo; touch(); };
 $('cDn').onclick = function () { rec.wineNo = Math.max(1, (+rec.wineNo || 1) - 1); $('cNo').textContent = rec.wineNo; touch(); };
-$('cNew').onclick = function () { guard('Start a new wine?').then(function (go) { if (!go) return; var d = today(), ev = rec.date === d ? rec.event : ''; clearDraft(); show({ date: d, wineNo: nextNo(d), event: ev || '' }, null, false); sheet('changeSheet', false); window.scrollTo(0, 0); }); };
+function newWine() { guard('Start a new wine?').then(function (go) { if (!go) return; var d = today(), ev = rec.date === d ? rec.event : ''; clearDraft(); show({ date: d, wineNo: nextNo(d), event: ev || '' }, null, false); sheet('changeSheet', false); window.scrollTo(0, 0); toast('New wine: ' + label()); }); }
+$('cNew').onclick = newWine;
+$('newBtn').onclick = newWine;   // v2.66: New Wine in the bar, so a new wine can start at any time
 $('openQ').addEventListener('input', paintOpen);
 function paintOpen() {
   var q = $('openQ').value.trim().toLowerCase(), h = '', last = '';
@@ -533,4 +535,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.65';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.66';
