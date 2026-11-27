@@ -66,4 +66,4 @@ var WSET_LISTS = {
     'Tasmania', 'Marlborough', 'Central Otago', "Hawke's Bay", 'Martinborough', 'Stellenbosch', 'Swartland', 'Constantia', 'Walker Bay', 'Okanagan Valley', 'Niagara Peninsula',
     'Bekaa Valley', 'Santorini', 'Naoussa', 'Nemea']
 };
-/*build*/(window.__V = window.__V || {})['lexicon'] = 'v2.68';
+/*build*/(window.__V = window.__V || {})['lexicon'] = 'v2.69';

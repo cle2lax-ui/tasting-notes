@@ -191,6 +191,24 @@ function renderDash() {
   el.innerHTML = h;
 }
 
+var FLAG_ISO = { 'France': 'FR', 'Italy': 'IT', 'Spain': 'ES', 'Portugal': 'PT', 'Germany': 'DE', 'Austria': 'AT', 'Hungary': 'HU', 'Greece': 'GR', 'USA': 'US',
+  'Canada': 'CA', 'Chile': 'CL', 'Argentina': 'AR', 'Uruguay': 'UY', 'Brazil': 'BR', 'Australia': 'AU', 'New Zealand': 'NZ', 'South Africa': 'ZA', 'China': 'CN', 'Japan': 'JP',
+  'Lebanon': 'LB', 'Israel': 'IL', 'Georgia': 'GE', 'England': 'GB', 'Switzerland': 'CH', 'Slovenia': 'SI', 'Croatia': 'HR', 'Mexico': 'MX', 'Moldova': 'MD', 'Romania': 'RO', 'Bulgaria': 'BG', 'Turkey': 'TR' };
+function flagOf(c) { var iso = FLAG_ISO[c]; return iso ? iso.replace(/./g, function (ch) { return String.fromCodePoint(127397 + ch.charCodeAt(0)); }) : ''; }
+function countryName(raw) {                                              // one spelling per country (USA = United States = US)
+  var k = answerKey(raw); if (!k) return '';
+  var hit = Object.keys(FLAG_ISO).filter(function (c) { return answerKey(c) === k; })[0];
+  return hit || String(raw).trim();
+}
+function countryTile(W) {
+  var cnt = {}; W.forEach(function (w) { var c = countryName(w.aCountry); if (c) cnt[c] = (cnt[c] || 0) + 1; });
+  var cs = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; });
+  if (!cs.length) return '<div class="db-card db-kpi"><p class="db-eb">Most tasted country</p><div class="db-big">–</div><p class="db-sub">Fill in a wine’s country to see this</p></div>';
+  var top = cs.filter(function (c) { return cnt[c] === cnt[cs[0]]; }), next = cs.filter(function (c) { return cnt[c] < cnt[cs[0]]; }), n2 = next.length ? cnt[next[0]] : 0, nx = next.filter(function (c) { return cnt[c] === n2; });
+  var sub = cnt[top[0]] + ' of ' + W.length + ' wines' + (top.length > 1 ? ' each' : '') + (nx.length ? ' · next ' + andList(nx.slice(0, 2)) + (nx.length > 2 ? ' and others' : '') + ', ' + n2 : '');
+  return '<div class="db-card db-kpi"><p class="db-eb">Most tasted country</p><div class="db-ctry">' + top.slice(0, 2).map(function (c) { var f = flagOf(c);
+    return '<span>' + (f ? '<span class="db-flag" role="img" aria-label="Flag of ' + esc(c) + '">' + f + '</span>' : '') + '<b>' + esc(c) + '</b></span>'; }).join('') + '</div><p class="db-sub">' + esc(sub) + '</p></div>';
+}
 function kpis(W, B) {
   var pts = 0, of = 0, vin = 0, vn = 0, miss = 0;
   B.forEach(function (w) { wPts(w).forEach(function (p, i) { if (p === null) return; pts += p; of++; }); var gy = parseInt(w.gVintage, 10), ay = parseInt(w.aVintage, 10); if (!isNaN(gy) && !isNaN(ay)) { vn++; if (Math.abs(gy - ay) <= 1) vin++; miss += Math.abs(gy - ay); } });
@@ -199,7 +217,7 @@ function kpis(W, B) {
   return '<div class="db-kpis">' +
     tile('Wines tasted', W.length, B.length + ' blind · ' + (W.length - B.length) + ' tasted open') +
     tile('Blind score', of ? pct(pts, of) + '%' : '–', of ? half(pts) + ' of ' + of + ' points · ' + (pts / B.length).toFixed(1) + ' per wine' : 'No blind wines yet', 'sig') +
-    tile('Vintage within a year', vn ? pct(vin, vn) + '%' : '–', vn ? vin + ' of ' + vn + ' · average miss ' + (miss / vn).toFixed(1) + ' years' : 'No vintages guessed yet') +
+    countryTile(W) +
     tile('Median bottle', md !== null ? money(Math.round(md)) : '–', pr.length ? money(Math.min.apply(null, pr)) + ' to ' + money(Math.max.apply(null, pr)) + ' · ' + pr.length + ' priced' : 'No prices yet') + '</div>';
 }
 
@@ -465,4 +483,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.68';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.69';
