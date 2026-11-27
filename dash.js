@@ -194,6 +194,69 @@ function renderDash() {
 var FLAG_ISO = { 'France': 'FR', 'Italy': 'IT', 'Spain': 'ES', 'Portugal': 'PT', 'Germany': 'DE', 'Austria': 'AT', 'Hungary': 'HU', 'Greece': 'GR', 'USA': 'US',
   'Canada': 'CA', 'Chile': 'CL', 'Argentina': 'AR', 'Uruguay': 'UY', 'Brazil': 'BR', 'Australia': 'AU', 'New Zealand': 'NZ', 'South Africa': 'ZA', 'China': 'CN', 'Japan': 'JP',
   'Lebanon': 'LB', 'Israel': 'IL', 'Georgia': 'GE', 'England': 'GB', 'Switzerland': 'CH', 'Slovenia': 'SI', 'Croatia': 'HR', 'Mexico': 'MX', 'Moldova': 'MD', 'Romania': 'RO', 'Bulgaria': 'BG', 'Turkey': 'TR' };
+/* ---- country flags, drawn (not emoji) so they look the same in the app and in the PDF.
+   Each is a list of shapes on a 30 x 20 box: r = rectangle, p = polygon, c = circle, s = five-point star. Simplified at small sizes (no coats of arms). */
+function fstar(cx, cy, r) { var pts = []; for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r; pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]); } return pts; }
+function hstripes(cols) { var h = 20 / cols.length; return cols.map(function (c, i) { return ['r', 0, i * h, 30, h + 0.05, c]; }); }
+function vstripes(cols) { var w = 30 / cols.length; return cols.map(function (c, i) { return ['r', i * w, 0, w + 0.05, 20, c]; }); }
+function ujack(w, h) {                                                   // a small Union Jack for a canton
+  var t = w * 0.12, ts = h * 0.12;
+  return [['r', 0, 0, w, h, '#012169'], ['p', [[0, 0], [t, 0], [w, h - ts], [w, h], [w - t, h], [0, ts]], '#FFFFFF'], ['p', [[w, 0], [w, ts], [t, h], [0, h], [0, h - ts], [w - t, 0]], '#FFFFFF'],
+    ['r', w * 0.4, 0, w * 0.2, h, '#FFFFFF'], ['r', 0, h * 0.35, w, h * 0.3, '#FFFFFF'], ['r', w * 0.45, 0, w * 0.1, h, '#C8102E'], ['r', 0, h * 0.42, w, h * 0.16, '#C8102E']];
+}
+var FLAGS = {
+  'France': vstripes(['#0055A4', '#FFFFFF', '#EF4135']), 'Italy': vstripes(['#009246', '#FFFFFF', '#CE2B37']), 'Germany': hstripes(['#000000', '#DD0000', '#FFCE00']),
+  'Austria': hstripes(['#ED2939', '#FFFFFF', '#ED2939']), 'Hungary': hstripes(['#CD2A3E', '#FFFFFF', '#436F4D']),
+  'Spain': [['r', 0, 0, 30, 20, '#AA151B'], ['r', 0, 5, 30, 10, '#F1BF00']],
+  'Portugal': [['r', 0, 0, 30, 20, '#FF0000'], ['r', 0, 0, 12, 20, '#006600'], ['c', 12, 10, 3.6, '#FFCC00'], ['c', 12, 10, 2.2, '#FF0000']],
+  'Greece': (function () { var a = []; for (var i = 0; i < 9; i++) a.push(['r', 0, i * 20 / 9, 30, 20 / 9 + 0.05, i % 2 ? '#FFFFFF' : '#0D5EAF']); return a.concat([['r', 0, 0, 11.1, 11.1, '#0D5EAF'], ['r', 4.45, 0, 2.2, 11.1, '#FFFFFF'], ['r', 0, 4.45, 11.1, 2.2, '#FFFFFF']]); })(),
+  'USA': (function () { var a = []; for (var i = 0; i < 13; i++) a.push(['r', 0, i * 20 / 13, 30, 20 / 13 + 0.05, i % 2 ? '#FFFFFF' : '#B22234']); a.push(['r', 0, 0, 12, 20 * 7 / 13, '#3C3B6E']);
+    for (var r = 0; r < 4; r++) for (var c = 0; c < 5; c++) a.push(['c', 1.4 + c * 2.3 + (r % 2) * 1.1, 1.4 + r * 2.5, 0.45, '#FFFFFF']); return a; })(),
+  'Canada': [['r', 0, 0, 30, 20, '#FFFFFF'], ['r', 0, 0, 7.5, 20, '#D80621'], ['r', 22.5, 0, 7.5, 20, '#D80621'],
+    ['p', [[15, 3.2], [16.3, 5.8], [18, 5.2], [17.4, 9], [19.6, 7.4], [20.2, 8.8], [21.8, 8.4], [21, 11], [22, 11.6], [18.2, 14.2], [18.6, 15.4], [15.4, 15], [15.4, 18], [14.6, 18], [14.6, 15], [11.4, 15.4], [11.8, 14.2], [8, 11.6], [9, 11], [8.2, 8.4], [9.8, 8.8], [10.4, 7.4], [12.6, 9], [12, 5.2], [13.7, 5.8]], '#D80621']],
+  'Chile': [['r', 0, 0, 30, 10, '#FFFFFF'], ['r', 0, 10, 30, 10, '#D52B1E'], ['r', 0, 0, 10, 10, '#0039A6'], ['s', 5, 5, 3, '#FFFFFF']],
+  'Argentina': hstripes(['#74ACDF', '#FFFFFF', '#74ACDF']).concat([['c', 15, 10, 2.4, '#F6B40E']]),
+  'South Africa': [['r', 0, 0, 30, 10, '#E03C31'], ['r', 0, 10, 30, 10, '#001489'], ['p', [[0, 0], [5, 0], [13.5, 7.6], [30, 7.6], [30, 12.4], [13.5, 12.4], [5, 20], [0, 20]], '#FFFFFF'],
+    ['p', [[0, 1.6], [2.6, 0], [3.8, 0], [12.8, 8.8], [30, 8.8], [30, 11.2], [12.8, 11.2], [3.8, 20], [2.6, 20], [0, 18.4]], '#007749'], ['p', [[0, 3.4], [8.6, 10], [0, 16.6]], '#FFB612'], ['p', [[0, 5], [6.6, 10], [0, 15]], '#000000']],
+  'Australia': [['r', 0, 0, 30, 20, '#012169']].concat(ujack(15, 10), [['s', 7.5, 15, 2.2, '#FFFFFF'], ['s', 22.5, 4, 1.2, '#FFFFFF'], ['s', 19, 9, 1.2, '#FFFFFF'], ['s', 26, 8, 1.2, '#FFFFFF'], ['s', 22.5, 16, 1.3, '#FFFFFF'], ['s', 24.4, 11.2, 0.7, '#FFFFFF']]),
+  'New Zealand': [['r', 0, 0, 30, 20, '#012169']].concat(ujack(15, 10), [['s', 22.5, 4, 1.6, '#FFFFFF'], ['s', 22.5, 4, 1.05, '#C8102E'], ['s', 19, 9.5, 1.6, '#FFFFFF'], ['s', 19, 9.5, 1.05, '#C8102E'],
+    ['s', 25.6, 8.5, 1.4, '#FFFFFF'], ['s', 25.6, 8.5, 0.9, '#C8102E'], ['s', 22.5, 16, 1.8, '#FFFFFF'], ['s', 22.5, 16, 1.2, '#C8102E']]),
+  'China': [['r', 0, 0, 30, 20, '#EE1C25'], ['s', 5, 5, 3, '#FFFF00'], ['s', 10, 2, 1, '#FFFF00'], ['s', 12, 4, 1, '#FFFF00'], ['s', 12, 7, 1, '#FFFF00'], ['s', 10, 9, 1, '#FFFF00']],
+  'England': [['r', 0, 0, 30, 20, '#FFFFFF'], ['r', 13, 0, 4, 20, '#CE1124'], ['r', 0, 8, 30, 4, '#CE1124']],
+  'Switzerland': [['r', 0, 0, 30, 20, '#DA291C'], ['r', 13, 4, 4, 12, '#FFFFFF'], ['r', 9, 8, 12, 4, '#FFFFFF']],
+  'Japan': [['r', 0, 0, 30, 20, '#FFFFFF'], ['c', 15, 10, 6, '#BC002D']],
+  'Uruguay': (function () { var a = []; for (var i = 0; i < 9; i++) a.push(['r', 0, i * 20 / 9, 30, 20 / 9 + 0.05, i % 2 ? '#0038A8' : '#FFFFFF']); return a.concat([['r', 0, 0, 11, 11.1, '#FFFFFF'], ['c', 5.5, 5.5, 3, '#FCD116']]); })(),
+  'Brazil': [['r', 0, 0, 30, 20, '#009C3B'], ['p', [[15, 2], [28, 10], [15, 18], [2, 10]], '#FFDF00'], ['c', 15, 10, 4.6, '#002776']],
+  'Lebanon': [['r', 0, 0, 30, 20, '#ED1C24'], ['r', 0, 5, 30, 10, '#FFFFFF'], ['p', [[15, 6], [19, 13.5], [11, 13.5]], '#00A651']],
+  'Israel': [['r', 0, 0, 30, 20, '#FFFFFF'], ['r', 0, 2, 30, 2.8, '#0038B8'], ['r', 0, 15.2, 30, 2.8, '#0038B8'], ['p', [[15, 6.4], [18.2, 12], [11.8, 12]], '#0038B8'], ['p', [[15, 7.8], [17, 11.2], [13, 11.2]], '#FFFFFF'],
+    ['p', [[15, 13.6], [11.8, 8], [18.2, 8]], '#0038B8'], ['p', [[15, 12.2], [13, 8.8], [17, 8.8]], '#FFFFFF']],
+  'Georgia': [['r', 0, 0, 30, 20, '#FFFFFF'], ['r', 13, 0, 4, 20, '#FF0000'], ['r', 0, 8, 30, 4, '#FF0000'], ['r', 5, 2.6, 2.4, 2.4, '#FF0000'], ['r', 22.6, 2.6, 2.4, 2.4, '#FF0000'], ['r', 5, 15, 2.4, 2.4, '#FF0000'], ['r', 22.6, 15, 2.4, 2.4, '#FF0000']],
+  'Slovenia': hstripes(['#FFFFFF', '#005DA4', '#ED1C24']).concat([['p', [[6, 3.4], [11, 3.4], [11, 9.6], [8.5, 11.6], [6, 9.6]], '#005DA4'], ['p', [[6.8, 9.2], [8.5, 7], [10.2, 9.2], [8.5, 10.6]], '#FFFFFF']]),
+  'Croatia': hstripes(['#FF0000', '#FFFFFF', '#171796']).concat((function () { var a = [['r', 12.5, 4.5, 5, 6.5, '#FFFFFF']]; for (var r = 0; r < 4; r++) for (var c = 0; c < 3; c++) if ((r + c) % 2 === 0) a.push(['r', 12.5 + c * 5 / 3, 4.5 + r * 6.5 / 4, 5 / 3 + 0.02, 6.5 / 4 + 0.02, '#FF0000']); return a; })()), 'Bulgaria': hstripes(['#FFFFFF', '#00966E', '#D62612']),
+  'Mexico': vstripes(['#006847', '#FFFFFF', '#CE1126']), 'Romania': vstripes(['#002B7F', '#FCD116', '#CE1126']), 'Moldova': vstripes(['#0046AE', '#FFD200', '#CC092F']),
+  'Turkey': [['r', 0, 0, 30, 20, '#E30A17'], ['c', 11, 10, 5, '#FFFFFF'], ['c', 12.3, 10, 4, '#E30A17'], ['s', 17.4, 10, 2.2, '#FFFFFF']]
+};
+// the flag as inline SVG (h = height in px); empty for a country without one
+function flagSvg(c, h) {
+  var F = FLAGS[c]; if (!F) return '';
+  var b = F.map(function (s) { if (s[0] === 'r') return '<rect x="' + s[1] + '" y="' + s[2] + '" width="' + s[3] + '" height="' + s[4] + '" fill="' + s[5] + '"/>';
+    if (s[0] === 'c') return '<circle cx="' + s[1] + '" cy="' + s[2] + '" r="' + s[3] + '" fill="' + s[4] + '"/>';
+    var pts = s[0] === 's' ? fstar(s[1], s[2], s[3]) : s[1]; return '<polygon points="' + pts.map(function (q) { return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join(' ') + '" fill="' + (s[0] === 's' ? s[4] : s[2]) + '"/>'; }).join('');
+  return '<svg class="db-flagsvg" viewBox="0 0 30 20" width="' + (h * 1.5).toFixed(1) + '" height="' + h + '" role="img" aria-label="Flag of ' + esc(c) + '"><clipPath id="fc-' + c.replace(/\W/g, '') + h + '"><rect width="30" height="20" rx="2"/></clipPath><g clip-path="url(#fc-' + c.replace(/\W/g, '') + h + ')">' + b + '</g><rect width="30" height="20" rx="2" fill="none" stroke="rgba(0,0,0,.18)" stroke-width=".6"/></svg>';
+}
+// the same flag drawn into a jsPDF document at x, y, h points tall
+function flagPdf(D, c, x, y, h) {
+  var F = FLAGS[c]; if (!F) return false; var k = h / 20;
+  F.forEach(function (s) {
+    if (s[0] === 'r') { D.setFillColor(s[5]); D.rect(x + s[1] * k, y + s[2] * k, s[3] * k, s[4] * k, 'F'); return; }
+    if (s[0] === 'c') { D.setFillColor(s[4]); D.circle(x + s[1] * k, y + s[2] * k, s[3] * k, 'F'); return; }
+    var pts = s[0] === 's' ? fstar(s[1], s[2], s[3]) : s[1], col = s[0] === 's' ? s[4] : s[2], segs = [];
+    for (var i = 1; i < pts.length; i++) segs.push([(pts[i][0] - pts[i - 1][0]) * k, (pts[i][1] - pts[i - 1][1]) * k]);
+    D.setFillColor(col); D.lines(segs, x + pts[0][0] * k, y + pts[0][1] * k, [1, 1], 'F', true);
+  });
+  D.setDrawColor('#CFC6BE'); D.setLineWidth(.35); D.rect(x, y, 30 * k, h, 'S');
+  return true;
+}
 function flagOf(c) { var iso = FLAG_ISO[c]; return iso ? iso.replace(/./g, function (ch) { return String.fromCodePoint(127397 + ch.charCodeAt(0)); }) : ''; }
 function countryName(raw) {                                              // one spelling per country (USA = United States = US)
   var k = answerKey(raw); if (!k) return '';
@@ -207,7 +270,7 @@ function countryTile(W) {
   var top = cs.filter(function (c) { return cnt[c] === cnt[cs[0]]; }), next = cs.filter(function (c) { return cnt[c] < cnt[cs[0]]; }), n2 = next.length ? cnt[next[0]] : 0, nx = next.filter(function (c) { return cnt[c] === n2; });
   var sub = cnt[top[0]] + ' of ' + W.length + ' wines' + (top.length > 1 ? ' each' : '') + (nx.length ? ' · next ' + andList(nx.slice(0, 2)) + (nx.length > 2 ? ' and others' : '') + ', ' + n2 : '');
   return '<div class="db-card db-kpi"><p class="db-eb">Most tasted country</p><div class="db-ctry">' + top.slice(0, 2).map(function (c) { var f = flagOf(c);
-    return '<span>' + (f ? '<span class="db-flag" role="img" aria-label="Flag of ' + esc(c) + '">' + f + '</span>' : '') + '<b>' + esc(c) + '</b></span>'; }).join('') + '</div><p class="db-sub">' + esc(sub) + '</p></div>';
+    return '<span>' + (FLAGS[c] ? flagSvg(c, 26) : f ? '<span class="db-flag" role="img" aria-label="Flag of ' + esc(c) + '">' + f + '</span>' : '') + '<b>' + esc(c) + '</b></span>'; }).join('') + '</div><p class="db-sub">' + esc(sub) + '</p></div>';
 }
 function kpis(W, B) {
   var pts = 0, of = 0, vin = 0, vn = 0, miss = 0;
@@ -448,7 +511,7 @@ function coverage(W) {
   var cn = {}; W.forEach(function (w) { var c = String(w.aCountry || '').trim(); if (!c) return; var k = answerKey(c), hit = D3_COUNTRIES.filter(function (d) { return answerKey(d) === k; })[0]; if (hit) cn[hit] = (cn[hit] || 0) + 1; });
   var mx = Math.max.apply(null, [1].concat(Object.keys(cn).map(function (k) { return cn[k]; }))), got = Object.keys(cn).length;
   var tiles = D3_COUNTRIES.slice().sort(function (a, b) { return (cn[b] || 0) - (cn[a] || 0); }).map(function (c) { var n = cn[c] || 0, lvl = n ? Math.min(4, Math.ceil(n / mx * 4)) : 0;
-    return '<div class="db-ct c' + lvl + '"><span>' + c + '</span><b>' + n + '</b></div>'; }).join('');
+    return '<div class="db-ct c' + lvl + '"><span>' + flagSvg(c, 12) + c + '</span><b>' + n + '</b></div>'; }).join('');
   var st = {}; W.forEach(function (w) { var s = wStyle(w); st[s] = (st[s] || 0) + 1; });
   var order = [['Red', 'Still red', 'sr'], ['White', 'Still white', 'sw2'], ['Rosé', 'Rosé', 'sro'], ['Sparkling', 'Sparkling', 'ssp'], ['Fortified', 'Fortified', 'sfo'], ['Sweet', 'Sweet', 'ssw']];
   var seg = '<div class="db-styles">' + order.filter(function (o) { return st[o[0]]; }).map(function (o) { return '<i class="' + o[2] + '" style="flex:' + st[o[0]] + ' 1 0"><span>' + o[1] + ' ' + st[o[0]] + '</span></i>'; }).join('') + '</div>';
@@ -543,7 +606,8 @@ function dashPdf() {
     var kw = (CW - 3 * 8) / 4, ky = 76;
     K.forEach(function (k, i) { var x = M + i * (kw + 8); fill(DP.card); stroke(DP.line, .6); D.roundedRect(x, ky, kw, 54, 7, 7, 'FD');
       font('b', 6.2, DP.muted); D.setCharSpace(.9); txt(k[0].toUpperCase(), x + 11, ky + 14); D.setCharSpace(0);
-      font('b', k[1].length > 9 ? 15 : 21, k[3]); txt(fit(k[1], kw - 22), x + 11, ky + 36); font('n', 6.6, DP.ink2); txt(fit(k[2], kw - 22), x + 11, ky + 47); });
+      var fx = x + 11; if (i === 2 && cs[0] && flagPdf(D, cs[0], fx, ky + 21, 15)) fx += 30;     // the most tasted country's flag
+      font('b', k[1].length > 9 ? 15 : 21, k[3]); txt(fit(k[1], x + kw - 11 - fx), fx, ky + 36); font('n', 6.6, DP.ink2); txt(fit(k[2], kw - 22), x + 11, ky + 47); });
 
     // ---- blind accuracy | score per session
     var y2 = 140, h2 = 118, half2 = (CW - 8) / 2;
@@ -602,7 +666,7 @@ function dashPdf() {
     var tw8 = (P.w - 7 * 4) / 8, CL = ['#FFFFFF', '#F5EAED', '#E7C9D3', '#86274A', '#6D1A36'];
     D3_COUNTRIES.slice().sort(function (a, b) { return (cov[b] || 0) - (cov[a] || 0); }).forEach(function (c, i) { var x = P.x + (i % 8) * (tw8 + 4), yy = P.y - 4 + Math.floor(i / 8) * 19, v = cov[c] || 0, lvl = v ? Math.min(4, Math.ceil(v / cmx * 4)) : 0;
       if (lvl) rect(x, yy, tw8, 16, CL[lvl], 3); else { stroke('#DDD3C5', .6); D.setLineDashPattern([1.5, 1.5], 0); D.roundedRect(x, yy, tw8, 16, 3, 3, 'S'); D.setLineDashPattern([], 0); }
-      var tc = lvl >= 3 ? '#FFFFFF' : lvl ? DP.ink : DP.muted; font('n', 6.4, tc); txt(fit(c, tw8 - 18), x + 4, yy + 10.5); font('b', 7.4, tc); txt(String(v), x + tw8 - 4, yy + 10.8, { align: 'right' }); });
+      var tc = lvl >= 3 ? '#FFFFFF' : lvl ? DP.ink : DP.muted; var nx = x + 3.5; if (flagPdf(D, c, nx, yy + 5, 6)) nx += 11.5; font('n', 6.1, tc); txt(fit(c, x + tw8 - 10.5 - nx), nx, yy + 10.5); font('b', 7.4, tc); txt(String(v), x + tw8 - 4, yy + 10.8, { align: 'right' }); });
     var st = {}; W.forEach(function (w) { var k = wStyle(w); st[k] = (st[k] || 0) + 1; });
     var SO = [['Red', 'Still red', DP.sig, '#FFFFFF'], ['White', 'Still white', '#C9A24F', DP.ink], ['Rosé', 'Rosé', '#E7A0B0', DP.ink], ['Sparkling', 'Sparkling', '#C77DB2', DP.ink], ['Fortified', 'Fortified', '#8A5530', '#FFFFFF'], ['Sweet', 'Sweet', '#D9B36A', DP.ink]];
     var sx = P.x, syy = P.y + 36; SO.forEach(function (o) { var v = st[o[0]]; if (!v) return; var ww = P.w * v / W.length; rect(sx, syy, Math.max(1, ww - 1.5), 11, o[2]); font('n', 6.2, o[3]); if (ww > 30) txt(fit(o[1] + ' ' + v, ww - 8), sx + 4, syy + 7.8); sx += ww; });
@@ -678,4 +742,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.72';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.73';
