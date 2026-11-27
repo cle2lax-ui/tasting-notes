@@ -3,10 +3,11 @@
 const L = {
   clarity: ['Clear', 'Hazy (Faulty?)'],
   appInt: ['Pale', 'Medium', 'Deep'],
-  type: ['White', 'Rosé', 'Red'],
+  type: ['White', 'Rosé', 'Red', 'Sparkling'],
   white: ['Lemon-Green', 'Lemon', 'Gold', 'Amber', 'Brown'],
   rose: ['Pink', 'Pink-Orange', 'Orange'],
   red: ['Purple', 'Ruby', 'Garnet', 'Tawny', 'Brown'],
+  sparkling: ['Lemon-Green', 'Lemon', 'Gold', 'Amber', 'Pink', 'Pink-Orange', 'Orange'],   // white and rosé sparkling colors
   condition: ['Clean', 'Unclean (Faulty?)'],
   intensity: ['Light', 'Medium Minus', 'Medium', 'Medium Plus', 'Pronounced'],
   development: ['Youthful', 'Developing', 'Fully Developed'],
@@ -334,4 +335,4 @@ const LEXICON = [
 /* A web link or email address is never an aroma or flavor (iOS can drop a recently copied link into a text field). */
 function isJunkTok(t) { t = String(t || '').trim(); return /^(https?:|www\.)|:\/\/|\.(com|io|net|org|app|dev|co|uk)(\/|$)|\S+@\S+\.\S+/i.test(t); }
 function cleanDescs(v) { var a = String(v || '').split(/\s*,\s*/).filter(function (t) { return t.trim(); }), b = a.filter(function (t) { return !isJunkTok(t); }); return b.length === a.length ? v : b.join(', '); }
-/*build*/(window.__V = window.__V || {})['logic'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['logic'] = 'v2.64';

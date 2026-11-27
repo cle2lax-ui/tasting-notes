@@ -877,8 +877,8 @@ body[data-view="dash"] #dbView{display:block}
 .db-track i.gold{background:var(--gold)}
 .db-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}
 .db-legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{display:inline-block;width:12px;height:12px;border-radius:3px}
-.sw.sig{background:var(--sig)}.sw.gold{background:var(--gold)}
+.db-sw{display:inline-block;width:12px;height:12px;border-radius:3px}
+.db-sw.sig{background:var(--sig)}.db-sw.gold{background:var(--gold)}
 .l0{background:var(--seg);box-shadow:inset 0 0 0 1px var(--line-2)}.l1{background:#E7C9D3}.l2{background:#C28A9C}.l3{background:#86274A}.l4{background:#3A0A1A}
 [data-theme="dim"] .l1{background:#5A3442}[data-theme="dim"] .l2{background:#8D5468}[data-theme="dim"] .l3{background:#C27C95}[data-theme="dim"] .l4{background:#EDB4C8}
 .db-stk{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px}
@@ -959,6 +959,10 @@ body[data-view="dash"] #dbView{display:block}
 @media (max-width:599px){ .db-filters{width:100%} .db-chips{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;margin:0 -18px;padding:0 18px;scrollbar-width:none} .db-chips::-webkit-scrollbar{display:none} .db-chip{flex:none} }
 .ssp{background:#C77DB2}[data-theme="dim"] .sfo{color:#1F1A1D}[data-theme="dim"] .ssw{color:#1F1A1D}
 .ssw{background:#D9B36A;color:#1F1A1D}
+
+/* v2.64 Sparkling: white colors, then the rosé colors set a little apart */
+.sw button.grp2{margin-left:12px}
+@media (max-width:759px){ .sw button.grp2{margin-left:0} }
 
 </style>
 </head>
@@ -1083,7 +1087,7 @@ body[data-view="dash"] #dbView{display:block}
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.63. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.64. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -1119,14 +1123,14 @@ body[data-view="dash"] #dbView{display:block}
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.63';</script>
-<script src="logic.js?v=2.63"></script>
-<script src="store.js?v=2.63"></script>
-<script src="google.js?v=2.63"></script>
-<script src="lexicon.js?v=2.63"></script>
-<script src="app.js?v=2.63"></script>
-<script src="app2.js?v=2.63"></script>
-<script src="dash.js?v=2.63"></script>
+<script>var BUILD = 'v2.64';</script>
+<script src="logic.js?v=2.64"></script>
+<script src="store.js?v=2.64"></script>
+<script src="google.js?v=2.64"></script>
+<script src="lexicon.js?v=2.64"></script>
+<script src="app.js?v=2.64"></script>
+<script src="app2.js?v=2.64"></script>
+<script src="dash.js?v=2.64"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });

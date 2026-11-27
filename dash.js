@@ -126,6 +126,7 @@ function rangeText(c, r) { var n = LV_NAME[c]; return r[0] === r[1] ? n[r[0]] : 
 /* ---- what the dashboard reads from each wine */
 var D3_COUNTRIES = ['France', 'Germany', 'Austria', 'Hungary', 'Greece', 'Italy', 'Spain', 'Portugal', 'USA', 'Canada', 'Chile', 'Argentina', 'South Africa', 'Australia', 'New Zealand', 'China'];
 function wStyle(w) {
+  if (w.type === 'Sparkling') return 'Sparkling';
   var txt = [w.producer, w.aRegion, w.aGrape, w.appNotes, w.palate].join(' ');
   if (/\b(port|porto|sherry|jerez|fino|manzanilla|amontillado|oloroso|palo cortado|madeira|marsala|banyuls|maury|vin doux naturel|tawny|lbv|colheita|rutherglen muscat|topaque)\b/i.test(txt)) return 'Fortified';
   if (/\b(champagne|cava|cr[eé]mant|prosecco|franciacorta|sekt|cap classique|trentodoc|sparkling|spumante|brut|p[eé]t[- ]?nat|m[eé]thode)\b/i.test(txt)) return 'Sparkling';
@@ -254,7 +255,7 @@ function mixups(B) {
     P.n++; P.dir[r.a.key] = (P.dir[r.a.key] || 0) + 1; P.rows.push(r); });
   var list = Object.keys(pairs).map(function (k) { return pairs[k]; }).sort(function (a, b) { return b.n - a.n || b.rows[b.rows.length - 1].w.ymd.localeCompare(a.rows[a.rows.length - 1].w.ymd); });
   var top = list.slice(0, 6), max = top.length ? top[0].n : 1;
-  var body = '<div class="db-legend"><span><i class="sw sig"></i>Was the first, you said the second</span><span><i class="sw gold"></i>The other way round</span></div><div class="db-mix">';
+  var body = '<div class="db-legend"><span><i class="db-sw sig"></i>Was the first, you said the second</span><span><i class="db-sw gold"></i>The other way round</span></div><div class="db-mix">';
   top.forEach(function (P, ix) {
     var A = P.x[0], Bk = P.x[1], ab = P.dir[A] || 0, ba = P.dir[Bk] || 0;
     if (ba > ab) { var t = A; A = Bk; Bk = t; t = ab; ab = ba; ba = t; }          // the bigger direction first
@@ -364,7 +365,7 @@ function habits(W) {
     return '<div class="db-st"><span class="db-bl">' + c[1] + '</span><span class="db-stk" role="img" aria-label="' + c[1] + ': ' + n.map(function (v, i) { return v ? v + ' ' + names[i] : ''; }).filter(Boolean).join(', ') + '">' +
       n.map(function (v, i) { return v ? '<i class="' + cls[i] + '" style="flex:' + v + ' 1 0"></i>' : ''; }).join('') + '</span><span class="db-bv' + (share >= 0.6 && tot >= 10 ? ' warn' : '') + '">' + pct(n[mi], tot) + '% ' + names[mi].split(' / ')[0] + '</span></div>';
   }).join('');
-  var leg = '<div class="db-legend">' + names.map(function (nm, i) { return '<span><i class="sw ' + cls[i] + '"></i>' + nm + '</span>'; }).join('') + '</div>';
+  var leg = '<div class="db-legend">' + names.map(function (nm, i) { return '<span><i class="db-sw ' + cls[i] + '"></i>' + nm + '</span>'; }).join('') + '</div>';
   var note = flag ? flag.c + ' is ' + flag.lv + ' on ' + flag.n + ' of ' + flag.tot + ' wines. That much clustering suggests ' + flag.lv + ' has become a safe default. Decide whether the wine is clearly above or below it first, then settle the step.' : '';
   return card('db-s3', 'SAT habits', 'How you spread each scale', leg + '<div class="db-bars">' + rows + '</div>' + coach(note));
 }
@@ -424,4 +425,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.64';

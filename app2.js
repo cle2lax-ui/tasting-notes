@@ -296,7 +296,7 @@ function prose(w) {
 }
 var PROF = [['Sweetness', 'sweetness', 'sweetness'], ['Acidity', 'acidity', 'five'], ['Tannin', 'tannin', 'five'], ['Alcohol', 'alcohol', 'alcohol'], ['Body', 'body', 'body'], ['Flavor int.', 'flavInt', 'intensity'], ['Finish', 'finish', 'finish']];
 function profRows(w) {                                                 // white wines leave out Tannin unless the taster gave it a level
-  return PROF.filter(function (p) { return !(p[1] === 'tannin' && w.type === 'White' && !w.tannin); });
+  return PROF.filter(function (p) { return !(p[1] === 'tannin' && (w.type === 'White' || w.type === 'Sparkling') && !w.tannin); });
 }
 function cardHTML(w) {
   var pr = prose(w), when = w.ymd ? new Date(w.ymd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
@@ -1161,4 +1161,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.64';

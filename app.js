@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.63';
+var VERSION_LABEL = 'v2.64';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -13,6 +13,8 @@ var CHIPC = {
   'Rosé': { 'Pink':['#F9D3DB','#EDA4B5','Youthful'], 'Pink-Orange':['#F8CBB2','#E8977A','Developing'], 'Orange':['#F2B479','#D98038','Mature'] },
   Red: { 'Purple':['#6A2A5E','#380C31','Very youthful'], 'Ruby':['#B02C47','#741129','Youthful'], 'Garnet':['#97363C','#5C1920','Developing'],
     'Tawny':['#B6713F','#7D4220','Mature'], 'Brown':['#88553A','#4C2A17','Fully mature'] } };
+CHIPC.Sparkling = {}; ['Lemon-Green', 'Lemon', 'Gold', 'Amber'].forEach(function (c) { CHIPC.Sparkling[c] = CHIPC.White[c]; }); ['Pink', 'Pink-Orange', 'Orange'].forEach(function (c) { CHIPC.Sparkling[c] = CHIPC['Rosé'][c]; });
+function colorsFor(t) { return t === 'White' ? S.white : t === 'Rosé' ? S.rose : t === 'Red' ? S.red : t === 'Sparkling' ? S.sparkling : null; }   // Sparkling: white and rosé colors together
 var SHORTR = { 'Pronounced': 'Pronounced', 'Medium-Dry': 'Medium-dry', 'Medium-Sweet': 'Medium-sweet',
   'Off-Dry': 'Off-dry', 'Luscious': 'Luscious', 'Acceptable': 'Acceptable', 'Very Good': 'Very Good', 'Outstanding': 'Outstanding' };
 var SAME = 'Palate confirms the aromas listed above';
@@ -89,10 +91,10 @@ function rowHTML(r) {
       list.map(function (v, j) { return '<button type="button" style="--j:' + j + '" class="' + (j === i ? 'on' : j < i ? 'f1' : '') + '" data-v="' + esc(v) + '" aria-label="' + esc(nice(v)) + '"><em>' + ((list.length >= 6 && !/\(/.test(SHORTR[v] || v)) || /^Medium (Plus|Minus)$/.test(v) ? esc(SHORTR[v] || v).replace(' ', '<br>') : esc(SHORTR[v] || v)) + '</em></button>'; }).join('') + '</div></div>';
   }
   if (kind === 'color') {
-    var cl = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : null, t = CHIPC[rec.type] || {};
+    var cl = colorsFor(rec.type), t = CHIPC[rec.type] || {};
     return '<div class="f rw" id="f-color"><label>Color' + (rec.color && t[rec.color] ? '<small>' + esc(t[rec.color][2]) + '</small>' : '') + '</label>' + (cl ?
       '<div class="sw" data-k="color">' + cl.map(function (v) { var c = t[v] || [SWC[v], SWC[v]];
-        return '<button type="button" class="' + (rec.color === v ? 'on' : '') + '" data-v="' + esc(v) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '"><i></i>' + esc(v) + '</button>'; }).join('') + '</div>' :
+        return '<button type="button" class="' + (rec.color === v ? 'on' : '') + (rec.type === 'Sparkling' && v === 'Pink' ? ' grp2' : '') + '" data-v="' + esc(v) + '" style="--c1:' + c[0] + ';--c2:' + c[1] + '"><i></i>' + esc(v) + '</button>'; }).join('') + '</div>' :
       '<span class="hint">Choose the wine type first</span>') + '</div>';
   }
   if (kind === 'desc') return descHTML(k, r[2]);
@@ -352,7 +354,7 @@ document.addEventListener('click', function (e) {
     if (box.getAttribute('data-multi')) { var cur = String(rec[k] || '').split(/\s*,\s*/).filter(Boolean), i = cur.indexOf(v); if (i >= 0) cur.splice(i, 1); else cur.push(v);
       rec[k] = S[k] ? S[k].filter(function (x) { return cur.indexOf(x) >= 0; }).join(', ') : cur.join(', '); }
     else rec[k] = rec[k] === v ? '' : v;
-    if (k === 'type') { var ok = rec.type === 'White' ? S.white : rec.type === 'Rosé' ? S.rose : rec.type === 'Red' ? S.red : []; if (ok.indexOf(rec.color) < 0) rec.color = ''; rerow('color'); }
+    if (k === 'type') { var ok = colorsFor(rec.type) || []; if (ok.indexOf(rec.color) < 0) rec.color = ''; rerow('color'); }
     rerow(k); touch(); return; }
   var r = t.closest('#taste .rail button');
   if (r) { var k2 = r.parentNode.getAttribute('data-k'), v2 = r.getAttribute('data-v'); rec[k2] = rec[k2] === v2 ? '' : v2; rerow(k2); touch(); return; }
@@ -531,4 +533,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.64';

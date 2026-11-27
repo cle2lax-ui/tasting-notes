@@ -264,8 +264,8 @@ var Backup = {
 /** The value a saved note puts in one Tasting Log column (same layout as the Google edition). */
 function rowCell(r, key) {
   switch (key) {
-    case 'colorWhite': return r.type === 'White' ? (r.color || '') : '';
-    case 'colorRose': return r.type === 'Rosé' ? (r.color || '') : '';
+    case 'colorWhite': return r.type === 'White' || (r.type === 'Sparkling' && L.white.indexOf(r.color) >= 0) ? (r.color || '') : '';   // a sparkling wine's color goes in the white or rosé column
+    case 'colorRose': return r.type === 'Rosé' || (r.type === 'Sparkling' && L.rose.indexOf(r.color) >= 0) ? (r.color || '') : '';
     case 'colorRed': return r.type === 'Red' ? (r.color || '') : '';
     case 'photo': return r.photoUrl || '';
     default: return r[key] == null ? '' : r[key];
@@ -285,4 +285,4 @@ function shareFile(blob, name, title) {
   document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   return Promise.resolve();
 }
-/*build*/(window.__V = window.__V || {})['store'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['store'] = 'v2.64';

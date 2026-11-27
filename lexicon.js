@@ -36,6 +36,7 @@ var LEAD = {
   Red: { fruit: ['Red fruit', 'Black fruit', 'Dried and cooked fruit'] },
   White: { fruit: ['Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit'] },
   'Rosé': { fruit: ['Red fruit', 'Citrus fruit', 'Stone fruit'] },
+  Sparkling: { fruit: ['Citrus fruit', 'Green fruit', 'Red fruit', 'Stone fruit'] },
   '': { fruit: ['Red fruit', 'Black fruit', 'Citrus fruit', 'Green fruit', 'Stone fruit', 'Tropical fruit', 'Dried and cooked fruit'] }
 };
 var WORDHOME = {};
@@ -65,4 +66,4 @@ var WSET_LISTS = {
     'Tasmania', 'Marlborough', 'Central Otago', "Hawke's Bay", 'Martinborough', 'Stellenbosch', 'Swartland', 'Constantia', 'Walker Bay', 'Okanagan Valley', 'Niagara Peninsula',
     'Bekaa Valley', 'Santorini', 'Naoussa', 'Nemea']
 };
-/*build*/(window.__V = window.__V || {})['lexicon'] = 'v2.63';
+/*build*/(window.__V = window.__V || {})['lexicon'] = 'v2.64';
