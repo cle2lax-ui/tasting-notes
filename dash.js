@@ -254,23 +254,33 @@ function mixups(B) {
     var k = [r.a.key, r.g.key].sort().join('|'), P = pairs[k] = pairs[k] || { k: k, x: [r.a.key, r.g.key].sort(), n: 0, dir: {}, rows: [] };
     P.n++; P.dir[r.a.key] = (P.dir[r.a.key] || 0) + 1; P.rows.push(r); });
   var list = Object.keys(pairs).map(function (k) { return pairs[k]; }).sort(function (a, b) { return b.n - a.n || b.rows[b.rows.length - 1].w.ymd.localeCompare(a.rows[a.rows.length - 1].w.ymd); });
-  var top = list.slice(0, 6), max = top.length ? top[0].n : 1;
-  var body = '<div class="db-legend"><span><i class="db-sw sig"></i>Was the first, you said the second</span><span><i class="db-sw gold"></i>The other way round</span></div><div class="db-mix">';
-  top.forEach(function (P, ix) {
+  // each mix-up reads as plain lines, the wine first and what you said second: "Pinot Noir → you said Nebbiolo ●● 2"
+  var ARROW = '<svg class="db-arr" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6h16M12 1.5 17 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+  function dirLine(was, said, n) {
+    var d = ''; for (var i = 0; i < Math.min(n, 8); i++) d += '<i></i>';
+    return '<span class="db-dir"><span class="db-was">' + esc(was) + '</span>' + ARROW + '<span class="db-said">you said ' + esc(said) + '</span>' +
+      '<span class="db-dots" aria-label="' + n + (n === 1 ? ' time' : ' times') + '">' + d + (n > 8 ? '<small>+' + (n - 8) + '</small>' : '') + '<b>' + n + '×</b></span></span>';
+  }
+  function pairHTML(P, ix) {
     var A = P.x[0], Bk = P.x[1], ab = P.dir[A] || 0, ba = P.dir[Bk] || 0;
-    if (ba > ab) { var t = A; A = Bk; Bk = t; t = ab; ab = ba; ba = t; }          // the bigger direction first
+    if (ba > ab) { var t = A; A = Bk; Bk = t; t = ab; ab = ba; ba = t; }          // the more frequent direction first
     var enc = R.filter(function (r) { return r.a.key === A || r.a.key === Bk; }).slice(-4);
     var dots = enc.map(function (r) { return '<i class="' + (r.p >= 1 ? 'ok' : r.p > 0 ? 'hf' : 'no') + '" title="' + esc(shortDate(r.w.ymd) + ': ' + r.a.label) + '"></i>'; }).join('');
     var right = enc.filter(function (r) { return r.p >= 1; }).length;
-    body += '<details class="db-mx"' + (ix === 0 ? ' open' : '') + '><summary><span class="db-mxn"><b>' + esc(lab[A].label) + '</b> and <b>' + esc(lab[Bk].label) + '</b><small>' +
-      esc(lab[A].label) + ' called ' + esc(lab[Bk].label) + ' ' + ab + '×' + (ba ? ' · the other way ' + ba + '×' : ' · never the other way') + '</small></span>' +
-      '<span class="db-mxb" aria-hidden="true"><i class="sig" style="width:' + (ab / max * 100).toFixed(1) + '%"></i><i class="gold" style="width:' + (ba / max * 100).toFixed(1) + '%"></i></span>' +
-      '<span class="db-mxc">' + P.n + '</span><span class="db-trend" aria-label="' + right + ' of the last ' + enc.length + ' ' + esc(lab[A].label) + ' or ' + esc(lab[Bk].label) + ' wines right">' + dots + '<small>' + right + ' of last ' + enc.length + '</small></span></summary>' +
-      coach(pairNote(P, A, Bk, lab)) +
+    return '<details class="db-mx"' + (ix === 0 ? ' open' : '') + '><summary>' +
+      '<span class="db-mxh"><span class="db-rank">' + (ix + 1) + '</span><span class="db-mxn"><b>' + esc(lab[A].label) + '</b> and <b>' + esc(lab[Bk].label) + '</b></span>' +
+      '<span class="db-trend" aria-label="Your last ' + enc.length + ' ' + esc(lab[A].label) + ' or ' + esc(lab[Bk].label) + ' wines: ' + right + ' right">' + dots + '<small>' + right + ' of your last ' + enc.length + ' right</small></span></span>' +
+      '<span class="db-dirs">' + dirLine(lab[A].label, lab[Bk].label, ab) + (ba ? dirLine(lab[Bk].label, lab[A].label, ba) : '<span class="db-one">Never the other way round</span>') + '</span>' +
+      '</summary>' + coach(pairNote(P, A, Bk, lab)) +
       '<ul class="db-mxw">' + P.rows.slice().reverse().map(function (r) { return '<li><button type="button" class="lnk" data-db-open="' + esc(r.w.id) + '">' + esc(shortDate(r.w.ymd) + ' · ' + (r.w.producer || 'Wine ' + r.w.wineNo)) + '</button><span>' + esc(r.a.label) + ', you said ' + esc(r.w.gGrape) + '</span></li>'; }).join('') + '</ul></details>';
-  });
+  }
+  var SHOWN = 3, MORE = 12, body = '<p class="db-sub">The grape on the left is what the wine was; on the right, what you called it. Tap a mix-up to see the wines and a tip.</p><div class="db-mix">';
+  list.slice(0, SHOWN).forEach(function (P, ix) { body += pairHTML(P, ix); });
   body += '</div>';
-  if (list.length > 6) body += '<p class="db-sub">' + (list.length - 6) + ' more mix-up' + (list.length - 6 === 1 ? '' : 's') + ' that happened less often are in the full grid below.</p>';
+  var rest = list.slice(SHOWN, SHOWN + MORE);
+  if (rest.length) body += '<details class="db-more"><summary><span class="db-more-o">Show ' + rest.length + ' more mix-up' + (rest.length === 1 ? '' : 's') + '</span><span class="db-more-c">Show fewer</span></summary><div class="db-mix">' +
+    rest.map(function (P, i) { return pairHTML(P, SHOWN + i); }).join('') + '</div>' +
+    (list.length > SHOWN + MORE ? '<p class="db-sub">' + (list.length - SHOWN - MORE) + ' rarer mix-ups are in the full grid below.</p>' : '') + '</details>';
   // per-grape accuracy, worst first, once a grape has 3 blind tastings
   var by = {}; R.forEach(function (r) { var o = by[r.a.key] = by[r.a.key] || { k: r.a.key, n: 0, p: 0 }; o.n++; o.p += Math.min(1, r.p); });
   var ranked = Object.keys(by).map(function (k) { return by[k]; }).filter(function (o) { return o.n >= 3; }).sort(function (a, b) { return a.p / a.n - b.p / b.n || b.n - a.n; });
@@ -425,4 +435,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.64';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.65';

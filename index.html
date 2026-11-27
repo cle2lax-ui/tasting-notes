@@ -963,6 +963,44 @@ body[data-view="dash"] #dbView{display:block}
 /* v2.64 Sparkling: white colors, then the rosé colors set a little apart */
 .sw button.grp2{margin-left:12px}
 @media (max-width:759px){ .sw button.grp2{margin-left:0} }
+/* v2.65 mix-ups: top 3, the rest behind "Show more"; each direction written out as "Pinot Noir → you said Nebbiolo" */
+.db-mx summary{display:flex;flex-direction:column;gap:8px;grid-template-columns:none}
+.db-mxh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.db-rank{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sig-tint);color:var(--sig);font:700 13px/26px var(--sans);text-align:center}
+.db-mxh .db-mxn{flex:1 1 200px;font-size:15.5px}
+.db-mxh .db-trend{margin-left:auto}
+.db-dirs{display:flex;flex-direction:column;gap:6px;padding-left:36px}
+.db-dir{display:grid;grid-template-columns:minmax(0,max-content) 20px minmax(0,max-content) 1fr;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.db-was{font-weight:600;color:var(--ink);padding:3px 10px;border-radius:12px;background:var(--seg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.db-arr{width:20px;height:12px;color:var(--muted)}
+.db-said{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.db-dots{display:flex;align-items:center;gap:4px;justify-self:end}
+.db-dots i{width:10px;height:10px;border-radius:50%;background:var(--sig)}
+.db-dots small{font-size:12px;color:var(--muted)}
+.db-dots b{margin-left:6px;font:600 14px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+.db-one{font-size:12.5px;color:var(--muted)}
+.db-mx[open] summary{padding-bottom:10px}
+.db-mx summary:hover .db-mxn b{text-decoration:underline;text-underline-offset:3px}
+.db-more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;color:var(--sig);font:600 14px/1 var(--sans)}
+.db-more>summary::-webkit-details-marker{display:none}
+.db-more>summary::after{content:'';width:8px;height:8px;margin-left:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-3px)}
+.db-more[open]>summary::after{transform:rotate(-135deg) translateY(-1px)}
+.db-more .db-more-c,.db-more[open] .db-more-o{display:none}
+.db-more[open] .db-more-c{display:inline}
+.db-more>.db-mix{border-top:0}
+@media (max-width:599px){
+  .db-mx summary{display:flex}
+  .db-dirs{padding-left:0}
+  .db-dir{grid-template-columns:minmax(0,max-content) 18px minmax(0,1fr) auto;gap:6px;font-size:13.5px}
+  .db-dots i{display:none}
+  .db-mxh .db-trend{margin-left:36px;flex-basis:100%}
+}
+.db-mx summary{align-items:stretch;text-align:left}
+.db-mxh .db-trend{flex:none}
+.db-dir{display:flex;justify-content:flex-start;flex-wrap:wrap;row-gap:4px}
+.db-dots{justify-self:auto;margin-left:4px}
+.db-mxw .lnk{text-align:left;padding-left:0}
+@media (max-width:599px){ .db-mxh .db-trend{margin-left:36px;flex-basis:auto} .db-dirs{padding-left:36px} .db-dir{display:flex} }
 
 </style>
 </head>
@@ -1087,7 +1125,7 @@ body[data-view="dash"] #dbView{display:block}
     <h3 class="eyebrow">Appearance</h3>
     <div class="thrRow"><span>Light or Dark</span><div class="seg" id="themeSeg"><button type="button" class="opt" data-t="auto">Automatic</button><button type="button" class="opt" data-t="light">Light</button><button type="button" class="opt" data-t="dark">Dark</button></div></div><p class="about" style="margin:8px 2px 0">Automatic follows your iPhone, iPad or computer setting.</p>
   </section>
-  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.64. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
+  <p class="about" style="margin:18px 4px 0">Tasting Notes v2.65. Notes are stored only on this device unless you connect a Google Sheet, which lives in your own Google Drive. Adapted from the WSET Level 4 SAT and Wine-Lexicon for personal study. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="credits.html" target="_blank" rel="noopener">Photo credits</a>.</p>
 </div></div>
 
 <div class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle"><div class="wc">
@@ -1123,14 +1161,14 @@ body[data-view="dash"] #dbView{display:block}
 <div class="toast" id="toast"></div>
 <datalist id="dl-event"></datalist><datalist id="dl-grape"></datalist><datalist id="dl-country"></datalist><datalist id="dl-region"></datalist>
 
-<script>var BUILD = 'v2.64';</script>
-<script src="logic.js?v=2.64"></script>
-<script src="store.js?v=2.64"></script>
-<script src="google.js?v=2.64"></script>
-<script src="lexicon.js?v=2.64"></script>
-<script src="app.js?v=2.64"></script>
-<script src="app2.js?v=2.64"></script>
-<script src="dash.js?v=2.64"></script>
+<script>var BUILD = 'v2.65';</script>
+<script src="logic.js?v=2.65"></script>
+<script src="store.js?v=2.65"></script>
+<script src="google.js?v=2.65"></script>
+<script src="lexicon.js?v=2.65"></script>
+<script src="app.js?v=2.65"></script>
+<script src="app2.js?v=2.65"></script>
+<script src="dash.js?v=2.65"></script>
 <script>
 function openSettings(){ Sync.preload(); paintGoogle(); paintThemeSeg(); $('settings').classList.add('show'); }
 document.addEventListener('click', function(e){ if (e.target.closest('.opensettings')) { e.preventDefault(); openSettings(); } });
