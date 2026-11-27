@@ -184,9 +184,9 @@ function renderDash() {
   h += kpis(W, B);
   h += '<div class="db-row">' + accuracy(B) + sessions(B) + '</div>';
   h += mixups(B);
-  h += '<div class="db-row db-35">' + calibration(W) + value(W) + '</div>';
   h += '<div class="db-row db-35">' + habits(W) + words(W) + '</div>';
   h += coverage(W);
+  h += '<div class="db-row db-35">' + calibration(W) + value(W) + '</div>';   // last: the two that compare with outside sources (critics, prices)
   el.innerHTML = h;
 }
 
@@ -435,4 +435,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.66';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.67';
