@@ -1,5 +1,5 @@
 /* Tasting Notes 2 — Taste view, Lexicon sheet, shared helpers. Data layer: logic.js, store.js, google.js. */
-var VERSION_LABEL = 'v2.62';
+var VERSION_LABEL = 'v2.63';
 var S = {}, ALL = [], WINES = [], LISTS = {};
 var rec = {}, orig = null, dirty = false, view = 'taste';
 var DRAFT_KEY = 'btn2-draft', NB_KEY = 'btn2-notebook';
@@ -190,6 +190,7 @@ function identityHTML() {
     var st = !open && s && s.per[i] !== null && low(rec[r[1]]) ? (s.per[i] === true ? ' hit' : s.per[i] === 0.5 ? ' half' : ' miss') : '';
     h += '<span class="l">' + r[0] + '</span>' + (open ? '' : '<input type="text" aria-label="My guess: ' + r[0] + '" data-k="' + r[1] + '" class="g' + st + '" value="' + esc(rec[r[1]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">') +
       '<input type="text" aria-label="Actual ' + r[0].toLowerCase() + '" data-k="' + r[2] + '" value="' + esc(rec[r[2]]) + '"' + (r[3] ? ' list="dl-' + r[3] + '"' : ' inputmode="numeric"') + ' autocomplete="off" autocapitalize="words">';
+    if (i === 0) h += '<div class="ghint" id="ghint" role="status" hidden></div>';   // the quiet "Did you mean…?" for a misspelled grape
   });
   h += '</div>';
   h += '<div class="scoreline">' + (open ? '<span>Tasted open · not scored</span>' : '<span>Blind Tasting Guess</span><b id="score">' + (s ? fmtScore(s.hits) + '<small>/4</small>' : '–') + '</b>') + '</div>';
@@ -530,4 +531,4 @@ document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.
     foldAbove(+st.getAttribute('data-i'), e.target);
   }, true);
 });
-/*build*/(window.__V = window.__V || {})['app'] = 'v2.62';
+/*build*/(window.__V = window.__V || {})['app'] = 'v2.63';

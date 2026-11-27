@@ -6,6 +6,7 @@ function setView(v) {
   view = v; document.body.setAttribute('data-view', v);
   $$('#tabs button').forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-view') === v)); });
   if (v === 'notebook') renderNotebook();
+  if (v === 'dash' && window.renderDash) renderDash();
   window.scrollTo(0, 0);
 }
 $('tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setView(b.getAttribute('data-view')); });
@@ -27,6 +28,7 @@ function setData(all) {
     var seen = {}, all = (LISTS[k] || []).concat(WSET_LISTS[k] || []).filter(function (v) { var key = answerKey(v); if (seen[key]) return false; seen[key] = 1; return true; });
     $('dl-' + k).innerHTML = all.map(function (v) { return '<option value="' + esc(v) + '">'; }).join(''); });
   if (view === 'notebook') renderNotebook();
+  if (view === 'dash' && window.renderDash) renderDash();
   if (ALL.length && typeof rvSweepStart === 'function') rvSweepStart();
 }
 function refreshPhotoIds() { return DB.keys('photos').then(function (k) { PHOTO_IDS = {}; (k || []).forEach(function (id) { PHOTO_IDS[id] = true; }); }); }
@@ -489,7 +491,7 @@ function start(init) {
   if (loadRows.repaired) { toast('Removed a stray web link from ' + (loadRows.repaired === 1 ? 'one wine’s' : loadRows.repaired + ' wines’') + ' aromas or flavors'); loadRows.repaired = 0; }
   var back = ''; try { back = sessionStorage.getItem('btn-view') || ''; sessionStorage.removeItem('btn-view'); } catch (e) {}
   var want = new URLSearchParams(location.search).get('view') || back || 'notebook';   // always the Notebook; an unsaved note waits in Tasting (back = the view kept across an update reload)
-  setView(want === 'taste' ? 'taste' : 'notebook');
+  setView(want === 'taste' || want === 'dash' ? want : 'notebook');
   spy();
 }
 
@@ -1159,4 +1161,4 @@ document.addEventListener('click', function (e) {
   flightSummary(ALL.filter(function (x) { return k[0] === 'd' ? x.ymd === v : (x.event || '') === v; }).sort(function (a, b) { return (a.ymd || '').localeCompare(b.ymd || '') || a.wineNo - b.wineNo; }));
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var o = document.querySelector('.mo.show'); if (o) o.close(); } });
-/*build*/(window.__V = window.__V || {})['app2'] = 'v2.62';
+/*build*/(window.__V = window.__V || {})['app2'] = 'v2.63';
