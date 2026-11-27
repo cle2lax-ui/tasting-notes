@@ -187,6 +187,7 @@ function renderDash() {
   h += '<div class="db-row db-35">' + habits(W) + words(W) + '</div>';
   h += coverage(W);
   h += '<div class="db-row db-35">' + calibration(W) + value(W) + '</div>';   // last: the two that compare with outside sources (critics, prices)
+  h += priceByRating(W);
   el.innerHTML = h;
 }
 
@@ -361,7 +362,36 @@ function value(W) {
   var byQ = {}; W.forEach(function (w) { var p = priceOf(w); if (p !== null && w.quality) (byQ[w.quality] = byQ[w.quality] || []).push(p); });
   var meds = ['Good', 'Very Good', 'Outstanding'].filter(function (q) { return byQ[q] && byQ[q].length >= 2; }).map(function (q) { return q + ' ' + money(median(byQ[q])); });
   var body = c.length ? '<ul class="db-val">' + c.map(function (w) { var cs = criticScore(w); return '<li><button type="button" data-db-open="' + esc(w.id) + '"><b>' + esc(String(w.producer || w.aGrape || 'Wine').split(/\s+[-–]\s+/)[0]) + '</b><span>' + esc([w.aRegion, w.aGrape].filter(Boolean)[0] || '') + '</span><small>' + esc(w.quality) + (cs !== null ? ' · critics ' + cs : '') + '</small><em>' + money(priceOf(w)) + '</em></button></li>'; }).join('') + '</ul>' : '<p class="db-sub">Wines you rate Very Good or better, with a price, show here.</p>';
-  return card('db-s2', 'Value finds', 'Most quality per dollar', body + (meds.length ? '<p class="db-sub">Median price by your rating: ' + meds.join(', ') + '.</p>' : ''));
+  return card('db-s2', 'Value finds', 'Most quality per dollar', body);
+}
+
+/* ---- price by your rating: every priced wine as a dot on one price scale, the median marked, for all wines, blind and open side by side */
+function priceByRating(W) {
+  var priced = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 0; });
+  if (priced.length < 3) return card('db-wide', 'Price by your rating', 'What the wines you rated cost', '<p class="db-sub">This fills in once three rated wines have a price.</p>');
+  var levels = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); }).reverse();
+  var mx = Math.max.apply(null, priced.map(priceOf)), step = mx > 150 ? 50 : mx > 60 ? 25 : 10, top = Math.ceil(mx / step) * step;
+  var at = function (p) { return (p / top * 100).toFixed(2) + '%'; };
+  var sets = [['All wines', priced], ['Blind', priced.filter(isBlind)], ['Tasted open', priced.filter(function (w) { return !isBlind(w); })]];
+  var med = {};
+  var panels = sets.map(function (S) {
+    med[S[0]] = {};
+    var rows = levels.map(function (q) {
+      var ws = S[1].filter(function (w) { return w.quality === q; }), ps = ws.map(priceOf), m = median(ps);
+      med[S[0]][q] = { m: m, n: ps.length };
+      var dots = ws.map(function (w) { return '<i style="left:' + at(priceOf(w)) + '" title="' + esc((w.producer || 'Wine') + ': ' + money(priceOf(w))) + '"></i>'; }).join('');
+      return '<div class="db-pr"><span class="db-prq">' + q + '</span><span class="db-prt">' + dots + (m !== null && ps.length > 1 ? '<b style="left:' + at(m) + '"></b>' : '') + '</span>' +
+        '<span class="db-prv">' + (m === null ? '–' : money(m) + '<small>' + ps.length + (ps.length === 1 ? ' wine' : ' wines') + '</small>') + '</span></div>';
+    }).join('');
+    var ticks = ''; for (var t = 0; t <= top; t += step) ticks += '<span style="left:' + at(t) + '">$' + t + '</span>';
+    return '<div class="db-pp"><h4 class="db-h4">' + S[0] + '<small>' + S[1].length + ' priced</small></h4>' + (S[1].length ? rows + '<div class="db-pax" aria-hidden="true">' + ticks + '</div>' : '<p class="db-sub">No ' + S[0].toLowerCase() + ' wines with a price in this view.</p>') + '</div>';
+  }).join('');
+  // a plain-words comparison of blind and open, only where both sides have enough wines
+  var notes = levels.map(function (q) { var b = med.Blind[q], o = med['Tasted open'][q];
+    return b && o && b.n >= 3 && o.n >= 3 && Math.abs(b.m - o.m) >= 5 ? 'Your ' + q + ' wines cost a median ' + money(b.m) + ' tasted blind and ' + money(o.m) + ' tasted open.' : ''; }).filter(Boolean);
+  var aria = sets.map(function (S) { return S[0] + ': ' + levels.map(function (q) { var x = med[S[0]][q]; return x.m === null ? '' : q + ' ' + money(x.m); }).filter(Boolean).join(', '); }).join('; ');
+  var foot = (notes.length ? notes.join(' ') + ' ' : '') + 'Each dot is a wine; the gold line is the median.' + (priced.length < 40 ? ' With only a few wines at some levels, the medians will move a lot as you taste more.' : '');
+  return card('db-wide', 'Price by your rating', 'What the wines you rated cost', '<div class="db-pps" role="img" aria-label="Median price by your quality rating. ' + esc(aria) + '">' + panels + '</div><p class="db-sub">' + foot + '</p>');
 }
 
 function habits(W) {
@@ -435,4 +465,4 @@ document.addEventListener('click', function (e) {
   } else if (e.target.closest('.ghx') && inp) GH_SKIP[k + '|' + inp.value] = 1;
   box.hidden = true; box.innerHTML = ''; box.removeAttribute('data-for');
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.67';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.68';

@@ -329,4 +329,4 @@ var Sync = (function () {
     forget: function (key) { if (!conf.sheetId || !key) return; conf.tomb = (conf.tomb || []).filter(function (k) { return k !== key; }).concat([key]); write(CONF_KEY, conf); }
   };
 })();
-/*build*/(window.__V = window.__V || {})['google'] = 'v2.67';
+/*build*/(window.__V = window.__V || {})['google'] = 'v2.68';
