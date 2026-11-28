@@ -450,31 +450,42 @@ function value(W) {
   return card('db-s2', 'Value finds', 'Most quality per dollar', body);
 }
 
-/* ---- price by your rating: every priced wine as a dot on one price scale, the median marked, for all wines, blind and open side by side */
-function priceByRating(W) {
+/* ---- price by your rating: a grouped column chart. One group per rating (low to high), a Blind column and a Tasted open column,
+   and a line across the group for all wines. The same numbers draw the app chart and the PDF chart. */
+function priceData(W) {
   var priced = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 0; });
-  if (priced.length < 3) return card('db-wide', 'Price by your rating', 'What the wines you rated cost', '<p class="db-sub">This fills in once three rated wines have a price.</p>');
-  var levels = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); }).reverse();
-  var sets = [['All wines', priced], ['Blind', priced.filter(isBlind)], ['Tasted open', priced.filter(function (w) { return !isBlind(w); })]];
-  var mmx = 1; sets.forEach(function (S) { levels.forEach(function (q) { var m = median(S[1].filter(function (w) { return w.quality === q; }).map(priceOf)); if (m !== null && m > mmx) mmx = m; }); });
-  var at = function (p) { return Math.max(2, p / mmx * 100).toFixed(2) + '%'; };     // one scale for all three panels: the longest bar is the highest median
-  var med = {};
-  var panels = sets.map(function (S) {
-    med[S[0]] = {};
-    var rows = levels.map(function (q) {
-      var ws = S[1].filter(function (w) { return w.quality === q; }), ps = ws.map(priceOf), m = median(ps);
-      med[S[0]][q] = { m: m, n: ps.length };
-      return '<div class="db-pr"><span class="db-prq">' + q + '</span><span class="db-prt">' + (m !== null ? '<i class="' + (ps.length === 1 ? 'one' : '') + '" style="width:' + at(m) + '"></i>' : '') + '</span>' +
-        '<span class="db-prv">' + (m === null ? '–' : money(m) + '<small>' + ps.length + (ps.length === 1 ? ' wine' : ' wines') + '</small>') + '</span></div>';
-    }).join('');
-    return '<div class="db-pp"><h4 class="db-h4">' + S[0] + '<small>' + S[1].length + ' priced</small></h4>' + (S[1].length ? rows : '<p class="db-sub">No ' + S[0].toLowerCase() + ' wines with a price in this view.</p>') + '</div>';
-  }).join('');
-  // a plain-words comparison of blind and open, only where both sides have enough wines
-  var notes = levels.map(function (q) { var b = med.Blind[q], o = med['Tasted open'][q];
-    return b && o && b.n >= 3 && o.n >= 3 && Math.abs(b.m - o.m) >= 5 ? 'Your ' + q + ' wines cost a median ' + money(b.m) + ' tasted blind and ' + money(o.m) + ' tasted open.' : ''; }).filter(Boolean);
-  var aria = sets.map(function (S) { return S[0] + ': ' + levels.map(function (q) { var x = med[S[0]][q]; return x.m === null ? '' : q + ' ' + money(x.m); }).filter(Boolean).join(', '); }).join('; ');
-  var foot = (notes.length ? notes.join(' ') + ' ' : '') + 'Each bar is the median price at that rating; a pale bar rests on a single wine.' + (priced.length < 40 ? ' With only a few wines at some levels, the medians will move a lot as you taste more.' : '');
-  return card('db-wide', 'Price by your rating', 'What the wines you rated cost', '<div class="db-pps" role="img" aria-label="Median price by your quality rating. ' + esc(aria) + '">' + panels + '</div><p class="db-sub">' + foot + '</p>');
+  var levels = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); });
+  var one = function (ws) { var ps = ws.map(priceOf); return { m: median(ps), n: ps.length }; };
+  var rows = levels.map(function (q) { var at = priced.filter(function (w) { return w.quality === q; });
+    return { q: q, all: one(at), blind: one(at.filter(isBlind)), open: one(at.filter(function (w) { return !isBlind(w); })) }; });
+  var mx = 1; rows.forEach(function (r) { [r.all, r.blind, r.open].forEach(function (x) { if (x.m !== null && x.m > mx) mx = x.m; }); });
+  var step = mx > 200 ? 50 : mx > 80 ? 25 : mx > 40 ? 10 : 5, top = Math.ceil(mx * 1.12 / step) * step;
+  var notes = rows.map(function (r) { return r.blind.n >= 3 && r.open.n >= 3 && Math.abs(r.blind.m - r.open.m) >= 5 ? 'Your ' + r.q + ' wines cost a median ' + money(r.blind.m) + ' tasted blind and ' + money(r.open.m) + ' tasted open.' : ''; }).filter(Boolean);
+  var nb = priced.filter(isBlind).length;
+  return { priced: priced, rows: rows, top: top, step: step, notes: notes, nBlind: nb, nOpen: priced.length - nb };
+}
+function priceByRating(W) {
+  var P = priceData(W);
+  if (P.priced.length < 3) return card('db-wide', 'Price by your rating', 'What the wines you rated cost', '<p class="db-sub">This fills in once three rated wines have a price.</p>');
+  var VW = DW < 600 ? Math.max(280, DW - 36) : Math.min(860, DW - 60), VH = 250, L = 40, R = VW - 6, T = 22, Bm = 196;
+  var Y = function (v) { return Bm - (Bm - T) * v / P.top; }, gw = (R - L) / P.rows.length, cw = Math.min(46, gw * 0.24), gap = Math.min(6, gw * 0.03), narrow = gw < 120;
+  var g = '<svg class="db-svg db-cols" viewBox="0 0 ' + VW + ' ' + VH + '" role="img" aria-label="Median price by your quality rating. ' +
+    esc(P.rows.map(function (r) { return r.q + ': all wines ' + (r.all.m === null ? 'none' : money(r.all.m)) + ', blind ' + (r.blind.m === null ? 'none' : money(r.blind.m)) + ', tasted open ' + (r.open.m === null ? 'none' : money(r.open.m)); }).join('; ')) + '">';
+  for (var t = 0; t <= P.top; t += P.step) g += '<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + Y(t).toFixed(1) + '" y2="' + Y(t).toFixed(1) + '"></line><text class="ax" x="' + (L - 6) + '" y="' + (Y(t) + 4).toFixed(1) + '" text-anchor="end">$' + t + '</text>';
+  P.rows.forEach(function (r, i) {
+    var cx = L + gw * (i + 0.5), xs = [cx - cw * 1.5 - gap, cx - cw / 2, cx + cw / 2 + gap];
+    [[r.all, 'a', 'all wines'], [r.blind, 'b', 'blind'], [r.open, 'o', 'tasted open']].forEach(function (c, k) { var x = xs[k], v = c[0];
+      if (v.m === null) { g += '<text class="ax" x="' + (x + cw / 2).toFixed(1) + '" y="' + (Bm - 6) + '" text-anchor="middle">–</text>'; return; }
+      g += '<rect class="col ' + c[1] + (v.n === 1 ? ' one' : '') + '" x="' + x.toFixed(1) + '" y="' + Y(v.m).toFixed(1) + '" width="' + cw.toFixed(1) + '" height="' + (Bm - Y(v.m)).toFixed(1) + '" rx="3"><title>' + esc(r.q + ', ' + c[2] + ': ' + money(v.m) + ' (' + v.n + (v.n === 1 ? ' wine' : ' wines') + ')') + '</title></rect>' +
+        '<text class="cv' + (narrow ? ' sm' : '') + '" x="' + (x + cw / 2).toFixed(1) + '" y="' + (Y(v.m) - 5).toFixed(1) + '" text-anchor="middle">' + (narrow ? '$' + Math.round(v.m) : money(v.m)) + '</text>'; });   // whole dollars when the columns are narrow
+    g += '<text class="ax2" x="' + cx.toFixed(1) + '" y="' + (Bm + 17) + '" text-anchor="middle">' + r.q + '</text>' + (narrow ?
+      '<text class="ax" x="' + cx.toFixed(1) + '" y="' + (Bm + 31) + '" text-anchor="middle">' + r.blind.n + ' blind</text><text class="ax" x="' + cx.toFixed(1) + '" y="' + (Bm + 44) + '" text-anchor="middle">' + r.open.n + ' open</text>' :
+      '<text class="ax" x="' + cx.toFixed(1) + '" y="' + (Bm + 32) + '" text-anchor="middle">' + r.blind.n + ' blind · ' + r.open.n + ' open</text>');
+  });
+  g += '<line class="grid2" x1="' + L + '" x2="' + R + '" y1="' + Bm + '" y2="' + Bm + '"></line></svg>';
+  var leg = '<div class="db-legend"><span><i class="db-sw allc"></i>All wines (' + P.priced.length + ')</span><span><i class="db-sw sig"></i>Blind (' + P.nBlind + ')</span><span><i class="db-sw gold"></i>Tasted open (' + P.nOpen + ')</span><span><i class="db-sw pale"></i>Only one wine</span></div>';
+  var foot = (P.notes.length ? P.notes.join(' ') + ' ' : '') + 'Each column is the median price at that rating.' + (P.priced.length < 40 ? ' With only a few wines at some ratings, the medians will move a lot as you taste more.' : '');
+  return card('db-wide', 'Price by your rating', 'What the wines you rated cost', leg + g + '<p class="db-sub">' + foot + '</p>');
 }
 
 function habits(W) {
@@ -670,7 +681,7 @@ function dashPdf() {
     var sx = P.x, syy = P.y + 36; SO.forEach(function (o) { var v = st[o[0]]; if (!v) return; var ww = P.w * v / W.length; rect(sx, syy, Math.max(1, ww - 1.5), 11, o[2]); font('n', 6.2, o[3]); if (ww > 30) txt(fit(o[1] + ' ' + v, ww - 8), sx + 4, syy + 7.8); sx += ww; });
 
     // ---- grape mix-ups | accuracy by grape
-    var y5 = y4 + h4 + 8, h5 = 150, w5a = CW * 0.58, w5b = CW - w5a - 8;
+    var y5 = y4 + h4 + 8, h5 = 142, w5a = CW * 0.58, w5b = CW - w5a - 8;
     P = panel(M, y5, w5a, h5, 'Grape mix-ups', 'Your most common mix-ups');
     var R = mixData(B), pairs = {}, lab = {};
     R.forEach(function (rr) { lab[rr.a.key] = rr.a; lab[rr.g.key] = rr.g; if (rr.a.key === rr.g.key) return; var k = [rr.a.key, rr.g.key].sort().join('|'), Q = pairs[k] = pairs[k] || { x: [rr.a.key, rr.g.key].sort(), n: 0, dir: {}, rows: [] }; Q.n++; Q.dir[rr.a.key] = (Q.dir[rr.a.key] || 0) + 1; Q.rows.push(rr); });
@@ -710,20 +721,19 @@ function dashPdf() {
       note(P, 'Averages: ' + ms.join(', ') + '.', ay2 + 20, 6.4);
     } else note(P, 'Fills in once three wines have both your quality call and a critic’s score.', P.y + 8);
     P = panel(M + w6a + 8, y6, w6b, h6, 'Price by your rating', 'What the wines you rated cost');
-    var priced = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 0; });
-    if (priced.length >= 3) {
-      var lv2 = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); }).reverse();
-      var sets = [['All wines', priced], ['Blind', priced.filter(isBlind)], ['Tasted open', priced.filter(function (w) { return !isBlind(w); })]];
-      var ptop = 1; sets.forEach(function (S) { lv2.forEach(function (q) { var m = median(S[1].filter(function (w) { return w.quality === q; }).map(priceOf)); if (m !== null && m > ptop) ptop = m; }); });
-      var labW = 46, pw3 = (P.w - labW - 2 * 8) / 3, prh = Math.min(16, (P.b - P.y - 26) / lv2.length);
-      lv2.forEach(function (q, i) { font('n', 6.6, DP.ink2); txt(q, P.x, P.y + 14 + i * prh + 4); });
-      sets.forEach(function (S, si) { var px = P.x + labW + si * (pw3 + 8), trw = pw3 - 26;
-        font('b', 7, DP.ink); txt(S[0], px, P.y + 4); font('n', 5.8, DP.muted); txt(S[1].length + ' priced', px + pw3, P.y + 4, { align: 'right' });
-        lv2.forEach(function (q, i) { var yy = P.y + 14 + i * prh, ws = S[1].filter(function (w) { return w.quality === q; }), ps = ws.map(priceOf), m = median(ps);
-          rect(px, yy - 1, trw, 8, DP.seg, 2.5); if (m !== null) rect(px, yy - 1, Math.max(4, trw * m / ptop), 8, ps.length === 1 ? dhex(DP.sig, .4) : DP.sig, 2.5);
-          font('b', 6.4, DP.ink); txt(m === null ? '–' : money(m), px + pw3, yy + 5, { align: 'right' }); });
-      });
-      note(P, 'Each bar is the median price at that rating; a pale bar rests on a single wine.', P.y + 14 + lv2.length * prh + 8, 6.2);
+    var PD = priceData(W);
+    if (PD.priced.length >= 3) {
+      var lx2 = P.x + P.w; [[DP.gold, 'Open (' + PD.nOpen + ')'], [DP.sig, 'Blind (' + PD.nBlind + ')'], ['#9C9096', 'All (' + PD.priced.length + ')']].forEach(function (l) {   // legend on the eyebrow line, right-aligned
+        font('n', 6, DP.ink2); var tw2 = D.getTextWidth(T(l[1])); lx2 -= tw2; txt(l[1], lx2, P.y - 24); rect(lx2 - 8, P.y - 29, 6, 6, l[0], 1); lx2 -= 16; });
+      var pstep = PD.step * ((PD.top / PD.step) > 4 ? 2 : 1);
+      var cL = P.x + 20, cR = P.x + P.w, cT = P.y + 4, cB = P.b - 17, CY2 = function (v) { return cB - (cB - cT) * v / PD.top; }, gw2 = (cR - cL) / PD.rows.length, cw2 = Math.min(17, gw2 * 0.25), gp2 = 2;
+      for (var t3 = 0; t3 <= PD.top; t3 += pstep) { stroke(DP.line, .5); D.line(cL, CY2(t3), cR, CY2(t3)); font('n', 5.6, DP.muted); txt('$' + t3, cL - 3, CY2(t3) + 2, { align: 'right' }); }
+      PD.rows.forEach(function (r, i) { var cx = cL + gw2 * (i + .5), xs = [cx - cw2 * 1.5 - gp2, cx - cw2 / 2, cx + cw2 / 2 + gp2];
+        [[r.all, '#9C9096'], [r.blind, DP.sig], [r.open, DP.gold]].forEach(function (c, k) { var x = xs[k], v = c[0];
+          if (v.m === null) { font('n', 6, DP.muted); txt('–', x + cw2 / 2, cB - 3, { align: 'center' }); return; }
+          rect(x, CY2(v.m), cw2, cB - CY2(v.m), v.n === 1 ? dhex(c[1], .4) : c[1], 1.5); font('b', 6, DP.ink); txt(money(v.m), x + cw2 / 2, CY2(v.m) - 2.5, { align: 'center' }); });
+        font('n', 6.4, DP.ink2); txt(r.q, cx, cB + 8, { align: 'center' }); font('n', 5.2, DP.muted); txt(r.blind.n + ' blind · ' + r.open.n + ' open', cx, cB + 14.5, { align: 'center' }); });
+      stroke(DP.faint || '#CFC6BE', .6); D.line(cL, cB, cR, cB);
     } else note(P, 'Fills in once three rated wines have a price.', P.y + 8);
 
     // ---- footer
@@ -739,4 +749,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.74';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.75';
