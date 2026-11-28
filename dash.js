@@ -481,9 +481,7 @@ function calibration(W) {
   out.forEach(function (z) { var nm = String(z.o.w.aRegion || z.o.w.producer || '').split(',')[0].slice(0, 18); var tx = x(z.o.c), an = tx < X0 + 50 ? 'start' : tx > X1 - 50 ? 'end' : 'middle'; g += '<text class="ax2" x="' + (an === 'start' ? tx - 8 : an === 'end' ? tx + 8 : tx).toFixed(1) + '" y="' + (y(z.o.q) - 14) + '" text-anchor="' + an + '">' + esc(nm + ', ' + z.o.c) + '</text>'; });
   g += '</svg>';
   var ms = lv.slice().reverse().filter(function (l) { return means[QLEVELS.indexOf(l)]; }).map(function (l) { return l + ' ' + means[QLEVELS.indexOf(l)].m.toFixed(1); });
-  var note = 'Gold ticks mark each level’s average: ' + ms.join(', ') + '.';
-  var g1 = means[2], v1 = means[3]; if (g1 && v1 && g1.length >= 3 && v1.length >= 3 && Math.abs(v1.m - g1.m) < 1.5) note += ' Good and Very Good sit within ' + Math.abs(v1.m - g1.m).toFixed(1) + ' points of each other, so the critics barely separate them.';
-  if (out[0]) note += ' The ' + esc(String(out[0].o.w.aRegion || out[0].o.w.producer).split(',')[0]) + ' you rated ' + out[0].o.w.quality + ' is the clearest outlier.';
+  var note = calibInsight(pts) + (out[0] ? ' Biggest gap: the ' + esc(String(out[0].o.w.aRegion || out[0].o.w.producer).split(',')[0]) + ' you rated ' + out[0].o.w.quality + ' (critics ' + out[0].o.c + ').' : '') + ' Gold ticks mark each level\u2019s average.';
   return card('db-s3', 'Quality calibration', 'Your quality call against the critics’ score', g + '<p class="db-sub">' + note + '</p>');
 }
 
@@ -498,6 +496,33 @@ function value(W) {
 
 /* ---- price by your rating: a grouped column chart. One group per rating (low to high), a Blind column and a Tasted open column,
    and a line across the group for all wines. The same numbers draw the app chart and the PDF chart. */
+/* ---- commentary for the two outside-source charts */
+function ranks(a) { var idx = a.map(function (v, i) { return [v, i]; }).sort(function (x, y) { return x[0] - y[0]; }), r = []; for (var i = 0; i < idx.length;) { var j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; for (var k = i; k <= j; k++) r[idx[k][1]] = (i + j) / 2 + 1; i = j + 1; } return r; }
+function spearman(xs, ys) {                                               // rank correlation, -1 to 1; null with too few wines or no spread
+  if (xs.length < 5) return null; var rx = ranks(xs), ry = ranks(ys), n = xs.length, mx = (n + 1) / 2, sxy = 0, sxx = 0, syy = 0;
+  for (var i = 0; i < n; i++) { sxy += (rx[i] - mx) * (ry[i] - mx); sxx += (rx[i] - mx) * (rx[i] - mx); syy += (ry[i] - mx) * (ry[i] - mx); }
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
+}
+function linkWord(r) { var a = Math.abs(r); return a < 0.2 ? 'no real link' : a < 0.4 ? 'a weak link' : a < 0.6 ? 'a moderate link' : 'a strong link'; }
+function critLevel(c) { return c >= 95 ? 4 : c >= 90 ? 3 : c >= 85 ? 2 : 1; }   // critics' 100 points read on the SAT quality scale
+function calibInsight(pts) {
+  var tally = function (a) { var t = { n: a.length, eq: 0, up: 0, dn: 0 }; a.forEach(function (o) { var d = o.q - critLevel(o.c); if (!d) t.eq++; else if (d > 0) t.up++; else t.dn++; }); return t; };
+  var all = tally(pts), out = [];
+  var lean = all.dn - all.up >= Math.max(2, all.n * 0.15) ? ': you’re tougher than the critics' : all.up - all.dn >= Math.max(2, all.n * 0.15) ? ': you’re more generous than the critics' : '';
+  out.push('Reading critics’ points as 85–89 Good, 90–94 Very Good, 95+ Outstanding, you agreed on ' + all.eq + ' of ' + all.n + ', rated higher on ' + all.up + ' and lower on ' + all.dn + lean + '.');
+  var b = tally(pts.filter(function (o) { return isBlind(o.w); })), o = tally(pts.filter(function (o) { return !isBlind(o.w); }));
+  if (b.n >= 4 && o.n >= 4 && Math.abs(b.eq / b.n - o.eq / o.n) >= 0.15) out.push('You agree with them more ' + (b.eq / b.n > o.eq / o.n ? 'blind' : 'when you know the label') + ' (' + pct(b.eq, b.n) + '% blind, ' + pct(o.eq, o.n) + '% open).');
+  return out.join(' ');
+}
+function priceInsight(P) {
+  var q = function (a) { return a.map(function (w) { return QLEVELS.indexOf(w.quality); }); }, p = function (a) { return a.map(priceOf); };
+  var r = spearman(p(P.priced), q(P.priced)); if (r === null) return '';
+  var bl = P.priced.filter(isBlind), op = P.priced.filter(function (w) { return !isBlind(w); }), rb = bl.length >= 6 ? spearman(p(bl), q(bl)) : null, ro = op.length >= 6 ? spearman(p(op), q(op)) : null;
+  var t = Math.abs(r) < 0.2 ? 'Price hasn’t predicted your rating: there’s no real link between what a wine cost and how you rated it.' : (r > 0 ? 'Pricier wines have tended to earn higher ratings from you (' + linkWord(r) + ').' : 'Your ratings have run slightly against price: cheaper wines have often rated higher.');
+  if (rb !== null && ro !== null && ro - rb >= 0.3) t += ' The link is stronger when you can see the label than blind, so the label may be nudging your rating.';
+  else if (rb !== null && ro !== null && rb - ro >= 0.3) t += ' The link is stronger blind than open, a good sign your palate, not the label, is doing the rating.';
+  return t;
+}
 function priceData(W) {
   var priced = W.filter(function (w) { return priceOf(w) !== null && QLEVELS.indexOf(w.quality) >= 0; });
   var levels = QLEVELS.filter(function (q) { return priced.some(function (w) { return w.quality === q; }); });
@@ -530,7 +555,7 @@ function priceByRating(W) {
   });
   g += '<line class="grid2" x1="' + L + '" x2="' + R + '" y1="' + Bm + '" y2="' + Bm + '"></line></svg>';
   var leg = '<div class="db-legend"><span><i class="db-sw allc"></i>All wines (' + P.priced.length + ')</span><span><i class="db-sw sig"></i>Blind (' + P.nBlind + ')</span><span><i class="db-sw gold"></i>Tasted open (' + P.nOpen + ')</span><span><i class="db-sw pale"></i>Only one wine</span></div>';
-  var foot = (P.notes.length ? P.notes.join(' ') + ' ' : '') + 'Each column is the median price at that rating.' + (P.priced.length < 40 ? ' With only a few wines at some ratings, the medians will move a lot as you taste more.' : '');
+  var foot = [priceInsight(P)].concat(P.notes).filter(Boolean).join(' ') + ' Each column is the median price at that rating.' + (P.priced.length < 20 ? ' With so few wines, the medians will move as you taste more.' : '');
   return card('db-wide', 'Price by your rating', 'What the wines you rated cost', leg + g + '<p class="db-sub">' + foot + '</p>');
 }
 
@@ -764,7 +789,8 @@ function dashPdf() {
       for (var sc = Math.ceil(clo / stp) * stp; sc <= chi; sc += stp) { font('n', 6, DP.muted); txt(String(sc), CX(sc), ay2 + 2, { align: 'center' }); }
       font('n', 6, DP.muted); txt('critics’ average score · gold tick = average for that level', (cx0 + cx1) / 2, ay2 + 10, { align: 'center' });
       var ms = lv.slice().reverse().filter(function (l) { return mn[QLEVELS.indexOf(l)]; }).map(function (l) { var a = mn[QLEVELS.indexOf(l)]; return l + ' ' + (a.reduce(function (x, y) { return x + y; }, 0) / a.length).toFixed(1); });
-      note(P, 'Averages: ' + ms.join(', ') + '.', ay2 + 20, 6.4);
+      var ci = cp.reduce(function (t, o) { var d = o.q - critLevel(o.c); if (!d) t[0]++; else if (d > 0) t[1]++; else t[2]++; return t; }, [0, 0, 0]);
+      note(P, 'Averages: ' + ms.join(', ') + '. Against critics\u2019 points (85\u201389 Good, 90\u201394 Very Good, 95+ Outstanding) you agreed on ' + ci[0] + ' of ' + cp.length + ', rated higher on ' + ci[1] + ', lower on ' + ci[2] + '.', ay2 + 20, 6.2);
     } else note(P, 'Fills in once three wines have both your quality call and a critic’s score.', P.y + 8);
     P = panel(M + w6a + 8, y6, w6b, h6, 'Price by your rating', 'What the wines you rated cost');
     var PD = priceData(W);
@@ -795,4 +821,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.78';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.79';
