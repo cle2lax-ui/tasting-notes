@@ -314,15 +314,12 @@ function regionInsight(B) {
     if (ex.length < 3 && ex.indexOf(t) < 0 && !ex.some(function (e) { return e.indexOf(' for ' + g.label) > 0; })) ex.push(t); });
   // with the grape right, where did the region still miss, and where were those wines from?
   var gMiss = gr.filter(function (o) { return o.r === 0; }), gMissTb = gMiss.filter(function (o) { return textbookHome(o.w.gGrape, o.w.gRegion) === true; });
-  var out = [];
-  if (tb.length >= Math.max(4, rows.length * 0.5)) {
-    out.push('Your region follows your grape: on ' + (tb.length === rows.length ? 'every one of your ' + rows.length + ' wines' : tb.length + ' of ' + rows.length + ' wines') + ' you named the textbook home of the grape you guessed' + (ex.length ? ' (' + ex.join(', ') + ')' : '') + '.');
-    out.push('So the region rises and falls with the grape: ' + half(sum(gr)) + ' region point' + (sum(gr) === 1 ? '' : 's') + ' from the ' + gr.length + ' wine' + (gr.length === 1 ? '' : 's') + ' where the grape was right, ' + half(sum(gx)) + ' from the ' + gx.length + ' where it wasn’t.');
-  } else out.push('Region: ' + half(sum(rows.map(function (o) { return o; }))) + ' of ' + rows.length + '. With the grape right you scored ' + half(sum(gr)) + ' of ' + gr.length + '; with it wrong, ' + half(sum(gx)) + ' of ' + gx.length + '.');
-  if (gMissTb.length) {
-    var where = gMissTb.slice(0, 3).map(function (o) { return String(o.w.aRegion || '').split(/[,(]/)[0].trim() + ' (you said ' + String(o.w.gRegion).split(/[,(]/)[0].trim() + ')'; });
-    out.push('Even with the grape right, ' + (gMissTb.length === 1 ? 'one wine' : gMissTb.length + ' wines') + ' came from beyond the classic region: ' + andList(where) + '. Once the grape is set, let the structure place it: riper and rounder than the benchmark points to a warmer site, leaner and sharper to a cooler one.');
-  }
+  var out = [], ex1 = ex.length ? ' (' + ex[0] + ')' : '';
+  if (tb.length >= Math.max(4, rows.length * 0.5))
+    out.push('Your region follows your grape: on ' + (tb.length === rows.length ? 'all ' + rows.length : tb.length + ' of ' + rows.length) + ' wines you named its textbook home' + ex1 + '.');
+  out.push('Grape right: ' + half(sum(gr)) + ' region point' + (sum(gr) === 1 ? '' : 's') + ' from ' + gr.length + ' wine' + (gr.length === 1 ? '' : 's') + '; grape wrong: ' + half(sum(gx)) + ' from ' + gx.length + '.');
+  if (gMissTb.length) { var o0 = gMissTb[gMissTb.length - 1];
+    out.push((gMissTb.length === 1 ? 'One right-grape wine' : (['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][gMissTb.length] || gMissTb.length) + ' right-grape wines') + ' came from beyond the classic region, e.g. ' + String(o0.w.aRegion || '').split(/[,(]/)[0].trim() + ' (you said ' + String(o0.w.gRegion).split(/[,(]/)[0].trim() + ').'); }
   return out.join(' ');
 }
 function accuracy(B) {
@@ -786,4 +783,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.76';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.77';
