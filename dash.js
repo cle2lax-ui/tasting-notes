@@ -284,6 +284,47 @@ function kpis(W, B) {
     tile('Median bottle', md !== null ? money(Math.round(md)) : '–', pr.length ? money(Math.min.apply(null, pr)) + ' to ' + money(Math.max.apply(null, pr)) + ' · ' + pr.length + ' priced' : 'No prices yet') + '</div>';
 }
 
+/* ---- why region points slip. Each answer scores on its own, but the region guess tends to follow the grape guess:
+   tasters name the grape's textbook home. This finds that pattern and says where the wines really came from. */
+var G_HOME = {
+  'syrah': ['barossa', 'northern rhone', 'hermitage', 'crozes', 'cornas', 'cote rotie', 'saint joseph', 'mclaren vale'], 'grenache': ['chateauneuf', 'southern rhone', 'priorat', 'barossa', 'gigondas', 'cotes du rhone'],
+  'fam:gsm': ['chateauneuf', 'southern rhone', 'cotes du rhone', 'gigondas', 'barossa', 'mclaren vale'], 'nebbiolo': ['barolo', 'barbaresco', 'langhe', 'piedmont', 'roero'],
+  'tempranillo': ['rioja', 'ribera', 'toro'], 'fam:rioja': ['rioja'], 'chenin blanc': ['vouvray', 'savennieres', 'loire', 'stellenbosch', 'swartland', 'anjou'],
+  'melon blanc': ['muscadet'], 'chardonnay': ['burgundy', 'chablis', 'cote de beaune', 'meursault', 'puligny', 'montrachet', 'napa', 'sonoma', 'macon', 'pouilly fuisse', 'margaret river'],
+  'sauvignon blanc': ['sancerre', 'pouilly fume', 'marlborough', 'loire', 'napa', 'touraine'], 'pinot noir': ['burgundy', 'cote de nuits', 'cote de beaune', 'willamette', 'central otago', 'russian river', 'sonoma', 'martinborough'],
+  'merlot': ['right bank', 'pomerol', 'saint emilion', 'st emilion'], 'cabernet sauvignon': ['napa', 'medoc', 'pauillac', 'margaux', 'left bank', 'coonawarra', 'maipo'], 'fam:bdx': ['bordeaux', 'medoc', 'left bank', 'right bank', 'pauillac', 'margaux'],
+  'malbec': ['mendoza', 'cahors', 'uco'], 'xinomavro': ['naoussa', 'naossa'], 'muscat': ['rutherglen', 'alsace', 'beaumes de venise'], 'riesling': ['mosel', 'rheingau', 'clare', 'eden', 'alsace', 'wachau'],
+  'gewurztraminer': ['alsace'], 'viognier': ['condrieu'], 'sangiovese': ['chianti', 'montalcino', 'brunello', 'montepulciano', 'tuscany'], 'zinfandel': ['sonoma', 'lodi', 'dry creek', 'paso robles'],
+  'pinotage': ['stellenbosch'], 'assyrtiko': ['santorini'], 'gruner veltliner': ['wachau', 'kamptal', 'kremstal'], 'albarino': ['rias baixas'], 'torrontes': ['salta', 'cafayate'],
+  'carmenere': ['colchagua', 'rapel'], 'barbera': ['barbera d asti', 'barbera d alba', 'piedmont'], 'gamay': ['beaujolais', 'fleurie', 'morgon'], 'pinot gris': ['alsace', 'willamette'],
+  'fam:bdxw': ['bordeaux', 'graves', 'pessac', 'sauternes'], 'fam:champ': ['champagne'], 'fam:stus': ['bolgheri', 'tuscany', 'toscana']
+};
+function textbookHome(grapeRaw, regionRaw) {                              // is this region guess the classic home of the grape guessed with it?
+  var g = grapeGroup(grapeRaw); if (!g || !String(regionRaw || '').trim()) return null;
+  var homes = G_HOME[g.key] || G_HOME[g.profile]; if (!homes) return null;
+  var r = ' ' + gNorm(regionRaw) + ' '; return homes.some(function (h) { return r.indexOf(' ' + h + ' ') >= 0 || r.indexOf(' ' + h) >= 0; });
+}
+function regionInsight(B) {
+  var rows = B.map(function (w) { var p = wPts(w); return { w: w, g: p[0], r: p[2] }; }).filter(function (o) { return o.g !== null && o.r !== null && String(o.w.gRegion || '').trim(); });
+  if (rows.length < 6) return '';
+  var gr = rows.filter(function (o) { return o.g >= 1; }), gx = rows.filter(function (o) { return o.g < 1; });
+  var sum = function (a) { return a.reduce(function (t, o) { return t + o.r; }, 0); };
+  var tb = rows.filter(function (o) { return textbookHome(o.w.gGrape, o.w.gRegion) === true; });
+  var ex = []; tb.forEach(function (o) { var g = grapeGroup(o.w.gGrape), reg = String(o.w.gRegion).split(/[,(]/)[0].trim(); var t = reg + ' for ' + g.label;
+    if (ex.length < 3 && ex.indexOf(t) < 0 && !ex.some(function (e) { return e.indexOf(' for ' + g.label) > 0; })) ex.push(t); });
+  // with the grape right, where did the region still miss, and where were those wines from?
+  var gMiss = gr.filter(function (o) { return o.r === 0; }), gMissTb = gMiss.filter(function (o) { return textbookHome(o.w.gGrape, o.w.gRegion) === true; });
+  var out = [];
+  if (tb.length >= Math.max(4, rows.length * 0.5)) {
+    out.push('Your region follows your grape: on ' + (tb.length === rows.length ? 'every one of your ' + rows.length + ' wines' : tb.length + ' of ' + rows.length + ' wines') + ' you named the textbook home of the grape you guessed' + (ex.length ? ' (' + ex.join(', ') + ')' : '') + '.');
+    out.push('So the region rises and falls with the grape: ' + half(sum(gr)) + ' region point' + (sum(gr) === 1 ? '' : 's') + ' from the ' + gr.length + ' wine' + (gr.length === 1 ? '' : 's') + ' where the grape was right, ' + half(sum(gx)) + ' from the ' + gx.length + ' where it wasn’t.');
+  } else out.push('Region: ' + half(sum(rows.map(function (o) { return o; }))) + ' of ' + rows.length + '. With the grape right you scored ' + half(sum(gr)) + ' of ' + gr.length + '; with it wrong, ' + half(sum(gx)) + ' of ' + gx.length + '.');
+  if (gMissTb.length) {
+    var where = gMissTb.slice(0, 3).map(function (o) { return String(o.w.aRegion || '').split(/[,(]/)[0].trim() + ' (you said ' + String(o.w.gRegion).split(/[,(]/)[0].trim() + ')'; });
+    out.push('Even with the grape right, ' + (gMissTb.length === 1 ? 'one wine' : gMissTb.length + ' wines') + ' came from beyond the classic region: ' + andList(where) + '. Once the grape is set, let the structure place it: riper and rounder than the benchmark points to a warmer site, leaner and sharper to a cooler one.');
+  }
+  return out.join(' ');
+}
 function accuracy(B) {
   var names = ['Grape', 'Country', 'Region', 'Vintage'], s = [0, 0, 0, 0], n = [0, 0, 0, 0];
   B.forEach(function (w) { wPts(w).forEach(function (p, i) { if (p !== null) { s[i] += p; n[i]++; } }); });
@@ -291,12 +332,8 @@ function accuracy(B) {
   var order = [0, 1, 2, 3].sort(function (a, b) { return (n[b] ? s[b] / n[b] : 0) - (n[a] ? s[a] / n[a] : 0); });
   var body = '<div class="db-bars">' + order.map(function (i) { return bar(names[i], n[i] ? s[i] / n[i] : 0, half(s[i]) + ' / ' + n[i] + ' · ' + pct(s[i], n[i]) + '%', i === order[3] ? 'gold' : ''); }).join('') + '</div>';
   var lo = order[3], note = '';
-  if (n[lo] >= 5 && names[lo] === 'Region') {                          // each answer scores on its own; this says where the region points went
-    var cr = 0, crPts = 0, cw = 0;
-    B.forEach(function (w) { var p = wPts(w); if (p[1] === null || p[2] === null) return; if (p[1] >= 1) { cr++; crPts += p[2]; } else cw++; });
-    note = 'Region is the soft spot: ' + half(s[2]) + ' of ' + n[2] + '.' + (cw ? ' On ' + cw + ' of those wines the country was wrong too, which leaves the region little chance.' : '') +
-      (cr ? ' On the ' + cr + ' where you had the country right, you scored ' + half(crPts) + ' for region' + (crPts < cr / 2 ? ', so naming the right region within the country is the next step.' : '.') : '');
-  } else if (n[lo] >= 5) note = names[lo] + ' is the soft spot: ' + half(s[lo]) + ' of ' + n[lo] + ' points.';
+  if (n[lo] >= 5 && names[lo] === 'Region') note = regionInsight(B) || 'Region is the soft spot: ' + half(s[2]) + ' of ' + n[2] + ' points.';
+  else if (n[lo] >= 5) note = names[lo] + ' is the soft spot: ' + half(s[lo]) + ' of ' + n[lo] + ' points.';
   return card('', 'Blind accuracy', 'Where your points come from', body + coach(note));
 }
 
@@ -749,4 +786,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.75';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.76';
