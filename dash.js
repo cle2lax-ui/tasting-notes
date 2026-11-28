@@ -299,9 +299,21 @@ var G_HOME = {
   'carmenere': ['colchagua', 'rapel'], 'barbera': ['barbera d asti', 'barbera d alba', 'piedmont'], 'gamay': ['beaujolais', 'fleurie', 'morgon'], 'pinot gris': ['alsace', 'willamette'],
   'fam:bdxw': ['bordeaux', 'graves', 'pessac', 'sauternes'], 'fam:champ': ['champagne'], 'fam:stus': ['bolgheri', 'tuscany', 'toscana']
 };
-function textbookHome(grapeRaw, regionRaw) {                              // is this region guess the classic home of the grape guessed with it?
+// each grape's true home (where the grape comes from); G_HOME above also counts the famous New World benchmarks (Napa, Barossa…)
+var G_ORIGIN = {
+  'syrah': ['northern rhone', 'hermitage', 'crozes', 'cornas', 'cote rotie', 'saint joseph'], 'grenache': ['chateauneuf', 'southern rhone', 'gigondas', 'cotes du rhone'],
+  'fam:gsm': ['chateauneuf', 'southern rhone', 'cotes du rhone', 'gigondas'], 'nebbiolo': ['barolo', 'barbaresco', 'langhe', 'piedmont', 'roero'], 'tempranillo': ['rioja', 'ribera', 'toro'],
+  'fam:rioja': ['rioja'], 'chenin blanc': ['vouvray', 'savennieres', 'loire', 'anjou'], 'melon blanc': ['muscadet'],
+  'chardonnay': ['burgundy', 'chablis', 'cote de beaune', 'meursault', 'puligny', 'montrachet', 'macon', 'pouilly fuisse'], 'sauvignon blanc': ['sancerre', 'pouilly fume', 'loire', 'touraine'],
+  'pinot noir': ['burgundy', 'cote de nuits', 'cote de beaune'], 'merlot': ['right bank', 'pomerol', 'saint emilion', 'st emilion'], 'cabernet sauvignon': ['medoc', 'pauillac', 'margaux', 'left bank'],
+  'fam:bdx': ['bordeaux', 'medoc', 'left bank', 'right bank', 'pauillac', 'margaux'], 'malbec': ['cahors'], 'xinomavro': ['naoussa', 'naossa'], 'riesling': ['mosel', 'rheingau'],
+  'gewurztraminer': ['alsace'], 'viognier': ['condrieu'], 'sangiovese': ['chianti', 'montalcino', 'brunello', 'montepulciano', 'tuscany'], 'assyrtiko': ['santorini'],
+  'gruner veltliner': ['wachau', 'kamptal', 'kremstal'], 'albarino': ['rias baixas'], 'gamay': ['beaujolais', 'fleurie', 'morgon'], 'barbera': ['barbera d asti', 'barbera d alba', 'piedmont'],
+  'fam:bdxw': ['bordeaux', 'graves', 'pessac', 'sauternes'], 'fam:champ': ['champagne'], 'pinotage': ['stellenbosch'], 'torrontes': ['salta', 'cafayate']
+};
+function textbookHome(grapeRaw, regionRaw, originOnly) {                  // is this region guess a classic region (or, with originOnly, the true home) of the grape guessed with it?
   var g = grapeGroup(grapeRaw); if (!g || !String(regionRaw || '').trim()) return null;
-  var homes = G_HOME[g.key] || G_HOME[g.profile]; if (!homes) return null;
+  var M = originOnly ? G_ORIGIN : G_HOME, homes = M[g.key] || M[g.profile]; if (!homes) return null;
   var r = ' ' + gNorm(regionRaw) + ' '; return homes.some(function (h) { return r.indexOf(' ' + h + ' ') >= 0 || r.indexOf(' ' + h) >= 0; });
 }
 function regionInsight(B) {
@@ -310,16 +322,16 @@ function regionInsight(B) {
   var gr = rows.filter(function (o) { return o.g >= 1; }), gx = rows.filter(function (o) { return o.g < 1; });
   var sum = function (a) { return a.reduce(function (t, o) { return t + o.r; }, 0); };
   var tb = rows.filter(function (o) { return textbookHome(o.w.gGrape, o.w.gRegion) === true; });
-  var ex = []; tb.forEach(function (o) { var g = grapeGroup(o.w.gGrape), reg = String(o.w.gRegion).split(/[,(]/)[0].trim(); var t = reg + ' for ' + g.label;
-    if (ex.length < 3 && ex.indexOf(t) < 0 && !ex.some(function (e) { return e.indexOf(' for ' + g.label) > 0; })) ex.push(t); });
+  // the example: a guess at the grape's true home (Burgundy for Chardonnay, Rioja for Tempranillo), the most recent one
+  var ex = []; tb.slice().reverse().some(function (o) { if (textbookHome(o.w.gGrape, o.w.gRegion, true) !== true) return false; var g = grapeGroup(o.w.gGrape); ex.push(String(o.w.gRegion).split(/[,(]/)[0].trim() + ' for ' + g.label); return true; });
   // with the grape right, where did the region still miss, and where were those wines from?
   var gMiss = gr.filter(function (o) { return o.r === 0; }), gMissTb = gMiss.filter(function (o) { return textbookHome(o.w.gGrape, o.w.gRegion) === true; });
-  var out = [], ex1 = ex.length ? ' (' + ex[0] + ')' : '';
+  var out = [];
   if (tb.length >= Math.max(4, rows.length * 0.5))
-    out.push('Your region follows your grape: on ' + (tb.length === rows.length ? 'all ' + rows.length : tb.length + ' of ' + rows.length) + ' wines you named its textbook home' + ex1 + '.');
+    out.push('Your region follows your grape: on ' + (tb.length === rows.length ? 'all ' + rows.length : tb.length + ' of ' + rows.length) + ' wines you named a classic region for the grape you guessed' + (ex.length ? ' (' + ex[0] + ')' : '') + '.');
   out.push('Grape right: ' + half(sum(gr)) + ' region point' + (sum(gr) === 1 ? '' : 's') + ' from ' + gr.length + ' wine' + (gr.length === 1 ? '' : 's') + '; grape wrong: ' + half(sum(gx)) + ' from ' + gx.length + '.');
   if (gMissTb.length) { var o0 = gMissTb[gMissTb.length - 1];
-    out.push((gMissTb.length === 1 ? 'One right-grape wine' : (['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][gMissTb.length] || gMissTb.length) + ' right-grape wines') + ' came from beyond the classic region, e.g. ' + String(o0.w.aRegion || '').split(/[,(]/)[0].trim() + ' (you said ' + String(o0.w.gRegion).split(/[,(]/)[0].trim() + ').'); }
+    out.push((gMissTb.length === 1 ? 'One right-grape wine' : (['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][gMissTb.length] || gMissTb.length) + ' right-grape wines') + ' were from a different region than the one you named, e.g. ' + String(o0.w.aRegion || '').split(/[,(]/)[0].trim() + ' (you said ' + String(o0.w.gRegion).split(/[,(]/)[0].trim() + ').'); }
   return out.join(' ');
 }
 function accuracy(B) {
@@ -783,4 +795,4 @@ document.addEventListener('click', function (e) {
     readyToShare(blob, 'Tasting Notes dashboard ' + stamp + '.pdf', 'Tasting Notes dashboard', 'Your one-page dashboard PDF is ready. Tap Share to print it, save it to Files, or send it by Messages or Mail.');
   }).catch(function (err) { toast(err.message || 'Could not make the PDF'); });
 });
-/*build*/(window.__V = window.__V || {})['dash'] = 'v2.77';
+/*build*/(window.__V = window.__V || {})['dash'] = 'v2.78';
